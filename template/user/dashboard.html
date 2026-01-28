@@ -1,0 +1,88 @@
+{% extends 'user/base.html' %}
+
+{% block content %}
+
+<!-- DASHBOARD CARDS -->
+<div class="row g-4">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="card-icon text-primary">👤</div>
+                <h5 class="card-title mt-2">My Profile</h5>
+                <p class="card-text">
+                    View and update your personal information.
+                </p>
+                <a href="#" class="btn btn-primary btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="card-icon text-success">📅</div>
+                <h5 class="card-title mt-2">My Bookings</h5>
+                <p class="card-text">
+                    Check booking history and status.
+                </p>
+                <a href="#" class="btn btn-success btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="card-icon text-warning">💳</div>
+                <h5 class="card-title mt-2">Payments</h5>
+                <p class="card-text">
+                    View invoices and payment details.
+                </p>
+                <a href="#" class="btn btn-warning btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="card-icon text-info">🔔</div>
+                <h5 class="card-title mt-2">Notifications</h5>
+                <p class="card-text">
+                    See important alerts and messages.
+                </p>
+                <a href="#" class="btn btn-info btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="card-icon text-secondary">⚙️</div>
+                <h5 class="card-title mt-2">Settings</h5>
+                <p class="card-text">
+                    Manage account preferences.
+                </p>
+                <a href="#" class="btn btn-secondary btn-sm">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="card-icon text-danger">❓</div>
+                <h5 class="card-title mt-2">Support</h5>
+                <p class="card-text">
+                    Need help? Contact support.
+                </p>
+                <a href="#" class="btn btn-danger btn-sm">Contact</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

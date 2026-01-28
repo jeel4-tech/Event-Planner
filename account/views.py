@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from .models import User, Role
-
+from admin_pannel.views import admin_dashboard
+from vendor.views import vendor_dashboard
+from user.views import user_dashboard
 
 # ---------------- REGISTER ----------------
 def register(request):

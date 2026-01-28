@@ -1,0 +1,48 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">Dashboard</h3>
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <i class='bx bx-user fs-1 text-primary'></i>
+                <h6>Total Users</h6>
+                <h4>120</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <i class='bx bx-store fs-1 text-success'></i>
+                <h6>Total Vendors</h6>
+                <h4>45</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <i class='bx bx-calendar-event fs-1 text-warning'></i>
+                <h6>Total Events</h6>
+                <h4>68</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <i class='bx bx-rupee fs-1 text-danger'></i>
+                <h6>Revenue</h6>
+                <h4>₹1,25,000</h4>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,88 +1,72 @@
 {% extends 'user/base.html' %}
 
+{% block title %}User Dashboard{% endblock %}
+
 {% block content %}
 
-<!-- DASHBOARD CARDS -->
-<div class="row g-4">
-
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <div class="card-icon text-primary">👤</div>
-                <h5 class="card-title mt-2">My Profile</h5>
-                <p class="card-text">
-                    View and update your personal information.
-                </p>
-                <a href="#" class="btn btn-primary btn-sm">View</a>
-            </div>
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-primary">Total Events</h5>
+            <h2>42</h2>
+            <p class="text-muted small">+2 from last week</p>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <div class="card-icon text-success">📅</div>
-                <h5 class="card-title mt-2">My Bookings</h5>
-                <p class="card-text">
-                    Check booking history and status.
-                </p>
-                <a href="#" class="btn btn-success btn-sm">View</a>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-success">Active Vendors</h5>
+            <h2>18</h2>
+            <p class="text-muted small">+1 from last week</p>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <div class="card-icon text-warning">💳</div>
-                <h5 class="card-title mt-2">Payments</h5>
-                <p class="card-text">
-                    View invoices and payment details.
-                </p>
-                <a href="#" class="btn btn-warning btn-sm">View</a>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-warning">Pending Requests</h5>
+            <h2>7</h2>
+            <p class="text-muted small">Need approval</p>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <div class="card-icon text-info">🔔</div>
-                <h5 class="card-title mt-2">Notifications</h5>
-                <p class="card-text">
-                    See important alerts and messages.
-                </p>
-                <a href="#" class="btn btn-info btn-sm">View</a>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-info">Upcoming Events</h5>
+            <h2>12</h2>
+            <p class="text-muted small">Next 7 days</p>
         </div>
     </div>
+</div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <div class="card-icon text-secondary">⚙️</div>
-                <h5 class="card-title mt-2">Settings</h5>
-                <p class="card-text">
-                    Manage account preferences.
-                </p>
-                <a href="#" class="btn btn-secondary btn-sm">Open</a>
-            </div>
-        </div>
+<!-- Recent Events Table -->
+<div class="event-card bg-white p-4 shadow-sm rounded">
+    <h4 class="mb-3">Recent Events</h4>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Guests</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Summer Wedding</td>
+                <td>June 15, 2023</td>
+                <td>Wedding</td>
+                <td><span class="badge bg-success">Completed</span></td>
+                <td>150</td>
+                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <div class="card-icon text-danger">❓</div>
-                <h5 class="card-title mt-2">Support</h5>
-                <p class="card-text">
-                    Need help? Contact support.
-                </p>
-                <a href="#" class="btn btn-danger btn-sm">Contact</a>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 {% endblock %}

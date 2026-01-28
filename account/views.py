@@ -44,7 +44,7 @@ def register(request):
 # ---------------- LOGIN ----------------
 def login_view(request):
     if request.method == "POST":
-        email = request.POST.get("email")
+        email = request.POST.get("email").lower()
         password = request.POST.get("password")
 
         try:

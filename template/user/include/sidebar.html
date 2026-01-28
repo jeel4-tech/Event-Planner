@@ -1,21 +1,55 @@
+{% load static %}
 
-</div>
-<div class="sidebar">
-    <h4 class="text-center mb-4">User Panel</h4>
+<div class="col-lg-3 col-xl-2 p-0">
+    <div class="sidebar-container bg-white min-vh-100 border-end">
 
-    <a href="{% url 'user_dashboard' %}" class="d-block px-3 py-2 text-light text-decoration-none">
-        Dashboard
-    </a>
-    <a href="#" class="d-block px-3 py-2 text-light text-decoration-none">
-        My Profile
-    </a>
-    <a href="#" class="d-block px-3 py-2 text-light text-decoration-none">
-        Payments
-    </a>
-    <a href="#" class="d-block px-3 py-2 text-light text-decoration-none">
-        Notifications
-    </a>
-    <a href="{% url 'logout' %}" class="d-block px-3 py-2 text-danger text-decoration-none">
-        Logout
-    </a>
+        <div class="admin-brand p-4 border-bottom">
+            <h3 class="text-primary">
+                <i class="bi bi-calendar-event me-2"></i>{{ APP_NAME }}
+            </h3>
+            <p class="text-muted">User Dashboard</p>
+        </div>
+
+        <div class="p-3">
+            <div class="nav-divider">Navigation</div>
+
+            <a href="{% url 'user_dashboard' %}" class="nav-link-custom active">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+
+            <div class="nav-divider mt-4">Account</div>
+
+            <a href="#  " class="nav-link-custom">
+                <i class="bi bi-person"></i> My Profile
+            </a>
+
+            <a href="#" class="nav-link-custom">
+                <i class="bi bi-credit-card"></i> Payments
+            </a>
+
+            <a href="#" class="nav-link-custom">
+                <i class="bi bi-bell"></i> Notifications
+            </a>
+
+            <a href="#" class="nav-link-custom">
+                <i class="bi bi-calendar-week"></i> My Events
+            </a>
+
+            <div class="nav-divider mt-4">Support</div>
+
+            <a href="#" class="nav-link-custom">
+                <i class="bi bi-chat-left-text"></i> Reviews
+            </a>
+
+            <div class="nav-divider mt-4">Settings</div>
+
+            <a href="#" class="nav-link-custom">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+
+            <a href="{% url 'logout' %}" class="nav-link-custom logout mt-4">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
 </div>

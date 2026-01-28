@@ -1,48 +1,72 @@
-{% extends "admin/base_admin.html" %}
+{% extends 'admin/base_admin.html' %}
+
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<h3 class="mb-4">Dashboard</h3>
 
-<div class="row g-4">
-    <div class="col-md-3">
-        <div class="card shadow text-center">
-            <div class="card-body">
-                <i class='bx bx-user fs-1 text-primary'></i>
-                <h6>Total Users</h6>
-                <h4>120</h4>
-            </div>
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-primary">Total Events</h5>
+            <h2>42</h2>
+            <p class="text-muted small">+2 from last week</p>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow text-center">
-            <div class="card-body">
-                <i class='bx bx-store fs-1 text-success'></i>
-                <h6>Total Vendors</h6>
-                <h4>45</h4>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-success">Active Vendors</h5>
+            <h2>18</h2>
+            <p class="text-muted small">+1 from last week</p>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow text-center">
-            <div class="card-body">
-                <i class='bx bx-calendar-event fs-1 text-warning'></i>
-                <h6>Total Events</h6>
-                <h4>68</h4>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-warning">Pending Requests</h5>
+            <h2>7</h2>
+            <p class="text-muted small">Need approval</p>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow text-center">
-            <div class="card-body">
-                <i class='bx bx-rupee fs-1 text-danger'></i>
-                <h6>Revenue</h6>
-                <h4>₹1,25,000</h4>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="event-card bg-white p-4 shadow-sm rounded">
+            <h5 class="text-info">Upcoming Events</h5>
+            <h2>12</h2>
+            <p class="text-muted small">Next 7 days</p>
         </div>
     </div>
 </div>
+
+<!-- Recent Events Table -->
+<div class="event-card bg-white p-4 shadow-sm rounded">
+    <h4 class="mb-3">Recent Events</h4>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Guests</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Summer Wedding</td>
+                <td>June 15, 2023</td>
+                <td>Wedding</td>
+                <td><span class="badge bg-success">Completed</span></td>
+                <td>150</td>
+                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {% endblock %}

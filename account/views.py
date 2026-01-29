@@ -6,6 +6,8 @@ from admin_pannel.views import admin_dashboard
 from vendor.views import vendor_dashboard
 from user.views import user_dashboard
 
+def landing_page(request):
+    return render(request, "landing_page.html")
 # ---------------- REGISTER ----------------
 def register(request):
     roles = Role.objects.exclude(name__iexact="admin")  # 🚫 hide admin

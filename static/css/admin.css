@@ -1,0 +1,35 @@
+.sidebar-container {
+    min-height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+}
+
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    color: #334155;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-bottom: 4px;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+    background-color: #ede9fe;
+    color: #8b5cf6;
+}
+
+.nav-divider {
+    font-size: 12px;
+    color: #64748b;
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+}
+
+.event-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}

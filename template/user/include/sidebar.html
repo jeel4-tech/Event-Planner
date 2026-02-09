@@ -19,9 +19,13 @@
 
             <div class="nav-divider mt-4">Account</div>
 
-            <a href="#  " class="nav-link-custom">
-                <i class="bi bi-person"></i> My Profile
-            </a>
+  <a href="{% url 'user_profile' %}"
+   class="nav-link-custom {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}">
+    <i class="bi bi-person"></i>
+    <span>My Profile</span>
+</a>
+
+
 
             <a href="#" class="nav-link-custom">
                 <i class="bi bi-credit-card"></i> Payments

@@ -9,23 +9,23 @@
     <div class="col-md-3 mb-3">
         <div class="event-card bg-white p-4 shadow-sm rounded">
             <h5 class="text-primary">Total Events</h5>
-            <h2>42</h2>
-            <p class="text-muted small">+2 from last week</p>
+            <h2>{{ total_events }}</h2>
+            <p class="text-muted small">&nbsp;</p>
         </div>
     </div>
 
     <div class="col-md-3 mb-3">
         <div class="event-card bg-white p-4 shadow-sm rounded">
             <h5 class="text-success">Active Vendors</h5>
-            <h2>18</h2>
-            <p class="text-muted small">+1 from last week</p>
+            <h2>{{ active_vendors }}</h2>
+            <p class="text-muted small">&nbsp;</p>
         </div>
     </div>
 
     <div class="col-md-3 mb-3">
         <div class="event-card bg-white p-4 shadow-sm rounded">
             <h5 class="text-warning">Pending Requests</h5>
-            <h2>7</h2>
+            <h2>{{ pending_requests }}</h2>
             <p class="text-muted small">Need approval</p>
         </div>
     </div>
@@ -33,7 +33,7 @@
     <div class="col-md-3 mb-3">
         <div class="event-card bg-white p-4 shadow-sm rounded">
             <h5 class="text-info">Upcoming Events</h5>
-            <h2>12</h2>
+            <h2>{{ upcoming_events }}</h2>
             <p class="text-muted small">Next 7 days</p>
         </div>
     </div>
@@ -56,14 +56,30 @@
             </tr>
             </thead>
             <tbody>
+            {% for event in recent_events %}
             <tr>
-                <td>Summer Wedding</td>
-                <td>June 15, 2023</td>
-                <td>Wedding</td>
-                <td><span class="badge bg-success">Completed</span></td>
-                <td>150</td>
-                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                <td>{{ event.title }}</td>
+                <td>{{ event.date|date:"F j, Y" }}</td>
+                <td>{{ event.get_event_type_display }}</td>
+                <td>
+                    {% if event.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif event.status == 'confirmed' %}
+                        <span class="badge bg-primary">Confirmed</span>
+                    {% elif event.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ event.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ event.guests }}</td>
+                <td><a class="btn btn-sm btn-outline-primary" href="#">View</a></td>
             </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-muted">No events yet.</td>
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>

@@ -1,0 +1,15 @@
+{% extends 'user/base.html' %}
+
+{% block content %}
+<h2>Make Payment</h2>
+
+<p><strong>Event:</strong> {{ event.title }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <label>Amount:</label>
+    <input type="number" name="amount" required>
+    <br><br>
+    <button type="submit" class="btn btn-primary">Pay Now</button>
+</form>
+{% endblock %}

@@ -1,3 +1,104 @@
 from django.db import models
+from django.conf import settings
 
-# Create your models here.
+
+class Profile(models.Model):
+    user = models.OneToOneField('account.User', on_delete=models.CASCADE)
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return str(self.user)
+
+
+class Event(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_CONFIRMED = 'confirmed'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CANCELLED = 'cancelled'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_CONFIRMED, 'Confirmed'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+
+    TYPE_WEDDING = 'wedding'
+    TYPE_CONFERENCE = 'conference'
+    TYPE_PARTY = 'party'
+    TYPE_OTHER = 'other'
+
+    TYPE_CHOICES = [
+        (TYPE_WEDDING, 'Wedding'),
+        (TYPE_CONFERENCE, 'Conference'),
+        (TYPE_PARTY, 'Party'),
+        (TYPE_OTHER, 'Other'),
+    ]
+
+    owner = models.ForeignKey('account.User', on_delete=models.CASCADE, related_name='events')
+    title = models.CharField(max_length=200)
+    date = models.DateTimeField()
+    event_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default=TYPE_OTHER)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    guests = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.owner})"
+
+
+class Payment(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_SUCCESS = 'success'
+    STATUS_FAILED = 'failed'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_SUCCESS, 'Success'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    user = models.ForeignKey('account.User', on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    payment_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.event.title}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        'account.User',
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+    
+class Review(models.Model):
+    user = models.ForeignKey(
+        'account.User',
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    rating = models.PositiveIntegerField()  # 1–5
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.event.title}"

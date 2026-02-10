@@ -59,3 +59,11 @@ def manage_vendors(request):
     return render(request, 'admin/manage_vendor.html', {
         'vendors': vendors
     })
+
+@check_admin_session
+def manage_guest(request):
+    guests = User.objects.filter(role__name__iexact='guest')
+
+    return render(request, 'admin/manage_guest.html', {
+        'guests': guests
+    })

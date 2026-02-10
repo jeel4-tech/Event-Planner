@@ -4,7 +4,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from .models import User, Role
 from admin_pannel.views import admin_dashboard
 from vendor.views import vendor_dashboard
-from user.views import user_dashboard
+from guest.views import guest_dashboard
 
 def landing_page(request):
     return render(request, "landing_page.html")
@@ -61,8 +61,10 @@ def login_view(request):
                     return redirect("admin_dashboard")
                 elif user.role.name.lower() == "vendor":
                     return redirect("vendor_dashboard")
+                elif user.role.name.lower() == "guest":
+                    return redirect("guest_dashboard")
                 else:
-                    return redirect("user_dashboard")
+                    return redirect('/user/')
             else:
                 messages.error(request, "Invalid password")
 

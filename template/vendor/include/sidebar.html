@@ -12,6 +12,77 @@
 
         <div class="p-3">
             <div class="nav-divider">Navigation</div>
+<div class="p-3 border-bottom">
+    <button 
+        class="btn btn-primary w-100 fw-bold"
+        data-bs-toggle="modal"
+        data-bs-target="#vendorProfileModal">
+        <i class="bi bi-person-circle me-2"></i>
+        Your Profile
+    </button>
+</div>
+<!-- Vendor Profile Modal -->
+<div class="modal fade" id="vendorProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-person-badge me-2"></i>
+                    Edit Your Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Business Name</label>
+                        <input type="text" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Vendor Type</label>
+                        <select class="form-select">
+                            <option>Event Planner</option>
+                            <option>Caterer</option>
+                            <option>Decorator</option>
+                            <option>Photographer</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                Client Feedback (⭐ out of 5)
+                            </label>
+                            <input type="number" min="1" max="5" class="form-control">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                Number of Services
+                            </label>
+                            <input type="number" class="form-control">
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button class="btn btn-primary fw-bold">
+                    Save Changes
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
             <a href="{% url 'vendor_dashboard' %}" class="nav-link-custom active">
                 <i class="bi bi-speedometer2"></i> Dashboard

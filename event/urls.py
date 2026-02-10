@@ -23,5 +23,5 @@ urlpatterns = [
     path('admin/',include('admin_pannel.urls')),
     path('user/', include(("user.urls", "user"), namespace='user')),
     path('vendor/',include('vendor.urls')),
-    
+    path('guest/',include('guest.urls')),
 ]

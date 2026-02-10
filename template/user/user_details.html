@@ -1,0 +1,86 @@
+{% extends 'user/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- Page Title -->
+            <h4 class="mb-4">My Profile</h4>
+
+            <!-- Profile Table -->
+            <table class="table table-bordered">
+
+                <!-- Personal Information -->
+                <tr>
+                    <th>Full Name</th>
+                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                </tr>
+
+                <tr>
+                    <th>Email</th>
+                    <td>{{ user.email }}</td>
+                </tr>
+
+                <tr>
+                    <th>Username</th>
+                    <td>{{ user.username }}</td>
+                </tr>
+
+                <!-- Extra Profile Fields -->
+                <tr>
+                    <th>Phone Number</th>
+                    <td>{{ profile.phone|default:"Not Updated" }}</td>
+                </tr>
+
+                <tr>
+                    <th>Address</th>
+                    <td>{{ profile.address|default:"Not Updated" }}</td>
+                </tr>
+
+                <!-- Role (if you have role model) -->
+                {% if user.role %}
+                <tr>
+                    <th>Role</th>
+                    <td>{{ user.role.name }}</td>
+                </tr>
+                {% endif %}
+
+                <!-- Account Information -->
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        {% if profile.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Joined On</th>
+                    <td>{{ user.date_joined|date:"d M Y" }}</td>
+                </tr>
+
+                <tr>
+                    <th>Last Login</th>
+                    <td>{{ user.last_login|date:"d M Y, h:i A" }}</td>
+                </tr>
+
+            </table>
+
+            <!-- Action Buttons -->
+            <div class="mt-3">
+                <a href="#" class="btn btn-primary">Edit Profile</a>
+                <a href="#" class="btn btn-secondary">Change Password</a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,410 @@
+<!-- edit_profile.html -->
+{% extends 'user/base.html' %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="fw-bold text-primary mb-1">Edit Profile</h1>
+                    <p class="text-muted mb-0">Update your personal information</p>
+                </div>
+                <a href="{% url 'user:user_details' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="row">
+        <div class="col-lg-8">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="mb-0 text-primary">
+                        <i class="fas fa-user-edit me-2"></i>Personal Details
+                    </h4>
+                </div>
+                <form id="editProfileForm" method="POST" novalidate>
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <!-- Full Name -->
+                        <div class="mb-4">
+                            <label for="fullname" class="form-label fw-semibold">
+                                <i class="fas fa-user me-1"></i>Full Name
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user text-muted"></i>
+                                </span>
+                                <input type="text"
+                                       id="fullname"
+                                       name="fullname"
+                                       value="{{ user.fullname }}"
+                                       class="form-control"
+                                       placeholder="Enter your full name"
+                                       required>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">Minimum 3 characters required</small>
+                                <div class="validation-feedback text-danger small" id="nameFeedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-semibold">
+                                <i class="fas fa-envelope me-1"></i>Email Address
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-envelope text-muted"></i>
+                                </span>
+                                <input type="email"
+                                       id="email"
+                                       name="email"
+                                       value="{{ user.email }}"
+                                       class="form-control"
+                                       placeholder="Enter your email address"
+                                       required>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">We'll never share your email with anyone else</small>
+                                <div class="validation-feedback text-danger small" id="emailFeedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Mobile -->
+                        <div class="mb-4">
+                            <label for="mobile" class="form-label fw-semibold">
+                                <i class="fas fa-mobile-alt me-1"></i>Mobile Number
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    +91
+                                </span>
+                                <input type="text"
+                                       id="mobile"
+                                       name="mobile"
+                                       value="{{ user.mobile|default:'' }}"
+                                       class="form-control"
+                                       placeholder="Enter 10-digit mobile number"
+                                       maxlength="10">
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">Optional - 10 digits without country code</small>
+                                <div class="validation-feedback text-danger small" id="mobileFeedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Validation Summary -->
+                        <div class="alert alert-warning d-none" id="validationSummary">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="summaryMessage"></span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-0 py-3">
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{% url 'user:user_details' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tips Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-lightbulb me-2"></i>Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex">
+                                <i class="fas fa-check text-success me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">Keep Information Updated</h6>
+                                    <p class="text-muted small mb-0">Ensure your contact details are current for important notifications.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex">
+                                <i class="fas fa-check text-success me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">Email Verification</h6>
+                                    <p class="text-muted small mb-0">Changing your email may require verification.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-eye me-2"></i>Preview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-circle-sm bg-primary text-white d-inline-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h6 id="previewName" class="mb-1">{{ user.fullname }}</h6>
+                        <p id="previewEmail" class="text-muted small mb-1">{{ user.email }}</p>
+                        <p id="previewMobile" class="text-muted small mb-0">
+                            {% if user.mobile %}+91 {{ user.mobile }}{% else %}No mobile number{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle-sm {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.input-group-text {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus + .input-group-text {
+    border-color: #667eea;
+    background-color: #e3e6f0;
+}
+
+.validation-feedback {
+    min-height: 20px;
+}
+
+.card {
+    border-radius: 15px;
+}
+
+.list-group-item {
+    background: transparent;
+}
+</style>
+
+<!-- Live Validation Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editProfileForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const previewName = document.getElementById('previewName');
+    const previewEmail = document.getElementById('previewEmail');
+    const previewMobile = document.getElementById('previewMobile');
+    const validationSummary = document.getElementById('validationSummary');
+    const summaryMessage = document.getElementById('summaryMessage');
+
+    // Input elements
+    const nameInput = document.getElementById('fullname');
+    const emailInput = document.getElementById('email');
+    const mobileInput = document.getElementById('mobile');
+
+    // Feedback elements
+    const nameFeedback = document.getElementById('nameFeedback');
+    const emailFeedback = document.getElementById('emailFeedback');
+    const mobileFeedback = document.getElementById('mobileFeedback');
+
+    // Validation rules
+    const validationRules = {
+        fullname: {
+            minLength: 3,
+            maxLength: 100,
+            pattern: /^[a-zA-Z\s]*$/,
+            message: 'Name should contain only letters and spaces'
+        },
+        email: {
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Please enter a valid email address'
+        },
+        mobile: {
+            pattern: /^\d{10}$/,
+            message: 'Mobile number must be exactly 10 digits',
+            optional: true
+        }
+    };
+
+    // Live validation on input
+    nameInput.addEventListener('input', function() {
+        validateField('fullname', this.value);
+        previewName.textContent = this.value || '{{ user.fullname }}';
+    });
+
+    emailInput.addEventListener('input', function() {
+        validateField('email', this.value);
+        previewEmail.textContent = this.value || '{{ user.email }}';
+    });
+
+    mobileInput.addEventListener('input', function() {
+        validateField('mobile', this.value);
+        previewMobile.textContent = this.value ? '+91 ' + this.value : 'No mobile number';
+    });
+
+    // Validate individual field
+    function validateField(fieldName, value) {
+        const rules = validationRules[fieldName];
+        let isValid = true;
+        let message = '';
+
+        if (!rules.optional || value.trim() !== '') {
+            if (fieldName === 'fullname') {
+                if (value.trim().length < rules.minLength) {
+                    isValid = false;
+                    message = `Name must be at least ${rules.minLength} characters`;
+                } else if (value.trim().length > rules.maxLength) {
+                    isValid = false;
+                    message = `Name must not exceed ${rules.maxLength} characters`;
+                } else if (!rules.pattern.test(value.trim())) {
+                    isValid = false;
+                    message = rules.message;
+                }
+            } else if (fieldName === 'email') {
+                if (!rules.pattern.test(value.trim())) {
+                    isValid = false;
+                    message = rules.message;
+                }
+            } else if (fieldName === 'mobile') {
+                if (value.trim() !== '' && !rules.pattern.test(value.trim())) {
+                    isValid = false;
+                    message = rules.message;
+                }
+            }
+        }
+
+        // Update UI
+        const inputElement = document.getElementById(fieldName);
+        const feedbackElement = document.getElementById(fieldName + 'Feedback');
+        
+        if (isValid) {
+            inputElement.classList.remove('is-invalid');
+            inputElement.classList.add('is-valid');
+            feedbackElement.textContent = '';
+        } else {
+            inputElement.classList.remove('is-valid');
+            inputElement.classList.add('is-invalid');
+            feedbackElement.textContent = message;
+        }
+
+        return isValid;
+    }
+
+    // Validate all fields
+    function validateAll() {
+        let isValid = true;
+        let errors = [];
+
+        if (!validateField('fullname', nameInput.value)) {
+            isValid = false;
+            errors.push('Full name is invalid');
+        }
+
+        if (!validateField('email', emailInput.value)) {
+            isValid = false;
+            errors.push('Email is invalid');
+        }
+
+        if (!validateField('mobile', mobileInput.value)) {
+            isValid = false;
+            errors.push('Mobile number is invalid');
+        }
+
+        // Show/hide validation summary
+        if (!isValid) {
+            validationSummary.classList.remove('d-none');
+            summaryMessage.textContent = 'Please fix the following errors: ' + errors.join(', ');
+        } else {
+            validationSummary.classList.add('d-none');
+        }
+
+        return isValid;
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (validateAll()) {
+            // Show loading state
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            submitBtn.disabled = true;
+            
+            // Submit form
+            this.submit();
+        } else {
+            // Scroll to first error
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    // Real-time validation as user types
+    [nameInput, emailInput, mobileInput].forEach(input => {
+        input.addEventListener('blur', function() {
+            const fieldName = this.id;
+            validateField(fieldName, this.value);
+        });
+    });
+
+    // Debounced validation for better performance
+    let timeout;
+    [nameInput, emailInput, mobileInput].forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(timeout);
+            const fieldName = this.id;
+            const value = this.value;
+            
+            timeout = setTimeout(() => {
+                validateField(fieldName, value);
+                validateAll(); // Update validation summary
+            }, 500);
+        });
+    });
+
+    // Initialize validation
+    validateField('fullname', nameInput.value);
+    validateField('email', emailInput.value);
+    validateField('mobile', mobileInput.value);
+});
+</script>
+{% endblock %}

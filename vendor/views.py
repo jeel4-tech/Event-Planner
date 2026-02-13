@@ -12,7 +12,7 @@ def vendor_dashboard(request):
         return redirect('login')
 
     # 🔹 fetch vendor details
-    vendor = User.objects.get(id=user_id)
+    vendor = User.objects.get(id=user_id)   
 
     return render(request, 'vendor/dashboard.html', {
         'vendor': vendor

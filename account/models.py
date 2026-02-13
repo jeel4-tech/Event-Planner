@@ -14,6 +14,9 @@ class User(models.Model):
     mobile = models.CharField(max_length=15, unique=True, null=True, blank=True)
     
     password = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=False)   # ✅ added
+    email_verified = models.BooleanField(default=False)
+
     
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 

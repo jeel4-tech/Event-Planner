@@ -3,7 +3,8 @@ from .models import Notification, Profile, Event, Payment, Review
 from django.utils import timezone
 from datetime import timedelta
 from account.models import User
-
+import re
+from django.contrib import messages
 
 # ✅ USER DASHBOARD
 def user_dashboard(request):
@@ -43,13 +44,7 @@ def user_dashboard(request):
         'recent_events': recent_events,
     })
 
-
-# ✅ USER DETAILS PAGE (VIEW ONLY)
-def user_details(request):
-    """
-    Separate page only to VIEW user details.
-    Works with Django auth or session-based login.
-    """
+def edit_profile(request):
     user_id = request.session.get('user_id')
     if not user_id:
         return redirect('/login/')
@@ -60,14 +55,46 @@ def user_details(request):
         request.session.flush()
         return redirect('/login/')
 
-    profile, created = Profile.objects.get_or_create(user=user)
+    if request.method == "POST":
+        fullname = request.POST.get("fullname", "").strip()
+        email = request.POST.get("email", "").strip()
+        mobile = request.POST.get("mobile", "").strip()
 
-    return render(request, 'user/user_details.html', {
-        'user': user,
-        'profile': profile
-    })
+        # 🔴 BACKEND VALIDATIONS
+        if not fullname:
+            messages.error(request, "Full name is required")
+        elif len(fullname) < 3:
+            messages.error(request, "Full name must be at least 3 characters")
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            messages.error(request, "Enter a valid email address")
+        elif mobile and not mobile.isdigit():
+            messages.error(request, "Mobile number must contain only digits")
+        elif mobile and len(mobile) != 10:
+            messages.error(request, "Mobile number must be 10 digits")
+        else:
+            user.fullname = fullname
+            user.email = email
+            user.mobile = mobile
+            user.save()
+
+            messages.success(request, "Profile updated successfully")
+            return redirect('user:user_details')
+
+    return render(request, 'user/edit_profile.html', {'user': user})
 
 
+def user_details(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('/login/')
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        request.session.flush()
+        return redirect('/login/')
+
+    return render(request, 'user/user_details.html', {'user': user})
 # ✅ USER PAYMENT LIS
 
 def user_payments(request):

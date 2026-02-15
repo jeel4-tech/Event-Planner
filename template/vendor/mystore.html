@@ -1,0 +1,85 @@
+{% extends "vendor/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+<div class="card shadow">
+<div class="card-header bg-primary text-white">
+<h5>My Store</h5>
+</div>
+
+<div class="card-body">
+
+<form method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+
+<div class="mb-3">
+<label>Store Name</label>
+<input type="text" name="store_name"
+value="{{ store.store_name }}"
+class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label>Category</label>
+<select name="category" class="form-control" required>
+
+<option value="">Select Category</option>
+
+{% for cat in categories %}
+<option value="{{ cat.id }}"
+{% if store.category.id == cat.id %}selected{% endif %}>
+{{ cat.name }}
+</option>
+{% endfor %}
+
+</select>
+</div>
+
+<div class="mb-3">
+<label>Description</label>
+<textarea name="description"
+class="form-control">{{ store.description }}</textarea>
+</div>
+
+<div class="mb-3">
+<label>City</label>
+<input type="text" name="city"
+value="{{ store.city }}"
+class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Address</label>
+<textarea name="address"
+class="form-control">{{ store.address }}</textarea>
+</div>
+
+<div class="mb-3">
+<label>Starting Price</label>
+<input type="number" name="price_start"
+value="{{ store.price_start }}"
+class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Store Image</label>
+<input type="file" name="profile_image" class="form-control">
+</div>
+
+{% if store.profile_image %}
+<img src="{{ store.profile_image.url }}" width="120" class="mb-3">
+{% endif %}
+
+<button class="btn btn-success">
+Save Store
+</button>
+
+</form>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "vendor/base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Edit Profile</h3>
+        <p class="text-muted mb-0">Update your personal information</p>
+    </div>
+    <a href="{% url 'vendor_dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card-box">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" name="fullname" class="form-control" value="{{ vendor.fullname }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ vendor.email }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ vendor.mobile|default_if_none:'' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Business Logo</label>
+                    <input type="file" name="business_logo" class="form-control" accept="image/*">
+                    {% if vendor.business_logo %}
+                    <div class="mt-2">
+                        <img src="{{ vendor.business_logo.url }}" alt="logo" style="max-width:120px;border-radius:8px;">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <input type="text" class="form-control" value="{{ vendor.role.name }}" disabled>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i> Save Changes
+                    </button>
+                    <a href="{% url 'vendor_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

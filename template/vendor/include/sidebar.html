@@ -1,134 +1,79 @@
 {% load static %}
 
 <div class="col-lg-3 col-xl-2 p-0">
-    <div class="sidebar-container bg-white min-vh-100 border-end">
-
-        <div class="admin-brand p-4 border-bottom">
-            <h3 class="text-primary">
+    <div class="sidebar-container">
+        <div class="admin-brand">
+            <h3>
                 <i class="bi bi-calendar-event me-2"></i>{{ APP_NAME }}
             </h3>
-            <p class="text-muted">Vendor Dashboard</p>
+            <p>Vendor Dashboard</p>
         </div>
 
         <div class="p-3">
-            <div class="nav-divider">Navigation</div>
-<div class="p-3 border-bottom">
-    <button 
-        class="btn btn-primary w-100 fw-bold"
-        data-bs-toggle="modal"
-        data-bs-target="#vendorProfileModal">
-        <i class="bi bi-person-circle me-2"></i>
-        Your Profile
-    </button>
-</div>
-<!-- Vendor Profile Modal -->
-<div class="modal fade" id="vendorProfileModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-person-badge me-2"></i>
-                    Edit Your Profile
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="p-3 border-bottom mb-3">
+                <a href="{% url 'vendor_profile' %}" class="btn btn-primary w-100 fw-bold">
+                    <i class="bi bi-person-circle me-2"></i>
+                    Your Profile
+                </a>
             </div>
 
-            <div class="modal-body">
-                <form>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Business Name</label>
-                        <input type="text" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Vendor Type</label>
-                        <select class="form-select">
-                            <option>Event Planner</option>
-                            <option>Caterer</option>
-                            <option>Decorator</option>
-                            <option>Photographer</option>
-                        </select>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">
-                                Client Feedback (⭐ out of 5)
-                            </label>
-                            <input type="number" min="1" max="5" class="form-control">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">
-                                Number of Services
-                            </label>
-                            <input type="number" class="form-control">
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">
-                    Cancel
-                </button>
-                <button class="btn btn-primary fw-bold">
-                    Save Changes
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-            <a href="{% url 'vendor_dashboard' %}" class="nav-link-custom active">
+            <a href="{% url 'vendor_dashboard' %}" class="nav-link-custom">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
 
-            <div class="nav-divider mt-4">Business</div>
+            <div class="nav-divider">Business</div>
 
             <a href="{% url 'vendor_store' %}" class="nav-link-custom">
                 <i class="bi bi-shop"></i> My Store
             </a>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_services' %}" class="nav-link-custom">
                 <i class="bi bi-list-check"></i> Services
             </a>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_orders' %}" class="nav-link-custom">
                 <i class="bi bi-receipt"></i> Orders
             </a>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_events' %}" class="nav-link-custom">
                 <i class="bi bi-calendar-week"></i> Events
             </a>
 
-            <div class="nav-divider mt-4">Finance</div>
+            <a href="{% url 'vendor_gallery' %}" class="nav-link-custom">
+                <i class="bi bi-images"></i> Gallery
+            </a>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_chat' %}" class="nav-link-custom">
+                <i class="bi bi-chat-dots"></i> Chat
+            </a>
+
+            <div class="nav-divider">Finance</div>
+
+            <a href="{% url 'vendor_earnings' %}" class="nav-link-custom">
                 <i class="bi bi-cash-stack"></i> Earnings
             </a>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_payments' %}" class="nav-link-custom">
                 <i class="bi bi-credit-card"></i> Payments
             </a>
 
-            <div class="nav-divider mt-4">Support</div>
+            <div class="nav-divider">Support</div>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_reviews' %}" class="nav-link-custom">
                 <i class="bi bi-chat-left-text"></i> Reviews
             </a>
 
-            <div class="nav-divider mt-4">Settings</div>
+            <div class="nav-divider">Settings</div>
 
-            <a href="#" class="nav-link-custom">
+            <a href="{% url 'vendor_settings' %}" class="nav-link-custom">
                 <i class="bi bi-gear"></i> Settings
             </a>
 
-            <a href="{% url 'logout' %}" class="nav-link-custom logout mt-4">
+            <a href="{% url 'change_password' %}" class="nav-link-custom">
+                <i class="bi bi-key"></i> Change Password
+            </a>
+
+            <a href="{% url 'logout' %}" class="nav-link-custom logout">
                 <i class="bi bi-box-arrow-right"></i> Logout
             </a>
         </div>

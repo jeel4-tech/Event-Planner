@@ -1,9 +1,26 @@
 from pathlib import Path
 from django.urls import path
-from .views import vendor_dashboard, vendor_store
+from .views import (
+    vendor_dashboard, vendor_store, vendor_services, delete_service,
+    vendor_orders, vendor_events, vendor_earnings, vendor_payments,
+    vendor_reviews, vendor_settings, vendor_profile, vendor_gallery,
+    vendor_chat, vendor_chat_detail, change_password
+)
 
 urlpatterns = [
     path('', vendor_dashboard, name='vendor_dashboard'),
     path('store/', vendor_store, name='vendor_store'),
+    path('services/', vendor_services, name='vendor_services'),
+    path('services/delete/<int:service_id>/', delete_service, name='delete_service'),
+    path('orders/', vendor_orders, name='vendor_orders'),
+    path('events/', vendor_events, name='vendor_events'),
+    path('gallery/', vendor_gallery, name='vendor_gallery'),
+    path('chat/', vendor_chat, name='vendor_chat'),
+    path('chat/<int:chat_id>/', vendor_chat_detail, name='vendor_chat_detail'),
+    path('earnings/', vendor_earnings, name='vendor_earnings'),
+    path('payments/', vendor_payments, name='vendor_payments'),
+    path('reviews/', vendor_reviews, name='vendor_reviews'),
+    path('settings/', vendor_settings, name='vendor_settings'),
+    path('profile/', vendor_profile, name='vendor_profile'),
+    path('change-password/', change_password, name='change_password'),
 ]
-    

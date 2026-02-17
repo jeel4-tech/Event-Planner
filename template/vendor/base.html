@@ -5,77 +5,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard{% endblock %}</title>
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>{% block title %}Vendor Dashboard{% endblock %} - {{ APP_NAME }}</title>
+    
     <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-
-    {% block styles %}
-    <style>
-        :root {
-            --primary-color: #8b5cf6;
-            --primary-light: #ede9fe;
-            --secondary-color: #10b981;
-            --border-color: #e2e8f0;
-            --text-color: #334155;
-            --text-light: #64748b;
-        }
-        body {
-            background-color: #f9fafb;
-            font-family: 'Segoe UI', system-ui;
-            color: var(--text-color);
-        }
-    </style>
-    {% endblock %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Vendor CSS -->
+    <link rel="stylesheet" href="{% static 'css/vendor.css' %}">
+    
+    {% block styles %}{% endblock %}
 </head>
-
 <body>
-    <!-- Bootstrap JS (for modal) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            {% include 'vendor/include/sidebar.html' %}
 
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- Sidebar -->
-        {% include 'vendor/include/sidebar.html' %}
-
-        <!-- Main Content -->
-        <div class="col-lg-9 col-xl-10">
-            {% include 'vendor/include/header.html' %}
-            <div class="main-content p-4">
-                {% block content %}{% endblock %}
+            <!-- Main Content -->
+            <div class="col-lg-9 col-xl-10">
+                {% include 'vendor/include/header.html' %}
+                <div class="main-content fade-in">
+                    {% block content %}{% endblock %}
+                </div>
             </div>
         </div>
-
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (for some interactions) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const navLinks = document.querySelectorAll('.nav-link-custom:not(.logout)');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function () {
-            navLinks.forEach(item => item.classList.remove('active'));
-            this.classList.add('active');
+    {% block scripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Active navigation link
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-link-custom:not(.logout)');
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPath || currentPath.includes(link.getAttribute('href'))) {
+                link.classList.add('active');
+            }
+            link.addEventListener('click', function () {
+                navLinks.forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+            });
         });
     });
-});
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}
 </body>
 </html>

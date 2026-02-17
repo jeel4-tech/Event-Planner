@@ -1,0 +1,131 @@
+{% extends "vendor/base.html" %}
+{% block title %}Orders & Bookings{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Orders & Bookings</h3>
+        <p class="text-muted mb-0">Manage all your customer bookings</p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'vendor_orders' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">All</a>
+        <a href="{% url 'vendor_orders' %}?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+        <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn btn-outline-success {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
+        <a href="{% url 'vendor_orders' %}?status=in_progress" class="btn btn-outline-info {% if status_filter == 'in_progress' %}active{% endif %}">In Progress</a>
+        <a href="{% url 'vendor_orders' %}?status=completed" class="btn btn-outline-primary {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card-box">
+    {% if bookings %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Event</th>
+                    <th>Store</th>
+                    <th>Service</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td><strong>#{{ booking.id }}</strong></td>
+                    <td>
+                        <strong>{{ booking.event.title }}</strong><br>
+                        <small class="text-muted">{{ booking.event.date|date:"M d, Y" }}</small>
+                    </td>
+                    <td>{{ booking.store.store_name }}</td>
+                    <td>
+                        {% if booking.service %}
+                            {{ booking.service.name }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <i class="bi bi-person me-1"></i>{{ booking.customer.fullname }}
+                    </td>
+                    <td><strong class="text-success">₹{{ booking.amount }}</strong></td>
+                    <td>
+                        {% if booking.booking_date %}
+                            {{ booking.booking_date|date:"M d, Y" }}
+                        {% else %}
+                            {{ booking.created_at|date:"M d, Y" }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'confirmed' %}success{% elif booking.status == 'in_progress' %}info{% elif booking.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            {% if booking.status == 'pending' %}
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this booking?')" title="Approve Booking">
+                                    <i class="bi bi-check-circle"></i> Approve
+                                </button>
+                            </form>
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject this booking?')" title="Reject Booking">
+                                    <i class="bi bi-x-circle"></i> Reject
+                                </button>
+                            </form>
+                            {% elif booking.status == 'confirmed' or booking.status == 'in_progress' %}
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                <input type="hidden" name="action" value="complete">
+                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Mark this booking as completed?')">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% if booking.notes %}
+                <tr>
+                    <td colspan="9" class="text-muted small bg-light">
+                        <i class="bi bi-info-circle me-1"></i> <strong>Notes:</strong> {{ booking.notes }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+        <h5 class="text-muted mt-3">No bookings found</h5>
+        <p class="text-muted">Bookings will appear here once customers make orders.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

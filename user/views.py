@@ -3,6 +3,7 @@ from .models import Notification, Profile, Event, Payment, Review
 from django.utils import timezone
 from datetime import timedelta
 from account.models import User
+from vendor.models import Service
 import re
 from django.contrib import messages
 
@@ -235,4 +236,12 @@ def user_reviews(request):
 
     return render(request, 'user/reviews.html', {
         'reviews': reviews
+    })
+
+
+def services_list(request):
+    """Public list of active services for users to browse."""
+    services = Service.objects.filter(is_active=True).select_related('store')
+    return render(request, 'user/services_list.html', {
+        'services': services
     })

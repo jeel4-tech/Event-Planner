@@ -1,90 +1,252 @@
 {% extends "vendor/base.html" %}
-{% block title %}Vendor Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
 
-<div class="row g-4">
-
-    <div class="col-md-4">
-        <div class="card-box">
-            <h6>Total Events 1000+</h6>
-            <h2>0</h2>
+<!-- Statistics Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon primary">
+                <i class="bi bi-shop"></i>
+            </div>
+            <h6>Total Stores</h6>
+            <h2>{{ total_stores }}</h2>
+            <small class="text-muted">Active stores</small>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card-box">
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon success">
+                <i class="bi bi-list-check"></i>
+            </div>
+            <h6>Total Services</h6>
+            <h2>{{ total_services }}</h2>
+            <small class="text-muted">Available services</small>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon warning">
+                <i class="bi bi-receipt"></i>
+            </div>
             <h6>Total Bookings</h6>
-            <h2>0</h2>
+            <h2>{{ total_bookings }}</h2>
+            <small class="text-muted">All time bookings</small>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon info">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <h6>Total Earnings</h6>
+            <h2>₹{{ total_earnings|floatformat:0 }}</h2>
+            <small class="text-muted">Total revenue</small>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card-box">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="mb-0">Pending Bookings</h6>
+                <span class="badge bg-warning">{{ pending_bookings }}</span>
+            </div>
+            <h3 class="text-warning mb-2">{{ pending_bookings }}</h3>
+            <a href="{% url 'vendor_orders' %}?status=pending" class="btn btn-sm btn-outline-warning">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
     </div>
 
     <div class="col-md-4">
         <div class="card-box">
-            <h6>Total Earnings</h6>
-            <h2>₹0</h2>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="mb-0">Confirmed Bookings</h6>
+                <span class="badge bg-success">{{ confirmed_bookings }}</span>
+            </div>
+            <h3 class="text-success mb-2">{{ confirmed_bookings }}</h3>
+            <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn btn-sm btn-outline-success">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
     </div>
 
+    <div class="col-md-4">
+        <div class="card-box">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="mb-0">Pending Earnings</h6>
+                <span class="badge bg-info">Pending</span>
+            </div>
+            <h3 class="text-info mb-2">₹{{ pending_earnings|floatformat:0 }}</h3>
+            <a href="{% url 'vendor_earnings' %}?status=pending" class="btn btn-sm btn-outline-info">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
 </div>
 
 <!-- Recent Activity -->
-<div class="mt-5">
-    <div class="card-box">
-        <h5>Recent Activity</h5>
-        <p class="text-muted">No activity yet.</p>
-    </div><!-- QUICK ACTIONS -->
-<div class="mt-5">
-
-    <h5 class="mb-4 text-center">Quick Actions</h5>
-
-    <div class="row g-4 justify-content-center">
-
-        <!-- Card 1 -->
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-            <div class="card text-white bg-primary text-center h-100">
-                <div class="card-body">
-                    <h6 class="card-title">Create Event</h6>
-                    <p class="card-text">Add new event</p>
-                </div>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card-box">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Recent Bookings</h5>
+                <a href="{% url 'vendor_orders' %}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-            <div class="card text-white bg-success text-center h-100">
-                <div class="card-body">
-                    <h6 class="card-title">My Services</h6>
-                    <p class="card-text">Manage services</p>
+            {% if recent_bookings %}
+                <div class="list-group list-group-flush">
+                    {% for booking in recent_bookings %}
+                    <div class="list-group-item px-0 border-0 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ booking.store.store_name }}</h6>
+                                <p class="mb-1 small text-muted">{{ booking.event.title }}</p>
+                                <p class="mb-0 small">
+                                    <i class="bi bi-person me-1"></i>{{ booking.customer.fullname }}
+                                    <span class="ms-3"><i class="bi bi-currency-rupee me-1"></i>{{ booking.amount }}</span>
+                                </p>
+                            </div>
+                            <span class="badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'confirmed' %}success{% elif booking.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-            </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-            <div class="card text-dark bg-warning text-center h-100">
-                <div class="card-body">
-                    <h6 class="card-title">Orders</h6>
-                    <p class="card-text">View bookings</p>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                    <p class="text-muted mt-3">No bookings yet</p>
                 </div>
-            </div>
+            {% endif %}
         </div>
-
-        <!-- Card 4 -->
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-            <div class="card text-white bg-danger text-center h-100">
-                <div class="card-body">
-                    <h6 class="card-title">Earnings</h6>
-                    <p class="card-text">Track payments</p>
-                </div>
-            </div>
-        </div>
-
     </div>
 
+    <div class="col-lg-6">
+        <div class="card-box">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Upcoming Events</h5>
+                <a href="{% url 'vendor_events' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            {% if upcoming_bookings %}
+                <div class="list-group list-group-flush">
+                    {% for booking in upcoming_bookings %}
+                    <div class="list-group-item px-0 border-0 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ booking.event.title }}</h6>
+                                <p class="mb-1 small text-muted">{{ booking.store.store_name }}</p>
+                                <p class="mb-0 small">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    {% if booking.booking_date %}
+                                        {{ booking.booking_date|date:"M d, Y" }}
+                                    {% else %}
+                                        {{ booking.event.date|date:"M d, Y" }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <span class="badge bg-success">{{ booking.get_status_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                    <p class="text-muted mt-3">No upcoming events</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
+<!-- Recent Reviews -->
+{% if recent_reviews %}
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card-box">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Recent Reviews</h5>
+                <a href="{% url 'vendor_reviews' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="row g-3">
+                {% for review in recent_reviews %}
+                <div class="col-md-6">
+                    <div class="border rounded p-3 bg-light">
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong>{{ review.user.fullname }}</strong>
+                            <div>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    {% else %}
+                                        <i class="bi bi-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="mb-1 small text-muted">{{ review.event.title }}</p>
+                        <p class="mb-0">{{ review.comment|truncatewords:20 }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
+<!-- Quick Actions -->
+<div class="mt-5">
+    <h5 class="mb-4 text-center">Quick Actions</h5>
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'vendor_store' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-shop fs-1 mb-3"></i>
+                    <h6 class="card-title">My Store</h6>
+                    <p class="card-text small">Manage your stores</p>
+                </div>
+            </a>
+        </div>
 
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'vendor_services' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-list-check fs-1 mb-3"></i>
+                    <h6 class="card-title">Services</h6>
+                    <p class="card-text small">Manage services</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'vendor_orders' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-receipt fs-1 mb-3"></i>
+                    <h6 class="card-title">Orders</h6>
+                    <p class="card-text small">View bookings</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'vendor_earnings' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-cash-stack fs-1 mb-3"></i>
+                    <h6 class="card-title">Earnings</h6>
+                    <p class="card-text small">Track payments</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

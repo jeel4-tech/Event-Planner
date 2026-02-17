@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from account.models import User
-from user.models import Event, Payment, Review
+from user.models import Event, Payment, Review, Notification
 from vendor.models import (
     Store, category as Category, Service, Booking, VendorEarning, StoreImage,
     Chat, ChatMessage
@@ -263,10 +263,25 @@ def vendor_orders(request):
             if action == 'confirm':
                 booking.status = Booking.STATUS_CONFIRMED
                 booking.save()
+                Notification.objects.create(
+                    user=booking.customer,
+                    title='Booking Approved',
+                    message=f'Your booking for {booking.store.store_name} has been approved.',
+                    is_read=False
+                )
                 messages.success(request, 'Booking confirmed!')
             elif action == 'cancel':
                 booking.status = Booking.STATUS_CANCELLED
                 booking.save()
+                try:
+                    Notification.objects.create(
+                        user=booking.customer,
+                        title='Booking Rejected',
+                        message=f'Your booking for {booking.store.store_name} was cancelled by the vendor.',
+                        is_read=False
+                    )
+                except Exception:
+                    pass
                 messages.success(request, 'Booking cancelled!')
             elif action == 'complete':
                 booking.status = Booking.STATUS_COMPLETED
@@ -567,4 +582,27 @@ def vendor_gallery(request):
         'stores': stores,
         'images_by_store': images_by_store,
         'vendor': vendor,
+    })
+
+
+def store_detail(request, store_id):
+    """Public store detail page for users to view a store and its services."""
+    try:
+        store = Store.objects.select_related('category', 'vendor').get(id=store_id, status=True)
+    except Store.DoesNotExist:
+        return render(request, 'user/404.html', status=404)
+
+    services = Service.objects.filter(store_id=store_id, is_active=True)
+
+    return render(request, 'user/store_detail.html', {
+        'store': store,
+        'services': services,
+    })
+
+
+def stores_list(request):
+    """Public listing of all active stores for users."""
+    stores = Store.objects.filter(status=True).select_related('vendor', 'category').order_by('store_name')
+    return render(request, 'user/stores_list.html', {
+        'stores': stores,
     })

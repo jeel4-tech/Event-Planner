@@ -6,10 +6,13 @@ from .views import (
     vendor_reviews, vendor_settings, vendor_profile, vendor_gallery,
     vendor_chat, vendor_chat_detail, change_password
 )
+from .views import store_detail, stores_list
 
 urlpatterns = [
     path('', vendor_dashboard, name='vendor_dashboard'),
     path('store/', vendor_store, name='vendor_store'),
+    path('store/<int:store_id>/', store_detail, name='store_detail'),
+    path('stores/', stores_list, name='stores_list'),
     path('services/', vendor_services, name='vendor_services'),
     path('services/delete/<int:service_id>/', delete_service, name='delete_service'),
     path('orders/', vendor_orders, name='vendor_orders'),

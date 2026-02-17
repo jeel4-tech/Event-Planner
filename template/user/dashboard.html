@@ -1,88 +1,151 @@
 {% extends 'user/base.html' %}
-
-{% block title %}User Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-
-<!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-primary">Total Events</h5>
+<!-- Statistics Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon primary">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <h6>Total Events</h6>
             <h2>{{ total_events }}</h2>
-            <p class="text-muted small">&nbsp;</p>
+            <small class="text-muted">Your events</small>
         </div>
     </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-success">Active Vendors</h5>
-            <h2>{{ active_vendors }}</h2>
-            <p class="text-muted small">&nbsp;</p>
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon success">
+                <i class="bi bi-journal-check"></i>
+            </div>
+            <h6>My Bookings</h6>
+            <h2>{{ total_bookings }}</h2>
+            <small class="text-muted"><a href="{% url 'user:user_bookings' %}">View all</a></small>
         </div>
     </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-warning">Pending Requests</h5>
-            <h2>{{ pending_requests }}</h2>
-            <p class="text-muted small">Need approval</p>
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon warning">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <h6>Pending Bookings</h6>
+            <h2>{{ pending_bookings }}</h2>
+            <small class="text-muted">Awaiting vendor</small>
         </div>
     </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-info">Upcoming Events</h5>
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-card-icon info">
+                <i class="bi bi-calendar-week"></i>
+            </div>
+            <h6>Upcoming Events</h6>
             <h2>{{ upcoming_events }}</h2>
-            <p class="text-muted small">Next 7 days</p>
+            <small class="text-muted">Next events</small>
         </div>
     </div>
 </div>
 
-<!-- Recent Events Table -->
-<div class="event-card bg-white p-4 shadow-sm rounded">
-    <h4 class="mb-3">Recent Events</h4>
-
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Guests</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for event in recent_events %}
-            <tr>
-                <td>{{ event.title }}</td>
-                <td>{{ event.date|date:"F j, Y" }}</td>
-                <td>{{ event.get_event_type_display }}</td>
-                <td>
-                    {% if event.status == 'completed' %}
-                        <span class="badge bg-success">Completed</span>
-                    {% elif event.status == 'confirmed' %}
-                        <span class="badge bg-primary">Confirmed</span>
-                    {% elif event.status == 'pending' %}
-                        <span class="badge bg-warning text-dark">Pending</span>
-                    {% else %}
-                        <span class="badge bg-secondary">{{ event.status }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ event.guests }}</td>
-                <td><a class="btn btn-sm btn-outline-primary" href="#">View</a></td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-muted">No events yet.</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+<!-- Secondary Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card-box">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Recent Bookings</h5>
+                <a href="{% url 'user:user_bookings' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            {% if recent_bookings %}
+            <div class="list-group list-group-flush">
+                {% for b in recent_bookings %}
+                <div class="list-group-item px-0 border-0 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ b.store.store_name }}</h6>
+                            <p class="mb-0 small text-muted">{{ b.event.title }} · ₹{{ b.amount }}</p>
+                        </div>
+                        <span class="badge bg-{% if b.status == 'pending' %}warning text-dark{% elif b.status == 'confirmed' %}primary{% elif b.status == 'completed' %}success{% else %}secondary{% endif %}">{{ b.status|title }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No bookings yet. <a href="{% url 'user:stores_list' %}">Browse vendors</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-box">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Recent Events</h5>
+                <a href="{% url 'user:user_events' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            {% if recent_events %}
+            <div class="list-group list-group-flush">
+                {% for event in recent_events %}
+                <div class="list-group-item px-0 border-0 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ event.title }}</h6>
+                            <p class="mb-0 small text-muted">{{ event.date|date:"M d, Y" }} · {{ event.get_event_type_display }}</p>
+                        </div>
+                        <span class="badge bg-{% if event.status == 'pending' %}warning text-dark{% elif event.status == 'confirmed' %}primary{% elif event.status == 'completed' %}success{% else %}secondary{% endif %}">{{ event.status|title }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No events yet. <a href="{% url 'user:event_create' %}">Create one</a></p>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
+<!-- Quick Actions -->
+<div class="mt-5">
+    <h5 class="mb-4 text-center">Quick Actions</h5>
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'user:event_create' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-calendar-plus fs-1 mb-3"></i>
+                    <h6 class="card-title">Create Event</h6>
+                    <p class="card-text small">Add new event</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'user:stores_list' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-shop fs-1 mb-3"></i>
+                    <h6 class="card-title">Browse Vendors</h6>
+                    <p class="card-text small">Find stores & services</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'user:user_bookings' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-journal-check fs-1 mb-3"></i>
+                    <h6 class="card-title">My Bookings</h6>
+                    <p class="card-text small">View booking status</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <a href="{% url 'user:user_payments' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-credit-card fs-1 mb-3"></i>
+                    <h6 class="card-title">Payments</h6>
+                    <p class="card-text small">Payment history</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Browse Vendors{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1"><i class="bi bi-shop me-2"></i> Browse Vendors</h3>
+        <p class="text-muted mb-0">Find stores and services for your event</p>
+    </div>
+</div>
+
+<!-- Filter & Search -->
+<div class="card-box mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select">
+                <option value="">All categories</option>
+                {% for c in categories %}
+                <option value="{{ c.id }}" {% if category_id|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Search</label>
+            <input type="text" name="search" class="form-control" placeholder="Store name, city, description..." value="{{ search }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> Search</button>
+            <a href="{% url 'user:stores_list' %}" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="row g-4">
+    {% for store in stores %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'user:store_detail' store.id %}" class="text-decoration-none text-dark">
+        <div class="card h-100 card-box">
+            {% if store.profile_image %}
+            <img src="{{ store.profile_image.url }}" class="card-img-top" alt="{{ store.store_name }}" style="height: 180px; object-fit: cover;" onerror="this.onerror=null;this.src='{% static "images/placeholder.svg" %}';">
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                <i class="bi bi-shop fs-1 text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ store.store_name }}</h5>
+                <p class="card-text small text-muted">{{ store.city }} • {{ store.category.name }}</p>
+                <p class="card-text small">{{ store.description|truncatechars:100 }}</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0 d-flex justify-content-between align-items-center">
+                <small class="text-primary fw-semibold">From ₹{{ store.price_start }}</small>
+                <small class="text-muted">By {{ store.vendor.fullname }}</small>
+            </div>
+        </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card-box text-center py-5">
+            <i class="bi bi-shop-window fs-1 text-muted"></i>
+            <p class="mt-3 mb-0 text-muted">No stores match your search. Try changing filters.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

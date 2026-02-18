@@ -2,15 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from .models import User, Role
-from admin_pannel.views import admin_dashboard
-from vendor.views import vendor_dashboard
-from guest.views import guest_dashboard
+# Note: dashboards are routed by URL name via redirects; no need to import view funcs.
 
 def landing_page(request):
     return render(request, "landing_page.html")
 # ---------------- REGISTER ----------------
 def register(request):
-    roles = Role.objects.exclude(name__iexact="admin")  # 🚫 hide admin
+    # 🚫 hide admin + guest (guest module not used)
+    roles = Role.objects.exclude(name__iexact="admin").exclude(name__iexact="guest")
 
     if request.method == "POST":
         fullname = request.POST.get("fullname")
@@ -61,8 +60,6 @@ def login_view(request):
                     return redirect("admin_dashboard")
                 elif user.role.name.lower() == "vendor":
                     return redirect("vendor_dashboard")
-                elif user.role.name.lower() == "guest":
-                    return redirect("guest_dashboard")
                 else:
                     return redirect('/user/')
             else:

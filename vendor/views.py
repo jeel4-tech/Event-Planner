@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
+from django.contrib.auth.hashers import make_password, check_password
 from account.models import User
 from user.models import Event, Payment, Review, Notification
 from vendor.models import (
@@ -182,7 +183,6 @@ def vendor_services(request):
         name = request.POST.get('name')
         description = request.POST.get('description')
         price = request.POST.get('price')
-        duration = request.POST.get('duration')
         image = request.FILES.get('image')
         is_active = request.POST.get('is_active') == 'on'
         
@@ -199,7 +199,6 @@ def vendor_services(request):
                 service.name = name
                 service.description = description
                 service.price = price
-                service.duration = duration
                 service.is_active = is_active
                 if image:
                     service.image = image
@@ -213,7 +212,6 @@ def vendor_services(request):
                 name=name,
                 description=description,
                 price=price,
-                duration=duration,
                 image=image,
                 is_active=is_active
             )
@@ -260,7 +258,7 @@ def vendor_orders(request):
         try:
             booking = bookings.get(id=booking_id)
             
-            if action == 'confirm':
+            if action in ('confirm', 'approve'):
                 booking.status = Booking.STATUS_CONFIRMED
                 booking.save()
                 Notification.objects.create(
@@ -270,7 +268,7 @@ def vendor_orders(request):
                     is_read=False
                 )
                 messages.success(request, 'Booking confirmed!')
-            elif action == 'cancel':
+            elif action in ('cancel', 'reject'):
                 booking.status = Booking.STATUS_CANCELLED
                 booking.save()
                 try:
@@ -286,6 +284,15 @@ def vendor_orders(request):
             elif action == 'complete':
                 booking.status = Booking.STATUS_COMPLETED
                 booking.save()
+                try:
+                    Notification.objects.create(
+                        user=booking.customer,
+                        title='Booking Completed',
+                        message=f'Your booking for {booking.store.store_name} has been marked completed.',
+                        is_read=False
+                    )
+                except Exception:
+                    pass
                 # Create earning record if not exists
                 if not hasattr(booking, 'earning'):
                     commission_rate = Decimal('10.00')  # 10% platform commission
@@ -363,6 +370,16 @@ def vendor_chat_detail(request, chat_id):
                 sender=vendor,
                 message=message_text
             )
+            # Notify user about new vendor message
+            try:
+                Notification.objects.create(
+                    user=chat.user,
+                    title='New Message',
+                    message=f'New message from {vendor.fullname}.',
+                    is_read=False,
+                )
+            except Exception:
+                pass
         return redirect('vendor_chat_detail', chat.id)
 
     # Mark other user's unread messages as read
@@ -373,6 +390,69 @@ def vendor_chat_detail(request, chat_id):
     return render(request, 'vendor/chat_detail.html', {
         'chat': chat,
         'messages': messages_qs,
+        'vendor': vendor,
+    })
+
+
+@vendor_required
+def vendor_open_chat_for_booking(request, booking_id):
+    """Create or open chat between vendor and customer for a booking."""
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+
+    booking = get_object_or_404(Booking, id=booking_id, vendor_id=vendor_id)
+
+    # Try to get existing chat or create one
+    chat, created = Chat.objects.get_or_create(
+        user=booking.customer,
+        vendor=vendor,
+        defaults={'store': booking.store}
+    )
+
+    # If chat exists but store not set, set it
+    if not created and chat.store is None:
+        chat.store = booking.store
+        chat.save()
+
+    return redirect('vendor_chat_detail', chat.id)
+
+
+@vendor_required
+def vendor_add_extra(request, booking_id):
+    """Vendor can add extra charges (title, description, amount) to a booking."""
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+
+    booking = get_object_or_404(Booking, id=booking_id, vendor_id=vendor_id)
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        amount = request.POST.get('amount')
+
+        if not title or not amount:
+            messages.error(request, 'Title and amount are required')
+            return redirect('vendor_add_extra', booking_id=booking_id)
+
+        try:
+            amount_dec = Decimal(amount)
+        except Exception:
+            messages.error(request, 'Invalid amount')
+            return redirect('vendor_add_extra', booking_id=booking_id)
+
+        from .models import ExtraCharge
+        ExtraCharge.objects.create(
+            booking=booking,
+            title=title,
+            description=description or '',
+            amount=amount_dec,
+            created_by=vendor
+        )
+        messages.success(request, 'Extra charge added to booking')
+        return redirect('vendor_orders')
+
+    return render(request, 'vendor/add_extra.html', {
+        'booking': booking,
         'vendor': vendor,
     })
 
@@ -389,12 +469,12 @@ def change_password(request):
 
         if not old or not new or not confirm:
             messages.error(request, 'All fields are required')
-        elif old != (vendor.password or ''):
+        elif not check_password(old, vendor.password or ''):
             messages.error(request, 'Current password is incorrect')
         elif new != confirm:
             messages.error(request, 'New passwords do not match')
         else:
-            vendor.password = new
+            vendor.password = make_password(new)
             vendor.save()
             messages.success(request, 'Password changed successfully')
             return redirect('vendor_settings')

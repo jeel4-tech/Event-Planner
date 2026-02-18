@@ -47,6 +47,7 @@
                             {% endif %}
                         </td>
                         <td>
+                            <a href="{% url 'user:event_detail' event.id %}" class="btn btn-sm btn-outline-secondary">View</a>
                             <a href="{% url 'user:event_edit' event.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
                             {% if event.status == 'completed' and event.id not in reviewed_event_ids %}
                             <a href="{% url 'user:review_create' event.id %}" class="btn btn-sm btn-outline-success">Give Review</a>

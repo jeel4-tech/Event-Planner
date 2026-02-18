@@ -16,6 +16,9 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Shared App CSS -->
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
     <!-- Custom Vendor CSS -->
     <link rel="stylesheet" href="{% static 'css/vendor.css' %}">
     
@@ -43,23 +46,6 @@
     <!-- jQuery (for some interactions) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    {% block scripts %}
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Active navigation link
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.nav-link-custom:not(.logout)');
-        navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPath || currentPath.includes(link.getAttribute('href'))) {
-                link.classList.add('active');
-            }
-            link.addEventListener('click', function () {
-                navLinks.forEach(item => item.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-    });
-    </script>
-    {% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

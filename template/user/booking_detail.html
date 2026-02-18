@@ -1,0 +1,130 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Booking #{{ booking.id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h3 class="page-title mb-0"><i class="bi bi-journal-check me-2"></i>Booking #{{ booking.id }}</h3>
+    <p class="page-subtitle mb-0">Track your booking and status</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'user:user_bookings' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-2"></i>Back
+    </a>
+    <a href="{% url 'user:start_chat' booking.store.id %}" class="btn btn-outline-primary">
+      <i class="bi bi-chat-dots me-2"></i>Chat vendor
+    </a>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card-box">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <div class="text-muted small">Store</div>
+          <div class="fw-semibold">
+            <a href="{% url 'user:store_detail' booking.store.id %}">{{ booking.store.store_name }}</a>
+          </div>
+          <div class="text-muted small">Vendor: {{ booking.vendor.fullname }}</div>
+        </div>
+        <div>
+          {% if booking.status == 'pending' %}
+            <span class="badge bg-warning text-dark">Pending</span>
+          {% elif booking.status == 'confirmed' %}
+            <span class="badge bg-primary">Confirmed</span>
+          {% elif booking.status == 'in_progress' %}
+            <span class="badge bg-info text-dark">In progress</span>
+          {% elif booking.status == 'completed' %}
+            <span class="badge bg-success">Completed</span>
+          {% else %}
+            <span class="badge bg-secondary">Cancelled</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="p-3 rounded bg-light border">
+            <div class="text-muted small">Event</div>
+            <div class="fw-semibold">
+              <a href="{% url 'user:event_detail' booking.event.id %}">{{ booking.event.title }}</a>
+            </div>
+            <div class="text-muted small mt-1"><i class="bi bi-calendar3 me-1"></i>{{ booking.event.date|date:"M d, Y, h:i A" }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded bg-light border">
+            <div class="text-muted small">Service</div>
+            <div class="fw-semibold">{% if booking.service %}{{ booking.service.name }}{% else %}General / Custom{% endif %}</div>
+            <div class="text-muted small mt-1"><i class="bi bi-currency-rupee me-1"></i>₹{{ booking.amount }}</div>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="p-3 rounded bg-light border">
+            <div class="text-muted small">Notes / Requirements</div>
+            <div class="fw-semibold">{% if booking.notes %}{{ booking.notes }}{% else %}—{% endif %}</div>
+          </div>
+        </div>
+          {% if booking.extras.all %}
+          <div class="col-md-12">
+            <div class="p-3 rounded bg-light border mt-2">
+              <div class="text-muted small">Additional charges / Add-ons</div>
+              <ul class="mb-0">
+                {% for ex in booking.extras.all %}
+                <li>
+                  <strong>{{ ex.title }}</strong> — ₹{{ ex.amount }}
+                  {% if ex.description %}<div class="small text-muted">{{ ex.description }}</div>{% endif %}
+                </li>
+                {% empty %}
+                <li class="small text-muted">No extra charges</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+      </div>
+
+      {% if booking.status == 'pending' %}
+      <div class="mt-3">
+        <form method="post" class="d-inline" onsubmit="return confirm('Cancel this booking?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="cancel">
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-x-circle me-2"></i>Cancel booking
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-box">
+      <h6 class="mb-2">Next steps</h6>
+      <ul class="text-muted small mb-3">
+        <li>Vendor will confirm your booking.</li>
+        <li>You can chat to discuss requirements.</li>
+        <li>You can pay from the event page if needed.</li>
+      </ul>
+      <a href="{% url 'user:make_payment' booking.event.id %}" class="btn btn-primary w-100">
+        <i class="bi bi-credit-card me-2"></i>Make payment
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

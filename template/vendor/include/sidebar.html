@@ -17,59 +17,59 @@
                 </a>
             </div>
 
-            <a href="{% url 'vendor_dashboard' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_dashboard' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
 
             <div class="nav-divider">Business</div>
 
-            <a href="{% url 'vendor_store' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_store' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_store' %}active{% endif %}">
                 <i class="bi bi-shop"></i> My Store
             </a>
 
-            <a href="{% url 'vendor_services' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_services' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_services' %}active{% endif %}">
                 <i class="bi bi-list-check"></i> Services
             </a>
 
-            <a href="{% url 'vendor_orders' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_orders' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_orders' %}active{% endif %}">
                 <i class="bi bi-receipt"></i> Orders
             </a>
 
-            <a href="{% url 'vendor_events' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_events' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_events' %}active{% endif %}">
                 <i class="bi bi-calendar-week"></i> Events
             </a>
 
-            <a href="{% url 'vendor_gallery' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_gallery' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_gallery' %}active{% endif %}">
                 <i class="bi bi-images"></i> Gallery
             </a>
 
-            <a href="{% url 'vendor_chat' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_chat' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'vendor_chat vendor_chat_detail' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> Chat
             </a>
 
             <div class="nav-divider">Finance</div>
 
-            <a href="{% url 'vendor_earnings' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_earnings' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_earnings' %}active{% endif %}">
                 <i class="bi bi-cash-stack"></i> Earnings
             </a>
 
-            <a href="{% url 'vendor_payments' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_payments' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_payments' %}active{% endif %}">
                 <i class="bi bi-credit-card"></i> Payments
             </a>
 
             <div class="nav-divider">Support</div>
 
-            <a href="{% url 'vendor_reviews' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_reviews' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_reviews' %}active{% endif %}">
                 <i class="bi bi-chat-left-text"></i> Reviews
             </a>
 
             <div class="nav-divider">Settings</div>
 
-            <a href="{% url 'vendor_settings' %}" class="nav-link-custom">
+            <a href="{% url 'vendor_settings' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_settings' %}active{% endif %}">
                 <i class="bi bi-gear"></i> Settings
             </a>
 
-            <a href="{% url 'change_password' %}" class="nav-link-custom">
+            <a href="{% url 'change_password' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
                 <i class="bi bi-key"></i> Change Password
             </a>
 

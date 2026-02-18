@@ -99,6 +99,35 @@
         </div>
 
         <div class="col-md-4">
+            {% if suggested_stores %}
+            <div class="card p-3 mb-3">
+                <h6>Suggested vendors for your wedding</h6>
+                {% for s in suggested_stores %}
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:48px;height:48px;overflow:hidden;border-radius:6px;flex:0 0 48px">
+                        {% if s.profile_image_url %}
+                        <img src="{{ s.profile_image_url }}" alt="{{ s.store_name }}" style="width:48px;height:48px;object-fit:cover;">
+                        {% elif s.profile_image %}
+                        <img src="{{ s.profile_image.url }}" alt="{{ s.store_name }}" style="width:48px;height:48px;object-fit:cover;">
+                        {% else %}
+                        <img src="{% static 'images/placeholder.svg' %}" alt="placeholder" style="width:48px;height:48px;object-fit:cover;">
+                        {% endif %}
+                    </div>
+                    <div class="ms-2 flex-grow-1">
+                        <a href="{% url 'user:store_detail' s.id %}" class="fw-semibold">{{ s.store_name }}</a>
+                        <div class="small text-muted">₹{{ s.price_start }}</div>
+                        <div class="small text-muted">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= s.avg_rating|default:0 %}<i class="bi bi-star-fill text-warning"></i>{% else %}<i class="bi bi-star text-muted"></i>{% endif %}
+                            {% endfor %}
+                            <span class="ms-1">{{ s.avg_rating|default:0|floatformat:1 }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <a href="{% url 'user:stores_list' %}?category={{ store.category.id }}" class="btn btn-sm btn-outline-secondary mt-2">See more</a>
+            </div>
+            {% endif %}
             <div class="card p-3 mb-3">
                 <h6>Vendor</h6>
                 <p class="mb-1">{{ store.vendor.fullname }}</p>

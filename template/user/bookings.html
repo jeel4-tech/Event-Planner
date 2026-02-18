@@ -60,13 +60,13 @@
                                 {% if b.status == 'pending' %}
                                 <span class="badge bg-warning text-dark">Pending</span>
                                 {% elif b.status == 'confirmed' %}
-                                <span class="badge bg-primary">Confirmed</span>
+                                <span class="badge bg-primary">Approved</span>
                                 {% elif b.status == 'in_progress' %}
                                 <span class="badge bg-info">In progress</span>
                                 {% elif b.status == 'completed' %}
                                 <span class="badge bg-success">Completed</span>
                                 {% else %}
-                                <span class="badge bg-secondary">Cancelled</span>
+                                <span class="badge bg-secondary">Rejected</span>
                                 {% endif %}
                             </td>
                             <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
@@ -79,6 +79,7 @@
                                     <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
                                 </form>
                                 {% endif %}
+                                <a href="{% url 'user:booking_detail' b.id %}" class="btn btn-outline-secondary btn-sm">View</a>
                                 <a href="{% url 'user:start_chat' b.store.id %}" class="btn btn-outline-primary btn-sm">Chat</a>
                             </td>
                         </tr>

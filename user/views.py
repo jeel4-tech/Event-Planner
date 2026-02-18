@@ -305,6 +305,29 @@ def event_delete(request, event_id):
         return redirect('user:user_events')
     return redirect('user:user_events')
 
+
+@user_required
+def event_detail(request, event_id):
+    """Show full details for a single event, including bookings, payments and reviews."""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    event = get_object_or_404(Event, id=event_id, owner=user)
+
+    # Bookings for this event
+    bookings = Booking.objects.filter(event=event).select_related('store', 'service', 'vendor').order_by('-created_at')
+
+    # Payments and reviews related to this event
+    payments = event.payments.all().order_by('-payment_date')
+    reviews = event.reviews.all().order_by('-created_at')
+
+    return render(request, 'user/event_detail.html', {
+        'event': event,
+        'bookings': bookings,
+        'payments': payments,
+        'reviews': reviews,
+        'user': user,
+    })
+
 @user_required
 def user_reviews(request):
     user_id = request.session.get('user_id')

@@ -11,7 +11,7 @@
     <div class="btn-group" role="group">
         <a href="{% url 'vendor_orders' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">All</a>
         <a href="{% url 'vendor_orders' %}?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
-        <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn btn-outline-success {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
+        <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn btn-outline-success {% if status_filter == 'confirmed' %}active{% endif %}">Approved</a>
         <a href="{% url 'vendor_orders' %}?status=in_progress" class="btn btn-outline-info {% if status_filter == 'in_progress' %}active{% endif %}">In Progress</a>
         <a href="{% url 'vendor_orders' %}?status=completed" class="btn btn-outline-primary {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
     </div>
@@ -78,6 +78,12 @@
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm">
+                            <a href="{% url 'vendor_chat_with_booking' booking.id %}" class="btn btn-secondary btn-sm me-1" title="Chat with Customer">
+                                <i class="bi bi-chat-dots"></i>
+                            </a>
+                            <a href="{% url 'vendor_add_extra' booking.id %}" class="btn btn-warning btn-sm me-1" title="Add Extra">
+                                <i class="bi bi-plus-circle"></i> Add Extra
+                            </a>
                             {% if booking.status == 'pending' %}
                             <form method="POST" style="display: inline;">
                                 {% csrf_token %}

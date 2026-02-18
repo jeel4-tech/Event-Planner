@@ -28,7 +28,10 @@
                     <p class="mb-2 small"><strong>Store:</strong> {{ service.store.store_name }}</p>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="badge bg-primary">₹{{ service.price }}</span>
-                        <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'user:store_detail' service.store.id %}" class="btn btn-sm btn-outline-secondary">Store</a>
+                            <a href="{% url 'user:store_detail' service.store.id %}?service={{ service.id }}#book" class="btn btn-sm btn-outline-primary">Book</a>
+                        </div>
                     </div>
                 </div>
             </div>

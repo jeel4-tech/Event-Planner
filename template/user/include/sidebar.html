@@ -14,61 +14,65 @@
                 </a>
             </div>
 
-            <a href="{% url 'user:user_dashboard' %}" class="nav-link-custom">
+            <a href="{% url 'user:user_dashboard' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
 
             <div class="nav-divider">Events</div>
 
-            <a href="{% url 'user:user_events' %}" class="nav-link-custom">
+            <a href="{% url 'user:user_events' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'user_events event_create event_edit' %}active{% endif %}">
                 <i class="bi bi-calendar-week"></i> My Events
             </a>
 
             <div class="nav-divider">Vendors & Bookings</div>
 
-            <a href="{% url 'user:stores_list' %}" class="nav-link-custom">
+            <a href="{% url 'user:stores_list' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'stores_list store_detail' %}active{% endif %}">
                 <i class="bi bi-shop"></i> Browse Vendors
             </a>
 
-            <a href="{% url 'user:user_bookings' %}" class="nav-link-custom">
+            <a href="{% url 'user:user_bookings' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'user_bookings' %}active{% endif %}">
                 <i class="bi bi-journal-check"></i> My Bookings
             </a>
 
-            <a href="{% url 'user:user_chat' %}" class="nav-link-custom">
+            <a href="{% url 'user:user_chat' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'user_chat user_chat_detail' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> Chat
             </a>
 
             <div class="nav-divider">Payments</div>
 
-            <a href="{% url 'user:user_payments' %}" class="nav-link-custom">
+            <a href="{% url 'user:user_payments' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'user_payments make_payment' %}active{% endif %}">
                 <i class="bi bi-credit-card"></i> Payment History
             </a>
 
-            <a href="{% url 'user:payment_success' %}" class="nav-link-custom">
+            <a href="{% url 'user:payment_success' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'payment_success' %}active{% endif %}">
                 <i class="bi bi-check-circle"></i> Successful
             </a>
 
-            <a href="{% url 'user:payment_failed' %}" class="nav-link-custom">
+            <a href="{% url 'user:payment_failed' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'payment_failed' %}active{% endif %}">
                 <i class="bi bi-x-circle"></i> Failed
             </a>
 
             <div class="nav-divider">Support</div>
 
-            <a href="{% url 'user:user_notifications' %}" class="nav-link-custom">
-                <i class="bi bi-bell"></i> Notifications
+            <a href="{% url 'user:user_notifications' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'user_notifications' %}active{% endif %}">
+                <i class="bi bi-bell"></i>
+                <span class="flex-grow-1">Notifications</span>
+                {% if unread_notifications|default:0|add:0 > 0 %}
+                  <span class="badge bg-danger">{{ unread_notifications }}</span>
+                {% endif %}
             </a>
 
-            <a href="{% url 'user:user_reviews' %}" class="nav-link-custom">
+            <a href="{% url 'user:user_reviews' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'user_reviews review_create' %}active{% endif %}">
                 <i class="bi bi-chat-left-text"></i> Reviews
             </a>
 
             <div class="nav-divider">Settings</div>
 
-            <a href="{% url 'user:edit_profile' %}" class="nav-link-custom">
+            <a href="{% url 'user:edit_profile' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
                 <i class="bi bi-pencil"></i> Edit Profile
             </a>
 
-            <a href="{% url 'user:change_password' %}" class="nav-link-custom">
+            <a href="{% url 'user:change_password' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
                 <i class="bi bi-key"></i> Change Password
             </a>
 

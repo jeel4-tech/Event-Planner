@@ -1,0 +1,174 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Event — {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1"><i class="bi bi-card-list me-2"></i> {{ event.title }}</h3>
+        <p class="text-muted mb-0">Details for your event</p>
+    </div>
+    <div>
+        <a href="{% url 'user:event_edit' event.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+        <a href="{% url 'user:user_events' %}" class="btn btn-outline-secondary btn-sm">Back</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Event information</h5>
+                <p><strong>Date:</strong> {{ event.date|date:"d M Y, h:i A" }}</p>
+                <p><strong>Type:</strong> {{ event.get_event_type_display }}</p>
+                <p><strong>Guests:</strong> {{ event.guests }}</p>
+                <p><strong>Status:</strong>
+                    {% if event.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif event.status == 'confirmed' %}
+                    <span class="badge bg-primary">Confirmed</span>
+                    {% elif event.status == 'completed' %}
+                    <span class="badge bg-success">Completed</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Cancelled</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><strong>Vendor bookings</strong></div>
+            <div class="card-body">
+                {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Vendor / Store</th>
+                                <th>Service</th>
+                                <th>Amount</th>
+                                <th>Booking date</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in bookings %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <a href="{% url 'user:store_detail' b.store.id %}">{{ b.store.store_name }}</a>
+                                    <div class="small text-muted">{{ b.vendor.fullname }}</div>
+                                </td>
+                                <td>
+                                    {% if b.service %}
+                                        {{ b.service.name }}
+                                    {% else %}
+                                        General / Custom
+                                    {% endif %}
+                                </td>
+                                <td>₹{{ b.amount }}</td>
+                                <td>{% if b.booking_date %}{{ b.booking_date|date:"d M Y, h:i A" }}{% else %}-{% endif %}</td>
+                                <td>
+                                    {% if b.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    {% elif b.status == 'confirmed' %}
+                                    <span class="badge bg-primary">Confirmed</span>
+                                    {% elif b.status == 'in_progress' %}
+                                    <span class="badge bg-info text-dark">In Progress</span>
+                                    {% elif b.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">{{ b.notes|default:'—' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="small text-muted mb-0">No bookings for this event yet. Browse vendors to send booking requests.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header"><strong>Payments</strong></div>
+                    <div class="card-body">
+                        {% if payments %}
+                        <ul class="list-group list-group-flush">
+                            {% for p in payments %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div>₹{{ p.amount }}</div>
+                                    <div class="small text-muted">{{ p.payment_date|date:"d M Y, h:i A" }}</div>
+                                </div>
+                                <div class="small">
+                                    {% if p.status == 'success' %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% elif p.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="small text-muted mb-0">No payments recorded for this event.</p>
+                        {% endif %}
+                        <div class="mt-3">
+                            <a href="{% url 'user:make_payment' event.id %}" class="btn btn-sm btn-primary">Make a payment</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header"><strong>Reviews</strong></div>
+                    <div class="card-body">
+                        {% if reviews %}
+                        <ul class="list-group list-group-flush">
+                            {% for r in reviews %}
+                            <li class="list-group-item">
+                                <div class="fw-semibold">{{ r.user.fullname }}</div>
+                                <div class="small text-muted">{{ r.created_at|date:"d M Y" }}</div>
+                                <div>{{ r.comment }}</div>
+                                <div class="small text-warning">{% for i in "12345" %}{% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="small text-muted mb-0">No reviews for this event.</p>
+                        {% endif %}
+                        {% if event.status == 'completed' %}
+                        <div class="mt-3">
+                            <a href="{% url 'user:review_create' event.id %}" class="btn btn-sm btn-outline-success">Add review</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 mb-3">
+            <h6>Quick actions</h6>
+            <a href="{% url 'user:stores_list' %}" class="btn btn-sm btn-outline-secondary w-100 mb-2">Browse vendors</a>
+            <a href="{% url 'user:user_bookings' %}" class="btn btn-sm btn-outline-primary w-100 mb-2">My bookings</a>
+            <a href="{% url 'user:make_payment' event.id %}" class="btn btn-sm btn-primary w-100">Pay for event</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

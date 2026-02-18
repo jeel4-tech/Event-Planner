@@ -68,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'event.context_processors.global_app_info',
                 'event.context_processors.vendor_stores',
+                'event.context_processors.unread_counts',
 
             ],
         },

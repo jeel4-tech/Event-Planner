@@ -3,49 +3,350 @@
 {% block title %}Manage Users{% endblock %}
 
 {% block content %}
-<div class="event-card">
-    <h4 class="mb-3">Manage Users</h4>
 
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ user.fullname }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                    <span class="badge bg-secondary">
-                        {{ user.role|title }}
-                    </span>
-                </td>
-                <td class="text-center">
-                    <a href="#" class="btn btn-sm btn-info">
-                        View
-                    </a>
-                    <a href="#
-                       class="btn btn-sm btn-danger"
-                       onclick="return confirm('Are you sure?')">
-                        Delete
-                    </a>
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">
-                    No users found
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<!-- Page Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Manage Users</h4>
+        <p class="text-muted small mb-0">
+            <i class="bi bi-people me-1"></i>Total Users: {{ users|length }}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="input-group" style="width: 250px;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" placeholder="Search users..." id="searchInput">
+        </div>
+        <button class="btn btn-primary" onclick="exportTable()">
+            <i class="bi bi-download me-1"></i>Export
+        </button>
+    </div>
 </div>
+
+<!-- Users Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">User List</h5>
+            <p class="text-muted small mb-0">Manage and view all registered users</p>
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+            <i class="bi bi-person-check me-1"></i>{{ users|length }} Total
+        </span>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="usersTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4" width="80">#ID</th>
+                        <th>User Information</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4" width="200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if users %}
+                        {% for user in users %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-medium text-primary">{{ forloop.counter }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary bg-opacity-10 me-3">
+                                            <span class="text-primary fw-bold">{{ user.fullname|first|upper }}</span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ user.fullname }}</div>
+                                            <small class="text-muted">
+                                                <i class="bi bi-envelope me-1"></i>{{ user.email }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                        <i class="bi bi-person-badge me-1"></i>{{ user.role|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                            <i class="bi bi-check-circle me-1"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
+                                            <i class="bi bi-exclamation-circle me-1"></i>Inactive
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'admin_view_user' user.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                        <!--
+                                        <button type="button" class="btn btn-sm btn-outline-success" title="Edit User" onclick="editUser({{ user.id }})">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete User" 
+                                                onclick="confirmDelete({{ user.id }}, '{{ user.fullname }}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        -->
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="bi bi-people display-1 text-muted mb-3"></i>
+                                    <h6 class="text-muted">No Users Found</h6>
+                                    <p class="text-muted small">There are no users in the system yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Table Footer with Pagination -->
+    {% if users %}
+    <div class="card-footer bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                Showing <span class="fw-semibold">1</span> to <span class="fw-semibold">{{ users|length }}</span> of <span class="fw-semibold">{{ users|length }}</span> users
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-person-x display-1 text-danger mb-3"></i>
+                <h6>Are you sure you want to delete <span class="fw-bold" id="deleteUserName"></span>?</h6>
+                <p class="text-muted small mb-0">This action cannot be undone. All user data will be permanently removed.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4">
+                    <i class="bi bi-trash me-2"></i>Delete User
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bootstrap Icons if not already included -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    .avatar-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .table thead th {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        border-bottom-width: 1px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 1rem 0.5rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .btn-group .btn:first-child {
+        border-radius: 8px 0 0 8px;
+    }
+    
+    .btn-group .btn:last-child {
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .empty-state {
+        padding: 3rem;
+    }
+    
+    .page-link {
+        border: none;
+        color: #64748b;
+        font-size: 0.9rem;
+        padding: 0.5rem 0.8rem;
+        margin: 0 0.2rem;
+        border-radius: 8px;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .page-link:hover {
+        background-color: #e9ecef;
+        color: #0d6efd;
+    }
+    
+    /* Hover effect on rows */
+    tbody tr:hover {
+        background-color: #f8fafc;
+        transition: background-color 0.2s ease;
+    }
+    
+    /* Search input styling */
+    .input-group-text {
+        background: white;
+        border-radius: 10px 0 0 10px;
+    }
+    
+    .form-control {
+        border-radius: 0 10px 10px 0;
+    }
+    
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #dee2e6;
+    }
+    
+    /* Modal styling */
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .btn-group .btn {
+            border-radius: 8px !important;
+        }
+        
+        .avatar-circle {
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+        }
+        
+        .table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#usersTable tbody tr');
+    
+    tableRows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchText) ? '' : 'none';
+    });
+});
+
+// Delete confirmation function
+function confirmDelete(userId, userName) {
+    document.getElementById('deleteUserName').textContent = userName;
+    document.getElementById('confirmDeleteBtn').href = `/admin/user/${userId}/delete/`; // Update with your delete URL
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// Edit function (you can implement this based on your needs)
+function editUser(userId) {
+    window.location.href = `/admin/user/${userId}/edit/`; // Update with your edit URL
+}
+
+// Export table to CSV
+function exportTable() {
+    let csv = [];
+    let rows = document.querySelectorAll('#usersTable tr');
+    
+    for (let row of rows) {
+        let rowData = [];
+        let cols = row.querySelectorAll('td, th');
+        
+        for (let col of cols) {
+            // Skip avatar column and action buttons in export
+            if (!col.querySelector('.avatar-circle') && !col.querySelector('.btn-group')) {
+                rowData.push(col.innerText);
+            }
+        }
+        csv.push(rowData.join(','));
+    }
+    
+    let csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
+    let downloadLink = document.createElement('a');
+    downloadLink.download = 'users_list.csv';
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
+// Optional: Add tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
 {% endblock %}

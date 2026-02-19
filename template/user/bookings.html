@@ -5,82 +5,137 @@
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="mb-1"><i class="bi bi-journal-check me-2"></i> My Bookings</h3>
-            <p class="text-muted mb-0">View and manage your vendor bookings</p>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-journal-check me-2 text-primary"></i>My Bookings
+            </h4>
+            <p class="text-muted small mb-0">View and manage your vendor bookings</p>
         </div>
         <a href="{% url 'user:stores_list' %}" class="btn btn-primary btn-sm">
-            <i class="bi bi-shop me-1"></i> Browse stores
+            <i class="bi bi-shop me-1"></i> Browse Stores
         </a>
     </div>
 
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
     <!-- Filter -->
-    <div class="mb-3">
-        <form method="get" class="d-flex gap-2 flex-wrap">
-            <select name="status" class="form-select form-select-sm" style="width: auto;">
-                <option value="">All statuses</option>
-                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In progress</option>
-                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
-                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
-            </select>
-            <button type="submit" class="btn btn-outline-secondary btn-sm">Filter</button>
-        </form>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body py-3">
+            <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+                <label class="text-muted small me-2">Filter:</label>
+                <select name="status" class="form-select form-select-sm" style="width: 150px;">
+                    <option value="">All</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-funnel me-1"></i>Apply
+                </button>
+                {% if status_filter %}
+                <a href="{% url 'user:user_bookings' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-circle me-1"></i>Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
     </div>
 
-    <div class="card shadow-sm">
+    <!-- Bookings List -->
+    <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             {% if bookings %}
             <div class="table-responsive">
-                <table class="table table-hover table-bordered mb-0 align-middle">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th>Store / Vendor</th>
+                            <th class="ps-4">Store / Vendor</th>
                             <th>Event</th>
                             <th>Service</th>
                             <th>Amount</th>
                             <th>Status</th>
-                            <th>Date requested</th>
-                            <th>Actions</th>
+                            <th>Booked On</th>
+                            <th class="text-end pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for b in bookings %}
+                        {% for booking in bookings %}
                         <tr>
-                            <td>
-                                <a href="{% url 'user:store_detail' b.store.id %}">{{ b.store.store_name }}</a>
-                                <br><small class="text-muted">{{ b.vendor.fullname }}</small>
+                            <td class="ps-4">
+                                <div class="fw-semibold">
+                                    <a href="{% url 'user:store_detail' booking.store.id %}" class="text-decoration-none">
+                                        {{ booking.store.store_name }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">{{ booking.vendor.fullname }}</small>
                             </td>
-                            <td>{{ b.event.title }}</td>
-                            <td>{% if b.service %}{{ b.service.name }}{% else %}—{% endif %}</td>
-                            <td>₹{{ b.amount }}</td>
+                            <td>{{ booking.event.title }}</td>
+                            <td>{% if booking.service %}{{ booking.service.name }}{% else %}—{% endif %}</td>
+                            <td><span class="fw-semibold">₹{{ booking.amount }}</span></td>
                             <td>
-                                {% if b.status == 'pending' %}
-                                <span class="badge bg-warning text-dark">Pending</span>
-                                {% elif b.status == 'confirmed' %}
-                                <span class="badge bg-primary">Approved</span>
-                                {% elif b.status == 'in_progress' %}
-                                <span class="badge bg-info">In progress</span>
-                                {% elif b.status == 'completed' %}
-                                <span class="badge bg-success">Completed</span>
+                                {% if booking.status == 'pending' %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
+                                    <i class="bi bi-clock me-1"></i>Pending
+                                </span>
+                                {% elif booking.status == 'confirmed' %}
+                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                    <i class="bi bi-check-circle me-1"></i>Confirmed
+                                </span>
+                                {% elif booking.status == 'in_progress' %}
+                                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                    <i class="bi bi-gear me-1"></i>In Progress
+                                </span>
+                                {% elif booking.status == 'completed' %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                    <i class="bi bi-star me-1"></i>Completed
+                                </span>
+                                {% elif booking.status == 'cancelled' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelled
+                                </span>
                                 {% else %}
-                                <span class="badge bg-secondary">Rejected</span>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
+                                    {{ booking.status }}
+                                </span>
                                 {% endif %}
                             </td>
-                            <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
                             <td>
-                                {% if b.status == 'pending' %}
-                                <form method="post" action="{% url 'user:user_bookings' %}" class="d-inline" onsubmit="return confirm('Cancel this booking?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="booking_id" value="{{ b.id }}">
-                                    <input type="hidden" name="action" value="cancel">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
-                                </form>
-                                {% endif %}
-                                <a href="{% url 'user:booking_detail' b.id %}" class="btn btn-outline-secondary btn-sm">View</a>
-                                <a href="{% url 'user:start_chat' b.store.id %}" class="btn btn-outline-primary btn-sm">Chat</a>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>{{ booking.created_at|date:"M d, Y" }}
+                                    <br><i class="bi bi-clock me-1"></i>{{ booking.created_at|date:"h:i A" }}
+                                </small>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <!-- Removed booking_detail link that was causing error -->
+                                    
+                                    {% if booking.status == 'pending' %}
+                                    <form method="post" action="{% url 'user:user_bookings' %}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                        <input type="hidden" name="action" value="cancel">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Booking">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'user:start_chat' booking.store.id %}" class="btn btn-sm btn-outline-success" title="Chat with Vendor">
+                                        <i class="bi bi-chat"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -88,13 +143,71 @@
                 </table>
             </div>
             {% else %}
-            <div class="text-center p-5">
-                <i class="bi bi-journal-x text-muted fs-1"></i>
-                <p class="mt-3 mb-0 text-muted">No bookings yet.</p>
-                <a href="{% url 'user:stores_list' %}" class="btn btn-primary btn-sm mt-2">Browse stores</a>
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
+                    <h5 class="text-muted">No Bookings Found</h5>
+                    <p class="text-muted small mb-3">You haven't made any bookings yet.</p>
+                    <a href="{% url 'user:stores_list' %}" class="btn btn-primary">
+                        <i class="bi bi-shop me-2"></i>Browse Stores
+                    </a>
+                </div>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .table thead th {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: #64748b;
+        border-bottom-width: 1px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 1rem 0.5rem;
+    }
+    
+    .badge {
+        font-weight: 500;
+        border-radius: 20px;
+    }
+    
+    .btn-sm {
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .empty-state {
+        padding: 3rem;
+    }
+    
+    /* Hover effect */
+    tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .table td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .d-flex.gap-1 {
+            flex-direction: column;
+        }
+    }
+</style>
 {% endblock %}

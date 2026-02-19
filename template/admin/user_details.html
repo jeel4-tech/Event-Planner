@@ -1,0 +1,411 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-light p-3 rounded-3">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Users</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">User Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- User Profile Header Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Simple Profile Header -->
+            <div class="card shadow-sm border-0 rounded-lg mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <!-- Avatar Circle -->
+                        <div class="avatar-circle bg-light text-dark me-4" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 600; border: 3px solid #f0f0f0;">
+                            {{ user.fullname|first|upper }}
+                        </div>
+                        
+                        <!-- User Info -->
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                <h3 class="mb-0 me-3">{{ user.fullname }}</h3>
+                                <span class="badge bg-light text-dark border px-3 py-2">{{ user.role|title }}</span>
+                            </div>
+                            <div class="d-flex align-items-center text-muted">
+                                <i class="fas fa-envelope me-2"></i>
+                                <span class="me-4">{{ user.email }}</span>
+                                {% if profile.phone %}
+                                    <i class="fas fa-phone me-2"></i>
+                                    <span>{{ profile.phone }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards in a Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-primary bg-opacity-10 p-3 rounded-3 me-3">
+                                    <i class="fas fa-calendar-alt text-primary fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Total Events</h6>
+                                    <h3 class="mb-0 fw-bold">{{ events|length }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                                    <i class="fas fa-shopping-cart text-success fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Total Bookings</h6>
+                                    <h3 class="mb-0 fw-bold">{{ bookings|length }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-warning bg-opacity-10 p-3 rounded-3 me-3">
+                                    <i class="fas fa-rupee-sign text-warning fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Total Spent</h6>
+                                    <h3 class="mb-0 fw-bold">₹{{ total_payments }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-info bg-opacity-10 p-3 rounded-3 me-3">
+                                    <i class="fas fa-user-clock text-info fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-1">Member Since</h6>
+                                    <h6 class="mb-0 fw-bold">{{ user.date_joined|date:"M Y" }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Information Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <h5 class="text-dark">
+                                <i class="fas fa-user-circle text-primary me-2"></i>
+                                Personal Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted ps-0" width="40%">Full Name</td>
+                                    <td class="fw-bold">{{ user.fullname }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted ps-0">Email Address</td>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted ps-0">Phone Number</td>
+                                    <td>{{ profile.phone|default:'<span class="text-muted fst-italic">Not provided</span>' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted ps-0">Account Status</td>
+                                    <td>
+                                        {% if profile.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <h5 class="text-dark">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                Address Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if profile.address %}
+                                <div class="bg-light p-4 rounded-3">
+                                    <p class="mb-2"><i class="fas fa-home text-muted me-2"></i> {{ profile.address }}</p>
+                                    {% if profile.city or profile.state %}
+                                        <p class="mb-2"><i class="fas fa-city text-muted me-2"></i> {{ profile.city }}{% if profile.city and profile.state %}, {% endif %}{{ profile.state }}</p>
+                                    {% endif %}
+                                    {% if profile.pincode %}
+                                        <p class="mb-0"><i class="fas fa-mail-bulk text-muted me-2"></i> PIN: {{ profile.pincode }}</p>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No address provided</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events and Bookings Tabs -->
+            <div class="card shadow-sm border-0 rounded-lg mb-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#events" role="tab">
+                                <i class="fas fa-calendar-alt me-2"></i>Events
+                                <span class="badge bg-primary ms-2">{{ events|length }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#bookings" role="tab">
+                                <i class="fas fa-shopping-cart me-2"></i>Vendor Bookings
+                                <span class="badge bg-warning ms-2">{{ bookings|length }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Events Tab -->
+                        <div class="tab-pane fade show active" id="events" role="tabpanel">
+                            {% if events %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Event Title</th>
+                                                <th>Date & Time</th>
+                                                <th>Status</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for event in events %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ event.title }}</strong>
+                                                        {% if event.description %}
+                                                            <br><small class="text-muted">{{ event.description|truncatechars:40 }}</small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <i class="far fa-calendar text-muted me-1"></i>{{ event.date|date:"M d, Y" }}<br>
+                                                        <i class="far fa-clock text-muted me-1"></i>{{ event.date|time:"h:i A" }}
+                                                    </td>
+                                                    <td>
+                                                        {% if event.status == 'upcoming' %}
+                                                            <span class="badge bg-info">Upcoming</span>
+                                                        {% elif event.status == 'ongoing' %}
+                                                            <span class="badge bg-success">Ongoing</span>
+                                                        {% elif event.status == 'completed' %}
+                                                            <span class="badge bg-secondary">Completed</span>
+                                                        {% elif event.status == 'cancelled' %}
+                                                            <span class="badge bg-danger">Cancelled</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">{{ event.status|title }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i> View Details
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                                    <h6 class="text-muted">No events found</h6>
+                                    <p class="text-muted small">This user hasn't created any events yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Bookings Tab -->
+                        <div class="tab-pane fade" id="bookings" role="tabpanel">
+                            {% if bookings %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Vendor</th>
+                                                <th>Service</th>
+                                                <th>Amount</th>
+                                                <th>Booking Date</th>
+                                                <th>Status</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for booking in bookings %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ booking.store.store_name }}</strong>
+                                                        {% if booking.store.category %}
+                                                            <br><small class="text-muted">{{ booking.store.category.name }}</small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ booking.service.name|default:'-' }}</td>
+                                                    <td><strong>₹{{ booking.amount }}</strong></td>
+                                                    <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                                                    <td>
+                                                        {% if booking.status == 'pending' %}
+                                                            <span class="badge bg-warning text-dark">Pending</span>
+                                                        {% elif booking.status == 'confirmed' %}
+                                                            <span class="badge bg-success">Confirmed</span>
+                                                        {% elif booking.status == 'completed' %}
+                                                            <span class="badge bg-info">Completed</span>
+                                                        {% elif booking.status == 'cancelled' %}
+                                                            <span class="badge bg-danger">Cancelled</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">{{ booking.status|title }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-store-alt-slash fa-4x text-muted mb-3"></i>
+                                    <h6 class="text-muted">No vendor bookings found</h6>
+                                    <p class="text-muted small">This user hasn't booked any vendors yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mb-4">
+                <a href="#" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Users
+                </a>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print
+                    </button>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome if not already included -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<style>
+    /* Custom Styles */
+    .breadcrumb {
+        background-color: #f8f9fa !important;
+    }
+    
+    .avatar-circle {
+        border: 3px solid #e9ecef;
+        background-color: #f8f9fa !important;
+        color: #495057 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        font-weight: 500;
+        border: none;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        border-bottom: 3px solid #0d6efd;
+        background: transparent;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-bottom: 3px solid #dee2e6;
+    }
+    
+    .table thead th {
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .card {
+        transition: all 0.2s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    @media print {
+        .btn, .breadcrumb, .nav-tabs {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "vendor/base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Settings</h3>
+        <p class="text-muted mb-0">Manage your account settings</p>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card-box">
+            <h5 class="mb-4">Profile Settings</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" name="fullname" class="form-control" value="{{ vendor.fullname }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ vendor.email }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ vendor.mobile|default_if_none:'' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Business Logo</label>
+                    <input type="file" name="business_logo" class="form-control" accept="image/*">
+                    {% if vendor.business_logo %}
+                    <div class="mt-2">
+                        <img src="{{ vendor.business_logo.url }}" alt="logo" style="max-width:120px;border-radius:8px;">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <input type="text" class="form-control" value="{{ vendor.role.name }}" disabled>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-2"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card-box">
+            <h6 class="mb-3">Quick Links</h6>
+            <ul class="list-unstyled">
+                <li class="mb-2">
+                    <a href="{% url 'vendor_store' %}" class="text-decoration-none d-flex align-items-center">
+                        <i class="bi bi-shop me-2"></i> Manage Stores
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="{% url 'vendor_services' %}" class="text-decoration-none d-flex align-items-center">
+                        <i class="bi bi-list-check me-2"></i> Manage Services
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="{% url 'vendor_orders' %}" class="text-decoration-none d-flex align-items-center">
+                        <i class="bi bi-receipt me-2"></i> View Orders
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="{% url 'vendor_earnings' %}" class="text-decoration-none d-flex align-items-center">
+                        <i class="bi bi-cash-stack me-2"></i> View Earnings
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

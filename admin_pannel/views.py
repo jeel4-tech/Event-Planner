@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from account.models import Role, User
 from functools import wraps
-
+from vendor.models import category, Store
 
 # 🔐 Admin session decorator
 def check_admin_session(view_func):
@@ -67,3 +67,22 @@ def manage_guest(request):
     return render(request, 'admin/manage_guest.html', {
         'guests': guests
     })
+
+@check_admin_session
+def manage_categories(request):
+    categories = category.objects.all()
+
+    return render(request, 'admin/manage_category.html', {
+        'categories': categories
+    })
+
+@check_admin_session
+def add_category(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+
+        if name:
+            category.objects.create(name=name)
+            return redirect('manage_categories')
+
+    return render(request, 'admin/add_category.html')

@@ -1,0 +1,145 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}{{ store.store_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                {% if store.profile_image_url %}
+                <img src="{{ store.profile_image_url }}" class="card-img-top" alt="{{ store.store_name }}" style="max-height: 300px; object-fit: cover;" onerror="this.onerror=null;this.src='{% static "images/placeholder.svg" %}';">
+                {% elif store.profile_image %}
+                <img src="{{ store.profile_image.url }}" class="card-img-top" alt="{{ store.store_name }}" style="max-height: 300px; object-fit: cover;" onerror="this.onerror=null;this.src='{% static "images/placeholder.svg" %}';">
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="card-title">{{ store.store_name }}</h3>
+                    <p class="text-muted small">{{ store.category.name }}</p>
+                    <p>{{ store.description }}</p>
+                    <p><strong>Address:</strong> {{ store.address }}, {{ store.city }}</p>
+                    {% if store.phone %}<p><strong>Phone:</strong> {{ store.phone }}</p>{% endif %}
+                    <p><strong>Starting from:</strong> ₹{{ store.price_start }}</p>
+                    {% if review_count > 0 %}
+                    <p class="mb-0">
+                        <strong>Vendor rating:</strong>
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= avg_rating %}<i class="bi bi-star-fill text-warning"></i>{% else %}<i class="bi bi-star text-muted"></i>{% endif %}
+                        {% endfor %}
+                        {{ avg_rating|floatformat:1 }} ({{ review_count }} review{{ review_count|pluralize }})
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if gallery %}
+            <h5 class="mt-4">Store Gallery</h5>
+            <div class="row g-2 mb-4">
+                {% for img in gallery %}
+                <div class="col-6 col-md-4">
+                    <img src="{{ img.image.url }}" alt="Gallery" class="img-fluid rounded" style="height: 120px; object-fit: cover; width: 100%;" onerror="this.style.display='none'">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <h5>Services</h5>
+            <div class="list-group mb-4">
+                {% for service in services %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ service.name }}</h6>
+                        <small>₹{{ service.price }}</small>
+                    </div>
+                    <p class="mb-1 small text-muted">{{ service.description }}</p>
+                </div>
+                {% empty %}
+                <p class="small text-muted">No services found for this store.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Book this vendor -->
+            <div class="card">
+                <div class="card-header"><h6 class="mb-0">Request a booking</h6></div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'user:create_booking' store.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Select event</label>
+                            <select name="event_id" class="form-select" required>
+                                <option value="">-- Choose event --</option>
+                                {% for event in events %}
+                                <option value="{{ event.id }}">{{ event.title }} ({{ event.date|date:"M d, Y" }})</option>
+                                {% empty %}
+                                <option value="" disabled>No events. <a href="{% url 'user:user_events' %}">Create one first</a></option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Service (optional)</label>
+                            <select name="service_id" class="form-select">
+                                <option value="">General / Custom</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}" data-price="{{ service.price }}">{{ service.name }} — ₹{{ service.price }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Preferred date (optional)</label>
+                            <input type="datetime-local" name="booking_date" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Special requests..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send booking request</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            {% if suggested_stores %}
+            <div class="card p-3 mb-3">
+                <h6>Suggested vendors for your wedding</h6>
+                {% for s in suggested_stores %}
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:48px;height:48px;overflow:hidden;border-radius:6px;flex:0 0 48px">
+                        {% if s.profile_image_url %}
+                        <img src="{{ s.profile_image_url }}" alt="{{ s.store_name }}" style="width:48px;height:48px;object-fit:cover;">
+                        {% elif s.profile_image %}
+                        <img src="{{ s.profile_image.url }}" alt="{{ s.store_name }}" style="width:48px;height:48px;object-fit:cover;">
+                        {% else %}
+                        <img src="{% static 'images/placeholder.svg' %}" alt="placeholder" style="width:48px;height:48px;object-fit:cover;">
+                        {% endif %}
+                    </div>
+                    <div class="ms-2 flex-grow-1">
+                        <a href="{% url 'user:store_detail' s.id %}" class="fw-semibold">{{ s.store_name }}</a>
+                        <div class="small text-muted">₹{{ s.price_start }}</div>
+                        <div class="small text-muted">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= s.avg_rating|default:0 %}<i class="bi bi-star-fill text-warning"></i>{% else %}<i class="bi bi-star text-muted"></i>{% endif %}
+                            {% endfor %}
+                            <span class="ms-1">{{ s.avg_rating|default:0|floatformat:1 }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <a href="{% url 'user:stores_list' %}?category={{ store.category.id }}" class="btn btn-sm btn-outline-secondary mt-2">See more</a>
+            </div>
+            {% endif %}
+            <div class="card p-3 mb-3">
+                <h6>Vendor</h6>
+                <p class="mb-1">{{ store.vendor.fullname }}</p>
+                <p class="small text-muted">Contact via chat or booking.</p>
+                <a href="{% url 'user:start_chat' store.id %}" class="btn btn-outline-primary btn-sm mt-2">
+                    <i class="bi bi-chat-dots me-1"></i> Message vendor
+                </a>
+            </div>
+            <a href="{% url 'user:stores_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to stores
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

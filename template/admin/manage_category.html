@@ -1,0 +1,52 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Categories{% endblock %}
+
+{% block content %}
+<div class="event-card">
+    <h4 class="mb-3">Manage Categories</h4>
+    <a href="{% url 'add_category' %}" class="btn btn-primary mb-3">
+        <i class="bi bi-plus-lg me-1"></i> Add New Category
+    </a>
+    
+
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for category in categories %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ category.name }}</td>
+                <td>
+                    <span class="badge bg-secondary">
+                        {{ category.name }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <a href="#" class="btn btn-sm btn-info">
+                        View
+                    </a>
+                    <a href="#"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Are you sure?')">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No categories found
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

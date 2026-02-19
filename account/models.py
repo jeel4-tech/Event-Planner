@@ -20,6 +20,9 @@ class User(models.Model):
     
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
+    # Optional business logo for vendors
+    business_logo = models.ImageField(upload_to='vendor_logos/', null=True, blank=True)
+
     
 
     created_at = models.DateTimeField(auto_now_add=True)

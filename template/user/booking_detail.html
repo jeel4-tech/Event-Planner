@@ -70,7 +70,14 @@
           <div class="p-3 rounded bg-light border">
             <div class="text-muted small">Service</div>
             <div class="fw-semibold">{% if booking.service %}{{ booking.service.name }}{% else %}General / Custom{% endif %}</div>
-            <div class="text-muted small mt-1"><i class="bi bi-currency-rupee me-1"></i>₹{{ booking.amount }}</div>
+            <div class="text-muted small mt-1"><i class="bi bi-currency-rupee me-1"></i>₹{{ booking.amount|floatformat:2 }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 rounded bg-light border">
+            <div class="text-muted small">Total Amount</div>
+            <div class="fw-semibold"><i class="bi bi-currency-rupee me-1"></i>₹{{ total_amount|floatformat:2 }}</div>
+            <div class="small text-muted">Includes additional charges / add-ons</div>
           </div>
         </div>
         <div class="col-md-12">
@@ -79,12 +86,12 @@
             <div class="fw-semibold">{% if booking.notes %}{{ booking.notes }}{% else %}—{% endif %}</div>
           </div>
         </div>
-          {% if booking.extras.all %}
+          {% if extras and extras.count %}
           <div class="col-md-12">
             <div class="p-3 rounded bg-light border mt-2">
               <div class="text-muted small">Additional charges / Add-ons</div>
               <ul class="mb-0">
-                {% for ex in booking.extras.all %}
+                {% for ex in extras %}
                 <li>
                   <strong>{{ ex.title }}</strong> — ₹{{ ex.amount }}
                   {% if ex.description %}<div class="small text-muted">{{ ex.description }}</div>{% endif %}

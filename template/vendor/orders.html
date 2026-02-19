@@ -57,13 +57,18 @@
                         {% if booking.service %}
                             {{ booking.service.name }}
                         {% else %}
-                            <span class="text-muted">N/A</span>
+                            <span class="text-muted">General / Custom</span>
                         {% endif %}
                     </td>
                     <td>
                         <i class="bi bi-person me-1"></i>{{ booking.customer.fullname }}
                     </td>
-                    <td><strong class="text-success">₹{{ booking.amount }}</strong></td>
+                    <td>
+                        <strong class="text-success">₹{{ booking.total_amount|floatformat:2 }}</strong>
+                        <div class="mt-1">
+                            <a href="{% url 'vendor_bill_details' booking.id %}" class="btn btn-sm btn-outline-secondary">Bill Details</a>
+                        </div>
+                    </td>
                     <td>
                         {% if booking.booking_date %}
                             {{ booking.booking_date|date:"M d, Y" }}

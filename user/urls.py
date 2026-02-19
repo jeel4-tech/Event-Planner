@@ -26,8 +26,10 @@ urlpatterns = [
     path('store/<int:store_id>/', views.store_detail, name='store_detail'),
     path('store/<int:store_id>/book/', views.create_booking, name='create_booking'),
     path('bookings/', views.user_bookings, name='user_bookings'),
+    path('bookings/<int:booking_id>/', views.booking_detail, name='booking_detail'),
     # Chat with vendors
     path('chat/', views.user_chat, name='user_chat'),
     path('chat/<int:chat_id>/', views.user_chat_detail, name='user_chat_detail'),
     path('store/<int:store_id>/chat/', views.start_chat, name='start_chat'),
+    path('chat/<int:chat_id>/message/<int:message_id>/delete/', views.user_delete_message, name='user_delete_message'),
 ]

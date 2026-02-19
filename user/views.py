@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Count, Q, Avg
+from django.db.models import Count, Q, Avg, Sum, Value, F, DecimalField
+from django.db.models.functions import Coalesce
 from .models import Notification, Profile, Event, Payment, Review
 from django.utils import timezone
 from datetime import timedelta
@@ -517,6 +518,9 @@ def user_bookings(request):
     user = User.objects.get(id=user_id)
     bookings = Booking.objects.filter(customer=user).select_related(
         'event', 'store', 'service', 'vendor'
+    ).annotate(
+        extras_total=Coalesce(Sum('extras__amount'), Value(0, output_field=DecimalField()), output_field=DecimalField()),
+        total_amount=F('amount') + Coalesce(Sum('extras__amount'), Value(0, output_field=DecimalField()), output_field=DecimalField())
     ).order_by('-created_at')
 
     status_filter = request.GET.get('status')
@@ -546,6 +550,28 @@ def user_bookings(request):
     })
 
 
+@user_required
+def booking_detail(request, booking_id):
+    """Show details for a single booking belonging to the logged-in user."""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+
+    booking = get_object_or_404(Booking, id=booking_id, customer=user)
+
+    # compute extras total and grand total for this booking
+    extras = booking.extras.all()
+    extras_total = extras.aggregate(total=Coalesce(Sum('amount'), Value(0, output_field=DecimalField())))['total'] or Decimal('0.00')
+    total_amount = booking.amount + extras_total
+
+    return render(request, 'user/booking_detail.html', {
+        'booking': booking,
+        'user': user,
+        'extras': extras,
+        'extras_total': extras_total,
+        'total_amount': total_amount,
+    })
+
+
 # ---------- Chat (user with vendors) ----------
 @user_required
 def user_chat(request):
@@ -566,8 +592,9 @@ def user_chat_detail(request, chat_id):
 
     if request.method == 'POST':
         message_text = request.POST.get('message', '').strip()
-        if message_text:
-            ChatMessage.objects.create(chat=chat, sender=user, message=message_text)
+        image = request.FILES.get('image')
+        if message_text or image:
+            ChatMessage.objects.create(chat=chat, sender=user, message=message_text or '', image=image)
         return redirect('user:user_chat_detail', chat_id=chat.id)
 
     chat.messages.filter(is_read=False).exclude(sender_id=user_id).update(is_read=True)
@@ -578,6 +605,23 @@ def user_chat_detail(request, chat_id):
         'messages': messages_qs,
         'user': user,
     })
+
+
+@user_required
+def user_delete_message(request, chat_id, message_id):
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    chat = get_object_or_404(Chat, id=chat_id, user_id=user_id)
+    try:
+        msg = ChatMessage.objects.get(id=message_id, chat=chat)
+        if msg.sender_id == user_id:
+            msg.delete()
+            messages.success(request, 'Message deleted')
+        else:
+            messages.error(request, 'Not authorized to delete this message')
+    except ChatMessage.DoesNotExist:
+        messages.error(request, 'Message not found')
+    return redirect('user:user_chat_detail', chat_id=chat.id)
 
 
 @user_required

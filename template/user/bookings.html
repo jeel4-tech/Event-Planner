@@ -55,7 +55,7 @@
                             </td>
                             <td>{{ b.event.title }}</td>
                             <td>{% if b.service %}{{ b.service.name }}{% else %}—{% endif %}</td>
-                            <td>₹{{ b.amount }}</td>
+                            <td>₹{{ b.total_amount|floatformat:2 }}</td>
                             <td>
                                 {% if b.status == 'pending' %}
                                 <span class="badge bg-warning text-dark">Pending</span>

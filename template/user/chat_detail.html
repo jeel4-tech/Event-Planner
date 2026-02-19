@@ -24,7 +24,24 @@
                         <strong>{{ message.sender.fullname }}</strong>
                         <span class="ms-2">{{ message.created_at|date:"g:i A" }}</span>
                     </div>
-                    <div>{{ message.message }}</div>
+                    <div>
+                        {% if message.image %}
+                        <div class="mb-2">
+                            <a href="{{ message.image.url }}" target="_blank">
+                                <img src="{{ message.image.url }}" alt="image" style="max-width:200px; max-height:200px; border-radius:6px;" />
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div>{{ message.message }}</div>
+                    </div>
+                    {% if message.sender.id == user.id %}
+                    <div class="mt-2 small text-muted">
+                        <form method="post" action="{% url 'user:user_delete_message' chat.id message.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link btn-sm {% if message.sender.id == user.id %}text-white-50{% endif %}" onclick="return confirm('Delete this message?');">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% empty %}
@@ -36,10 +53,11 @@
         </div>
 
         <div class="card-footer">
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="input-group">
-                    <input type="text" name="message" class="form-control" placeholder="Type your message..." required>
+                    <input type="file" name="image" accept="image/*" class="form-control form-control-sm" style="max-width:120px;" />
+                    <input type="text" name="message" class="form-control" placeholder="Type your message...">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Send</button>
                 </div>
             </form>

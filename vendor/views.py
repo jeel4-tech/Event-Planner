@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, F, Value, DecimalField
+from django.db.models.functions import Coalesce
 from django.contrib.auth.hashers import make_password, check_password
 from account.models import User
 from user.models import Event, Payment, Review, Notification
@@ -244,6 +245,9 @@ def vendor_orders(request):
     vendor = User.objects.get(id=vendor_id)
     bookings = Booking.objects.filter(vendor_id=vendor_id).select_related(
         'event', 'store', 'service', 'customer'
+    ).annotate(
+        extras_total=Coalesce(Sum('extras__amount'), Value(0, output_field=DecimalField()), output_field=DecimalField()),
+        total_amount=F('amount') + Coalesce(Sum('extras__amount'), Value(0, output_field=DecimalField()), output_field=DecimalField())
     ).order_by('-created_at')
     
     # Filter by status if provided
@@ -363,12 +367,14 @@ def vendor_chat_detail(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id, vendor_id=vendor_id)
 
     if request.method == 'POST':
-        message_text = request.POST.get('message')
-        if message_text:
+        message_text = request.POST.get('message', '').strip()
+        image = request.FILES.get('image')
+        if message_text or image:
             ChatMessage.objects.create(
                 chat=chat,
                 sender=vendor,
-                message=message_text
+                message=message_text or '',
+                image=image
             )
             # Notify user about new vendor message
             try:
@@ -392,6 +398,24 @@ def vendor_chat_detail(request, chat_id):
         'messages': messages_qs,
         'vendor': vendor,
     })
+
+
+@vendor_required
+def vendor_delete_message(request, chat_id, message_id):
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+    chat = get_object_or_404(Chat, id=chat_id, vendor_id=vendor_id)
+    try:
+        msg = ChatMessage.objects.get(id=message_id, chat=chat)
+        # only allow sender to delete
+        if msg.sender_id == vendor_id:
+            msg.delete()
+            messages.success(request, 'Message deleted')
+        else:
+            messages.error(request, 'Not authorized to delete this message')
+    except ChatMessage.DoesNotExist:
+        messages.error(request, 'Message not found')
+    return redirect('vendor_chat_detail', chat.id)
 
 
 @vendor_required
@@ -453,6 +477,27 @@ def vendor_add_extra(request, booking_id):
 
     return render(request, 'vendor/add_extra.html', {
         'booking': booking,
+        'vendor': vendor,
+    })
+
+
+@vendor_required
+def vendor_bill_details(request, booking_id):
+    """Show bill breakdown for a booking: base amount, extras and total."""
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+
+    booking = get_object_or_404(Booking, id=booking_id, vendor_id=vendor_id)
+
+    extras = booking.extras.all()
+    extras_total = extras.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    total_amount = booking.amount + extras_total
+
+    return render(request, 'vendor/bill_details.html', {
+        'booking': booking,
+        'extras': extras,
+        'extras_total': extras_total,
+        'total_amount': total_amount,
         'vendor': vendor,
     })
 

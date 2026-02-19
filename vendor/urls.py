@@ -4,7 +4,8 @@ from .views import (
     vendor_dashboard, vendor_store, vendor_services, delete_service,
     vendor_orders, vendor_events, vendor_earnings, vendor_payments,
     vendor_reviews, vendor_settings, vendor_profile, vendor_gallery,
-    vendor_chat, vendor_chat_detail, vendor_open_chat_for_booking, vendor_add_extra, change_password
+    vendor_chat, vendor_chat_detail, vendor_open_chat_for_booking, vendor_add_extra, change_password,
+    vendor_bill_details, vendor_delete_message
 )
 from .views import store_detail, stores_list
 
@@ -18,10 +19,12 @@ urlpatterns = [
     path('orders/', vendor_orders, name='vendor_orders'),
     path('orders/chat/<int:booking_id>/', vendor_open_chat_for_booking, name='vendor_chat_with_booking'),
     path('orders/<int:booking_id>/add-extra/', vendor_add_extra, name='vendor_add_extra'),
+    path('orders/<int:booking_id>/bill/', vendor_bill_details, name='vendor_bill_details'),
     path('events/', vendor_events, name='vendor_events'),
     path('gallery/', vendor_gallery, name='vendor_gallery'),
     path('chat/', vendor_chat, name='vendor_chat'),
     path('chat/<int:chat_id>/', vendor_chat_detail, name='vendor_chat_detail'),
+    path('chat/<int:chat_id>/message/<int:message_id>/delete/', vendor_delete_message, name='vendor_delete_message'),
     path('earnings/', vendor_earnings, name='vendor_earnings'),
     path('payments/', vendor_payments, name='vendor_payments'),
     path('reviews/', vendor_reviews, name='vendor_reviews'),

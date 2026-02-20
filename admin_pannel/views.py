@@ -24,12 +24,40 @@ def check_admin_session(view_func):
 @check_admin_session
 def admin_dashboard(request):
     user_id = request.session.get('user_id')
-
     admin = User.objects.filter(id=user_id).first()
     
+    from django.utils import timezone
+    from user.models import Event
+    from vendor.models import Store
+    
+    now = timezone.now()
+
+    # Calculate stats
+    total_users = User.objects.filter(role__name__iexact='user').count()
+    active_vendors = User.objects.filter(role__name__iexact='vendor', is_active=True).count()
+    pending_vendors = User.objects.filter(role__name__iexact='vendor', is_active=False).count()
+    
+    total_events = Event.objects.count()
+    total_stores = Store.objects.count()
+    
+    # New stats for dashboard cards
+    upcoming_events = Event.objects.filter(date__gte=now).count()
+    pending_events = Event.objects.filter(status=Event.STATUS_PENDING).count()
+
+    # Recent 5 events
+    recent_events = Event.objects.order_by('-created_at')[:5]
 
     return render(request, 'admin/dashboard.html', {
-        'admin': admin
+        'admin': admin,
+        'total_users': total_users,
+        'total_vendors': active_vendors,
+        'active_vendors': active_vendors,
+        'pending_vendors': pending_vendors,
+        'total_events': total_events,
+        'total_stores': total_stores,
+        'upcoming_events': upcoming_events,
+        'pending_events': pending_events,
+        'recent_events': recent_events,
     })
 
 

@@ -33,7 +33,8 @@ def register(request):
             email=email,
             mobile=mobile,
             password=make_password(password),
-            role=role
+            role=role,
+            is_active=True  # ✅ Active by default
         )
 
         messages.success(request, "Registration successful")
@@ -52,6 +53,10 @@ def login_view(request):
             user = User.objects.get(email=email)
 
             if check_password(password, user.password):
+                if not user.is_active:  # 🔒 Check active status
+                    messages.error(request, "Account is inactive. Contact admin.")
+                    return redirect("login")
+
                 request.session["user_id"] = user.id
                 request.session["role"] = user.role.name.lower()
 

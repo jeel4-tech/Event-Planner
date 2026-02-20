@@ -2,6 +2,37 @@
 {% block title %}Guest Dashboard{% endblock %}
 
 {% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card-box text-center py-5">
+            <h2 class="mb-3 text-primary">Welcome, Guest!</h2>
+            <p class="text-muted mb-4 lead">You are logged in as a guest user.</p>
 
-<h1>This is Guest Login</h1>
+            <div class="row justify-content-center g-4">
+                <div class="col-md-4">
+                    <div class="p-4 border rounded bg-light h-100">
+                        <div class="display-4 text-primary mb-3"><i class="bi bi-calendar-event"></i></div>
+                        <h4>Browse Events</h4>
+                        <p class="text-secondary">Check out public events happening near you.</p>
+                        <a href="#" class="btn btn-outline-primary mt-2">View Events</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 border rounded bg-light h-100">
+                        <div class="display-4 text-success mb-3"><i class="bi bi-shop"></i></div>
+                        <h4>Find Vendors</h4>
+                        <p class="text-secondary">Discover top-rated vendors for your next event.</p>
+                        <a href="#" class="btn btn-outline-success mt-2">View Vendors</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <p class="text-muted">Want to create your own events or bookings? <br>
+                    <a href="{% url 'logout' %}" class="fw-bold">Log out</a> and register as a User or Vendor.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

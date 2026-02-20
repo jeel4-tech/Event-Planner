@@ -53,8 +53,18 @@ body {
     margin: 0;
 }
 
-.admin-brand h3 { font-size: 1.5rem; font-weight: 700; margin: 0; color: white; }
-.admin-brand p { font-size: 0.875rem; color: rgba(255,255,255,0.9); margin: 0.25rem 0 0 0; }
+.admin-brand h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+}
+
+.admin-brand p {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.25rem 0 0 0;
+}
 
 .nav-link-custom {
     display: flex;
@@ -69,11 +79,34 @@ body {
     font-size: 0.9375rem;
 }
 
-.nav-link-custom i { margin-right: 0.75rem; font-size: 1.125rem; width: 20px; text-align: center; }
-.nav-link-custom:hover { background: var(--bg-tertiary); color: var(--primary); transform: translateX(4px); }
-.nav-link-custom.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
-.nav-link-custom.logout { color: var(--danger); margin-top: 1rem; }
-.nav-link-custom.logout:hover { background: var(--danger-light); color: var(--danger); }
+.nav-link-custom i {
+    margin-right: 0.75rem;
+    font-size: 1.125rem;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-link-custom:hover {
+    background: var(--bg-tertiary);
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+.nav-link-custom.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.nav-link-custom.logout {
+    color: var(--danger);
+    margin-top: 1rem;
+}
+
+.nav-link-custom.logout:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
 
 .nav-divider {
     font-size: 0.75rem;
@@ -90,8 +123,17 @@ body {
     border-bottom: 1px solid var(--border);
 }
 
-.dashboard-header h2 { font-size: 1.75rem; font-weight: 700; margin: 0; }
-.dashboard-header p { color: var(--text-secondary); margin: 0.5rem 0 0 0; font-size: 0.9375rem; }
+.dashboard-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.dashboard-header p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0 0;
+    font-size: 0.9375rem;
+}
 
 .main-content {
     padding: 2rem;
@@ -127,18 +169,77 @@ body {
     margin-bottom: 1rem;
 }
 
-.stat-card-icon.primary { background: var(--primary-light); color: var(--primary); }
-.stat-card-icon.success { background: var(--success-light); color: var(--success); }
-.stat-card-icon.warning { background: var(--warning-light); color: var(--warning); }
-.stat-card-icon.info { background: var(--info-light); color: var(--info); }
+.stat-card-icon.primary {
+    background: var(--primary-light);
+    color: var(--primary);
+}
 
-.stat-card h6 { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 0.5rem; }
-.stat-card h2 { font-size: 2rem; font-weight: 700; margin: 0; }
+.stat-card-icon.success {
+    background: var(--success-light);
+    color: var(--success);
+}
 
-.card { border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
-.card-header { background: var(--bg-tertiary); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; font-weight: 600; }
-.form-control, .form-select { border-radius: var(--radius-sm); border: 1px solid var(--border); }
-.form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); outline: none; }
+.stat-card-icon.warning {
+    background: var(--warning-light);
+    color: var(--warning);
+}
 
-.fade-in { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.stat-card-icon.info {
+    background: var(--info-light);
+    color: var(--info);
+}
+
+.stat-card h6 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.card-header {
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    outline: none;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

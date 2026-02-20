@@ -1,51 +1,242 @@
 {% extends 'admin/base_admin.html' %}
 
-{% block title %}Manage vendors{% endblock %}
+{% block title %}Manage Vendors{% endblock %}
 
 {% block content %}
-<div class="event-card">
-    <h4 class="mb-3">Manage vendors</h4>
 
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for vendor in vendors %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ vendor.fullname }}</td>
-                <td>{{ vendor.email }}</td>
-                <td>
-                    <span class="badge bg-secondary">
-                        {{ vendor.role|title }}
-                    </span>
-                </td>
-                <td class="text-center">
-                    <a href="#" class="btn btn-sm btn-info">
-                        View
-                    </a>
-                    <a href="#
-                       class="btn btn-sm btn-danger"
-                       onclick="return confirm('Are you sure?')">
-                        Delete
-                    </a>
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">
-                    No vendors found
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<!-- Page Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Manage Vendors</h4>
+        <p class="text-muted small mb-0">
+            <i class="bi bi-shop me-1"></i>Total Vendors: {{ vendors|length }}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="input-group" style="width: 250px;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" placeholder="Search vendors..." id="searchInput">
+        </div>
+        <button class="btn btn-primary" onclick="exportTable()">
+            <i class="bi bi-download me-1"></i>Export
+        </button>
+    </div>
 </div>
+
+<!-- Vendors Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">Vendor List</h5>
+            <p class="text-muted small mb-0">Manage and view all registered vendors</p>
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+            <i class="bi bi-shop me-1"></i>{{ vendors|length }} Total
+        </span>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="vendorsTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4" width="80">#ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if vendors %}
+                        {% for vendor in vendors %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-medium text-primary">{{ forloop.counter }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-success bg-opacity-10 me-3">
+                                            <span class="text-success fw-bold">{{ vendor.fullname|first|upper }}</span>
+                                        </div>
+                                        <span class="fw-semibold">{{ vendor.fullname }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <i class="bi bi-envelope me-1"></i>{{ vendor.email }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                        <i class="bi bi-person-badge me-1"></i>{{ vendor.role|title }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Vendor" 
+                                                onclick="return confirm('Are you sure you want to delete {{ vendor.fullname }}?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="bi bi-shop display-1 text-muted mb-3"></i>
+                                    <h6 class="text-muted">No Vendors Found</h6>
+                                    <p class="text-muted small">There are no vendors in the system yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bootstrap Icons if not already included -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .table thead th {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        border-bottom-width: 1px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 1rem 0.5rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .btn-group .btn:first-child {
+        border-radius: 8px 0 0 8px;
+    }
+    
+    .btn-group .btn:last-child {
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .empty-state {
+        padding: 3rem;
+    }
+    
+    /* Hover effect on rows */
+    tbody tr:hover {
+        background-color: #f8fafc;
+        transition: background-color 0.2s ease;
+    }
+    
+    /* Search input styling */
+    .input-group-text {
+        background: white;
+        border-radius: 10px 0 0 10px;
+    }
+    
+    .form-control {
+        border-radius: 0 10px 10px 0;
+    }
+    
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #dee2e6;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .btn-group .btn {
+            border-radius: 8px !important;
+        }
+        
+        .avatar-circle {
+            width: 35px;
+            height: 35px;
+            font-size: 0.9rem;
+        }
+        
+        .table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#vendorsTable tbody tr');
+    
+    tableRows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchText) ? '' : 'none';
+    });
+});
+
+// Export table to CSV
+function exportTable() {
+    let csv = [];
+    let rows = document.querySelectorAll('#vendorsTable tr');
+    
+    for (let row of rows) {
+        let rowData = [];
+        let cols = row.querySelectorAll('td, th');
+        
+        for (let col of cols) {
+            // Skip avatar column and action buttons in export
+            if (!col.querySelector('.avatar-circle') && !col.querySelector('.btn-group')) {
+                rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+            }
+        }
+        csv.push(rowData.join(','));
+    }
+    
+    let csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
+    let downloadLink = document.createElement('a');
+    downloadLink.download = 'vendors_list.csv';
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+</script>
 {% endblock %}

@@ -4,69 +4,289 @@
 
 {% block content %}
 
-<!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-primary">Total Events</h5>
-            <h2>42</h2>
-            <p class="text-muted small">+2 from last week</p>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">Dashboard Overview</h4>
+        <p class="text-muted small mb-0">Welcome back, {{ admin.fullname|default:'Admin' }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-download me-1"></i>Export
+        </button>
+        <button class="btn btn-sm btn-primary">
+            <i class="fas fa-plus-circle me-1"></i>New Event
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards - Using Your Database Values -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-calendar-check text-primary fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Total Events</h6>
+                        <h3 class="mb-0 fw-bold">{{ total_events|default:'0' }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success bg-opacity-10 text-success me-2">
+                        <i class="fas fa-arrow-up me-1"></i>{{ new_events_count|default:'0' }}
+                    </span>
+                    <span class="text-muted small">from last week</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-success">Active Vendors</h5>
-            <h2>18</h2>
-            <p class="text-muted small">+1 from last week</p>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-store text-success fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Active Vendors</h6>
+                        <h3 class="mb-0 fw-bold">{{ active_vendors|default:'0' }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success bg-opacity-10 text-success me-2">
+                        <i class="fas fa-arrow-up me-1"></i>{{ new_vendors|default:'0' }}
+                    </span>
+                    <span class="text-muted small">from last week</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-warning">Pending Requests</h5>
-            <h2>7</h2>
-            <p class="text-muted small">Need approval</p>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-clock text-warning fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Pending Requests</h6>
+                        <h3 class="mb-0 fw-bold">{{ pending_requests|default:'0' }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-warning bg-opacity-10 text-warning me-2">
+                        <i class="fas fa-exclamation-circle me-1"></i>Action
+                    </span>
+                    <span class="text-muted small">Need approval</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="event-card bg-white p-4 shadow-sm rounded">
-            <h5 class="text-info">Upcoming Events</h5>
-            <h2>12</h2>
-            <p class="text-muted small">Next 7 days</p>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-info bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-calendar-alt text-info fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Upcoming Events</h6>
+                        <h3 class="mb-0 fw-bold">{{ upcoming_events|default:'0' }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-info bg-opacity-10 text-info me-2">
+                        <i class="fas fa-calendar me-1"></i>Next 7
+                    </span>
+                    <span class="text-muted small">days</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Recent Events Table -->
-<div class="event-card bg-white p-4 shadow-sm rounded">
-    <h4 class="mb-3">Recent Events</h4>
-
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Guests</th>
-                 <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td>Summer Wedding</td>
-                <td>June 15, 2023</td>
-                <td>Wedding</td>
-                <td><span class="badge bg-success">Completed</span></td>
-                <td>150</td>
-                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
-            </tr>
-            </tbody>
-        </table>
+<!-- Additional Stats Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Revenue</h6>
+                        <h3 class="fw-bold mb-0">₹{{ total_revenue|default:'0' }}</h3>
+                        <small class="text-success">+{{ revenue_growth|default:'0' }}% from last month</small>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-rupee-sign text-success fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Bookings</h6>
+                        <h3 class="fw-bold mb-0">{{ total_bookings|default:'0' }}</h3>
+                        <small class="text-success">+{{ new_bookings|default:'0' }} this week</small>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-shopping-cart text-primary fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Categories</h6>
+                        <h3 class="fw-bold mb-0">{{ categories_count|default:'0' }}</h3>
+                        <small class="text-muted">Active categories</small>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-3 rounded-3">
+                        <i class="fas fa-tags text-info fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Recent Events Table - From Database -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">Recent Events</h5>
+            <p class="text-muted small mb-0">Latest events on your platform</p>
+        </div>
+        <a href="#" class="btn btn-sm btn-link text-primary text-decoration-none">
+            View All <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Event</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Guests</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_events %}
+                        {% for event in recent_events %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="event-icon bg-{% cycle 'primary' 'success' 'warning' 'info' %} bg-opacity-10 p-2 rounded-3 me-3">
+                                        <i class="fas fa-{% if event.category.name == 'Wedding' %}heart{% elif event.category.name == 'Corporate' %}briefcase{% elif event.category.name == 'Birthday' %}birthday-cake{% else %}calendar{% endif %} text-{% cycle 'primary' 'success' 'warning' 'info' %}"></i>
+                                    </div>
+                                    <span class="fw-medium">{{ event.title }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ event.date|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ event.date|date:"h:i A" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark px-3 py-2">{{ event.category.name|default:'Event' }}</span>
+                            </td>
+                            <td>
+                                {% if event.status == 'completed' %}
+                                    <span class="badge bg-success px-3 py-2">Completed</span>
+                                {% elif event.status == 'upcoming' %}
+                                    <span class="badge bg-primary px-3 py-2">Upcoming</span>
+                                {% elif event.status == 'pending' %}
+                                    <span class="badge bg-warning px-3 py-2">Pending</span>
+                                {% elif event.status == 'cancelled' %}
+                                    <span class="badge bg-danger px-3 py-2">Cancelled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary px-3 py-2">{{ event.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user text-muted me-1"></i>
+                                    <span>{{ event.guest_count|default:'0' }}</span>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'admin_view_event' event.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                No events found in database
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<style>
+.event-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+.badge {
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}
+.table thead th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+@media (max-width: 768px) {
+    h3 { font-size: 1.75rem; }
+}
+@media (max-width: 576px) {
+    .table td, .table th {
+        font-size: 0.85rem;
+        padding: 0.75rem 0.5rem;
+    }
+}
+</style>
 {% endblock %}

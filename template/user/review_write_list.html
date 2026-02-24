@@ -1,0 +1,50 @@
+{% extends 'user/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1"><i class="bi bi-chat-left-text me-2"></i>Write Reviews</h3>
+        <p class="text-muted mb-0">Events you've completed — write a review for each vendor or event.</p>
+    </div>
+    <a href="{% url 'user:user_reviews' %}" class="btn btn-outline-secondary">My Reviews</a>
+</div>
+
+<div class="card-box">
+    <div class="card-body p-0">
+        {% if events %}
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Guests</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="fw-semibold">{{ event.title }}</td>
+                        <td>{{ event.date|date:"d M Y, h:i A" }}</td>
+                        <td>{{ event.guests }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'user:review_create' event.id %}" class="btn btn-sm btn-success">Write Review</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-5 text-muted">
+            <i class="bi bi-chat-left-text fs-1"></i>
+            <p class="mt-3">No completed events available for review.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

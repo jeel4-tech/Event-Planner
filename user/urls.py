@@ -17,6 +17,7 @@ urlpatterns = [
     path('events/<int:event_id>/edit/', views.event_edit, name='event_edit'),
     path('events/<int:event_id>/delete/', views.event_delete, name='event_delete'),
     path('reviews/', views.user_reviews, name='user_reviews'),
+    path('reviews/write/', views.review_write_list, name='review_write'),
     path('reviews/add/<int:event_id>/', views.review_create, name='review_create'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('change-password/', views.change_password, name='change_password'),

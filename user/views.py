@@ -340,6 +340,21 @@ def user_reviews(request):
 
 
 @user_required
+def review_write_list(request):
+    """List completed events for the user that are eligible for writing a review."""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    # completed events owned by the user
+    completed_events = Event.objects.filter(owner=user, status=Event.STATUS_COMPLETED).order_by('-date')
+    reviewed_ids = set(Review.objects.filter(user=user).values_list('event_id', flat=True))
+    eligible = [e for e in completed_events if e.id not in reviewed_ids]
+    return render(request, 'user/review_write_list.html', {
+        'events': eligible,
+        'user': user,
+    })
+
+
+@user_required
 def review_create(request, event_id):
     """Add a review for a completed event (1-5 stars + comment)."""
     user_id = request.session.get('user_id')

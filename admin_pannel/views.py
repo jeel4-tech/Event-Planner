@@ -5,7 +5,7 @@ from datetime import timedelta
 from account.models import Role, User
 from functools import wraps
 from vendor.models import category, Store, Booking
-from user.models import Profile, Event, Payment
+from user.models import Profile, Event, Payment, Review
 
 # 🔐 Admin session decorator
 def check_admin_session(view_func):
@@ -141,6 +141,44 @@ def manage_vendors(request):
 
     return render(request, 'admin/manage_vendor.html', {
         'vendors': vendors
+    })
+
+
+@check_admin_session
+def manage_events(request):
+    events = Event.objects.select_related('owner').order_by('-created_at')
+    return render(request, 'admin/manage_events.html', {
+        'events': events
+    })
+
+
+@check_admin_session
+def manage_reviews(request):
+    reviews = Review.objects.select_related('user', 'event').order_by('-created_at')
+    return render(request, 'admin/manage_reviews.html', {
+        'reviews': reviews
+    })
+
+
+@check_admin_session
+def settings_view(request):
+    # simple settings placeholder — implement actual settings logic as needed
+    if request.method == 'POST':
+        # process settings form if provided
+        pass
+    return render(request, 'admin/settings.html')
+
+
+@check_admin_session
+def analytics_view(request):
+    # lightweight analytics placeholder
+    data = {
+        'total_events': Event.objects.count(),
+        'total_reviews': Review.objects.count(),
+        'total_vendors': User.objects.filter(role__name__iexact='vendor').count(),
+    }
+    return render(request, 'admin/analytics.html', {
+        'data': data
     })
 
 @check_admin_session

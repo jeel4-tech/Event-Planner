@@ -1,0 +1,55 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Events{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Manage Events</h4>
+        <p class="text-muted small mb-0">View and manage all events</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Owner</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.owner.fullname }}</td>
+                        <td>{{ event.date|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ event.status|title }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'admin_view_event' event.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No events found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

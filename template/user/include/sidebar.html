@@ -62,7 +62,7 @@
                 {% endif %}
             </a>
 
-            <a href="{% url 'user:user_reviews' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'user_reviews review_create' %}active{% endif %}">
+            <a href="{% url 'user:review_write' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'review_write user_reviews review_create' %}active{% endif %}">
                 <i class="bi bi-chat-left-text"></i> Reviews
             </a>
 

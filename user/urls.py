@@ -30,5 +30,7 @@ urlpatterns = [
     # Chat with vendors
     path('chat/', views.user_chat, name='user_chat'),
     path('chat/<int:chat_id>/', views.user_chat_detail, name='user_chat_detail'),
+    path('chat/<int:chat_id>/delete/', views.user_delete_chat, name='user_delete_chat'),
+    path('chat/message/<int:message_id>/delete/', views.user_delete_message, name='user_delete_message'),
     path('store/<int:store_id>/chat/', views.start_chat, name='start_chat'),
 ]

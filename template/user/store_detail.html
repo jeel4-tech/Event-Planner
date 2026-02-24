@@ -132,9 +132,15 @@
                 <h6>Vendor</h6>
                 <p class="mb-1">{{ store.vendor.fullname }}</p>
                 <p class="small text-muted">Contact via chat or booking.</p>
+                {% if has_confirmed_booking %}
                 <a href="{% url 'user:start_chat' store.id %}" class="btn btn-outline-primary btn-sm mt-2">
                     <i class="bi bi-chat-dots me-1"></i> Message vendor
                 </a>
+                {% else %}
+                <button type="button" class="btn btn-outline-secondary btn-sm mt-2" title="Chat available after approval" disabled>
+                    <i class="bi bi-chat-dots me-1"></i> Message vendor
+                </button>
+                {% endif %}
             </div>
             <a href="{% url 'user:stores_list' %}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i> Back to stores

@@ -132,9 +132,15 @@
                                     </form>
                                     {% endif %}
                                     
+                                    {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}
                                     <a href="{% url 'user:start_chat' booking.store.id %}" class="btn btn-sm btn-outline-success" title="Chat with Vendor">
                                         <i class="bi bi-chat"></i>
                                     </a>
+                                    {% else %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Chat available after approval" disabled>
+                                        <i class="bi bi-chat"></i>
+                                    </button>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

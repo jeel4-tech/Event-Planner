@@ -461,6 +461,13 @@ def store_detail(request, store_id):
     ).aggregate(avg_rating=Avg('rating'), count=Count('id'))
     avg_rating = vendor_reviews['avg_rating'] or 0
     review_count = vendor_reviews['count'] or 0
+    # Check if current user has a confirmed booking with this store/vendor
+    has_confirmed_booking = Booking.objects.filter(
+        store=store,
+        customer=user,
+        vendor=store.vendor,
+        status=Booking.STATUS_CONFIRMED
+    ).exists()
     return render(request, 'user/store_detail.html', {
         'store': store,
         'services': services,
@@ -469,6 +476,7 @@ def store_detail(request, store_id):
         'avg_rating': avg_rating,
         'review_count': review_count,
         'user': user,
+        'has_confirmed_booking': has_confirmed_booking,
     })
 
 
@@ -573,6 +581,22 @@ def user_chat(request):
 
 
 @user_required
+def user_delete_chat(request, chat_id):
+    """Allow the user to delete a chat/conversation they own."""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    chat = get_object_or_404(Chat, id=chat_id, user_id=user_id)
+
+    if request.method == 'POST':
+        chat.delete()
+        messages.success(request, 'Conversation deleted.')
+        return redirect('user:user_chat')
+
+    # For non-POST, redirect back
+    return redirect('user:user_chat')
+
+
+@user_required
 def user_chat_detail(request, chat_id):
     """Chat thread with a vendor."""
     user_id = request.session.get('user_id')
@@ -581,8 +605,9 @@ def user_chat_detail(request, chat_id):
 
     if request.method == 'POST':
         message_text = request.POST.get('message', '').strip()
-        if message_text:
-            ChatMessage.objects.create(chat=chat, sender=user, message=message_text)
+        image = request.FILES.get('image')
+        if message_text or image:
+            ChatMessage.objects.create(chat=chat, sender=user, message=message_text or '', image=image)
         return redirect('user:user_chat_detail', chat_id=chat.id)
 
     chat.messages.filter(is_read=False).exclude(sender_id=user_id).update(is_read=True)
@@ -596,12 +621,43 @@ def user_chat_detail(request, chat_id):
 
 
 @user_required
+def user_delete_message(request, message_id):
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    msg = get_object_or_404(ChatMessage, id=message_id, sender_id=user_id)
+    if request.method == 'POST':
+        # delete attached file if present
+        try:
+            if msg.image:
+                msg.image.delete(save=False)
+        except Exception:
+            pass
+        chat_id = msg.chat_id
+        msg.delete()
+        messages.success(request, 'Message deleted.')
+        return redirect('user:user_chat_detail', chat_id=chat_id)
+    return redirect('user:user_chat')
+
+
+@user_required
 def start_chat(request, store_id):
     """Start or open chat with a store's vendor."""
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
     store = get_object_or_404(Store, id=store_id, status=True)
     vendor = store.vendor
+    # Only allow starting a chat when there is a confirmed booking between this user and vendor
+    has_confirmed_booking = Booking.objects.filter(
+        store=store,
+        customer=user,
+        vendor=vendor,
+        status=Booking.STATUS_CONFIRMED
+    ).exists()
+
+    if not has_confirmed_booking:
+        messages.error(request, 'Chat is available only after the vendor approves your booking.')
+        return redirect('user:user_bookings')
+
     chat, created = Chat.objects.get_or_create(
         user=user,
         vendor=vendor,

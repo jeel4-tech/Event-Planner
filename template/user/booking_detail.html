@@ -13,9 +13,15 @@
     <a href="{% url 'user:user_bookings' %}" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left me-2"></i>Back
     </a>
+    {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}
     <a href="{% url 'user:start_chat' booking.store.id %}" class="btn btn-outline-primary">
       <i class="bi bi-chat-dots me-2"></i>Chat vendor
     </a>
+    {% else %}
+    <button type="button" class="btn btn-outline-secondary" title="Chat available after approval" disabled>
+      <i class="bi bi-chat-dots me-2"></i>Chat vendor
+    </button>
+    {% endif %}
   </div>
 </div>
 

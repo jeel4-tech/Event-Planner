@@ -1,0 +1,54 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Booking Payments{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h5>Payments for {{ booking.store.store_name }} — {{ booking.event.title }}</h5>
+            <p>Advance: ₹{{ booking.advance_paid }} / ₹{{ booking.advance_required }}</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Amount</th>
+                        <th>Currency</th>
+                        <th>Gateway</th>
+                        <th>Status</th>
+                        <th>When</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>₹{{ p.amount }}</td>
+                        <td>{{ p.currency }}</td>
+                        <td>{{ p.gateway }}</td>
+                        <td>
+                            {% if p.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif p.status == 'succeeded' %}
+                                <span class="badge bg-success">Succeeded</span>
+                            {% else %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.created_at }}</td>
+                        <td><pre style="font-size:0.8rem">{{ p.gateway_response }}</pre></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7">No payments found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <a href="{% url 'user:user_bookings' %}" class="btn btn-secondary">Back to bookings</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

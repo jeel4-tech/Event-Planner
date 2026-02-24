@@ -56,8 +56,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
-                            <th>Event</th>
+                            <th>Related</th>
                             <th>Amount</th>
+                            <th>Gateway</th>
                             <th>Date</th>
                         </tr>
                     </thead>
@@ -65,12 +66,23 @@
                         {% for payment in failed_payments %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td>{{ payment.event.title }}</td>
-                            <td class="text-danger fw-semibold">
-                                ₹{{ payment.amount }}
-                            </td>
                             <td>
-                                {{ payment.payment_date|date:"d M Y, h:i A" }}
+                                {% if payment.related %}
+                                    {{ payment.related.title }}
+                                {% elif payment.raw.booking %}
+                                    Booking — {{ payment.raw.booking.store.store_name }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="text-danger fw-semibold">₹{{ payment.amount }}</td>
+                            <td>{{ payment.gateway|default:'—' }}</td>
+                            <td>
+                                {% if payment.when %}
+                                    {{ payment.when|date:"d M Y, h:i A" }}
+                                {% else %}
+                                    —
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

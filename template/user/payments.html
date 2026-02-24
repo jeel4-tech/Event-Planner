@@ -40,8 +40,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
-                            <th>Event</th>
+                            <th>Related</th>
                             <th>Amount</th>
+                            <th>Gateway</th>
                             <th>Status</th>
                             <th>Date</th>
                         </tr>
@@ -51,27 +52,32 @@
                         {% for payment in payments %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td>{{ payment.event.title }}</td>
-                            <td class="fw-semibold">
-                                ₹{{ payment.amount }}
-                            </td>
                             <td>
-                                {% if payment.status == 'success' %}
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> Success
-                                    </span>
-                                {% elif payment.status == 'failed' %}
-                                    <span class="badge bg-danger">
-                                        <i class="bi bi-x-circle"></i> Failed
-                                    </span>
+                                {% if payment.related %}
+                                    {{ payment.related.title }}
+                                {% elif payment.raw.booking %}
+                                    Booking — {{ payment.raw.booking.store.store_name }}
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-clock"></i> Pending
-                                    </span>
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="fw-semibold">₹{{ payment.amount }}</td>
+                            <td>{{ payment.gateway|default:'—' }}</td>
+                            <td>
+                                {% if payment.status == 'succeeded' or payment.status == 'success' or payment.status == 'completed' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Successful</span>
+                                {% elif payment.status == 'failed' %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Failed</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {{ payment.payment_date|date:"d M Y, h:i A" }}
+                                {% if payment.when %}
+                                    {{ payment.when|date:"d M Y, h:i A" }}
+                                {% else %}
+                                    —
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

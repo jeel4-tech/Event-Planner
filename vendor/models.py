@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from account.models import User
 from user.models import Event, Payment, Review
 
@@ -92,6 +93,10 @@ class Booking(models.Model):
     vendor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vendor_bookings')
     
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    # Advance/deposit support
+    advance_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    advance_required = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    advance_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     notes = models.TextField(blank=True, null=True)
     
@@ -101,6 +106,18 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.store.store_name} - {self.event.title}"
+
+    def apply_advance(self, amount):
+        """Apply an advance payment amount to the booking and update status if covered."""
+        # Use simple arithmetic and leave transactional safety to the caller
+        self.advance_paid = (self.advance_paid or 0) + amount
+        # If advance_paid covers required amount, mark confirmed
+        try:
+            if self.advance_required and self.advance_paid >= self.advance_required:
+                self.status = self.STATUS_CONFIRMED
+        except Exception:
+            pass
+        self.save()
 
 
 class VendorEarning(models.Model):
@@ -121,6 +138,33 @@ class VendorEarning(models.Model):
 
     def __str__(self):
         return f"{self.vendor.fullname} - ₹{self.net_amount}"
+
+
+class AdvancePayment(models.Model):
+    """Records advance/deposit transactions tied to a Booking."""
+    STATUS_PENDING = 'pending'
+    STATUS_SUCCEEDED = 'succeeded'
+    STATUS_FAILED = 'failed'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_SUCCEEDED, 'Succeeded'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='advance_payments')
+    # Use the project's account.User model (string reference avoids circular import)
+    user = models.ForeignKey('account.User', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10, default='INR')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    gateway = models.CharField(max_length=100, blank=True, null=True)
+    gateway_id = models.CharField(max_length=255, blank=True, null=True)
+    gateway_response = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Advance #{self.id} - {self.booking} - {self.amount} {self.currency} - {self.status}"
 
 
 class Chat(models.Model):

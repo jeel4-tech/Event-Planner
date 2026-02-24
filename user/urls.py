@@ -27,6 +27,10 @@ urlpatterns = [
     path('store/<int:store_id>/', views.store_detail, name='store_detail'),
     path('store/<int:store_id>/book/', views.create_booking, name='create_booking'),
     path('bookings/', views.user_bookings, name='user_bookings'),
+    path('booking/<int:booking_id>/pay/', views.pay_booking, name='pay_booking'),
+    path('razorpay/payment-success/', views.razorpay_payment_success, name='razorpay_payment_success'),
+    path('razorpay/webhook/', views.razorpay_webhook, name='razorpay_webhook'),
+    path('booking/<int:booking_id>/payments/', views.booking_payments, name='booking_payments'),
     # Chat with vendors
     path('chat/', views.user_chat, name='user_chat'),
     path('chat/<int:chat_id>/', views.user_chat_detail, name='user_chat_detail'),

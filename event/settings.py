@@ -140,3 +140,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user:user_dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Razorpay configuration (use environment variables in production)
+import os
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_Rz5PhSBaGqMF20')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'y57basuht0zdmmdDNmYd5M3p')

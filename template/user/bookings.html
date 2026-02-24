@@ -112,6 +112,20 @@
                                 {% endif %}
                             </td>
                             <td>
+                                <small class="d-block">Advance: ₹{{ booking.advance_paid|default:0 }} / ₹{{ booking.advance_required|default:0 }}</small>
+                                    {% if booking.latest_payment %}
+                                        {% if booking.latest_payment.status == 'succeeded' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif booking.latest_payment.status == 'pending' %}
+                                            <span class="badge bg-warning">Payment Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Last payment failed</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="text-muted">No payments</small>
+                                    {% endif %}
+                            </td>
+                            <td>
                                 <small class="text-muted">
                                     <i class="bi bi-calendar me-1"></i>{{ booking.created_at|date:"M d, Y" }}
                                     <br><i class="bi bi-clock me-1"></i>{{ booking.created_at|date:"h:i A" }}
@@ -130,6 +144,12 @@
                                             <i class="bi bi-x-circle"></i>
                                         </button>
                                     </form>
+                                    {% endif %}
+                                    {% comment %} Pay button: show when advance_due > 0 and booking pending {% endcomment %}
+                                    {% if booking.status == 'pending' and booking.advance_required|default:0 > booking.advance_paid|default:0 %}
+                                    <a href="{% url 'user:pay_booking' booking.id %}" class="btn btn-sm btn-outline-primary" title="Pay Advance">
+                                        <i class="bi bi-currency-exchange"></i>
+                                    </a>
                                     {% endif %}
                                     
                                     {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}

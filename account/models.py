@@ -30,3 +30,12 @@ class User(models.Model):
 
     def __str__(self):
         return self.fullname
+
+
+class Token(models.Model):
+    """Simple token/credit balance for a user."""
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='token')
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.user.fullname} - {self.balance} tokens"

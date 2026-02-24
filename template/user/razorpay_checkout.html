@@ -1,0 +1,79 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Razorpay Checkout{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-body">
+            <h5>Pay for {{ booking.store.store_name }} — {{ booking.event.title }}</h5>
+            <p>Amount: ₹{{ display_amount }}</p>
+            <button id="rzp-button" class="btn btn-primary">Pay Now</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const options = {
+        "key": "{{ key_id }}",
+        "amount": "{{ amount_paise }}",
+        "currency": "INR",
+        "name": "{{ booking.store.store_name }}",
+        "description": "{{ booking.event.title }}",
+        "order_id": "{{ order_id }}",
+        "handler": function (response){
+            // Send payment identifiers to server so it can verify/fetch and update the AdvancePayment record.
+            const payload = {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+            };
+
+            fetch("{% url 'user:razorpay_payment_success' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(function(resp){
+                return resp.json().catch(function(){ return { success: false }; });
+            }).then(function(data){
+                // Redirect to payments page regardless; server will have updated status when verification succeeds.
+                if(data && data.success){
+                    window.location.href = "{% url 'user:booking_payments' booking.id %}";
+                } else {
+                    alert('Payment recorded; verification pending. Checking payments page now.');
+                    window.location.href = "{% url 'user:booking_payments' booking.id %}";
+                }
+            }).catch(function(err){
+                console.error('error posting payment to server', err);
+                window.location.href = "{% url 'user:booking_payments' booking.id %}";
+            });
+        },
+        "prefill": {
+            "name": "{{ booking.customer.fullname }}",
+            "email": "{{ booking.customer.email }}",
+        },
+        "theme": {"color": "#3399cc"}
+    };
+
+    var rzp = new Razorpay(options);
+    document.getElementById('rzp-button').onclick = function(e){
+        console.log('Opening Razorpay checkout via button click')
+        rzp.open();
+        e.preventDefault();
+    }
+
+    // Try to open automatically (helps avoid an extra click in dev).
+    // Note: some browsers may block auto-open popups; if blocked, click the Pay Now button.
+    window.addEventListener('load', function(){
+        try {
+            console.log('Attempting to auto-open Razorpay checkout')
+            rzp.open();
+        } catch (err) {
+            console.error('Auto-open failed', err)
+        }
+    });
+</script>
+
+{% endblock %}

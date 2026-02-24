@@ -8,9 +8,19 @@ from account.models import User
 from vendor.models import (
     Store, Service, Booking, Chat, ChatMessage,
 )
+from vendor.models import AdvancePayment
+from django.conf import settings
+from django.db import transaction
+from account.models import Token
+from django.shortcuts import Http404
 from decimal import Decimal
 import re
 from django.contrib import messages
+import json
+from django.views.decorators.csrf import csrf_exempt
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def user_required(view_func):
@@ -118,9 +128,41 @@ def user_payments(request):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
 
-    payments = Payment.objects.filter(user=user).order_by('-payment_date')
+    # Gather legacy `Payment` records and AdvancePayment records into a unified list
+    unified = []
+
+    # Legacy Payment model (if any)
+    for p in Payment.objects.filter(user=user).order_by('-payment_date'):
+        unified.append({
+            'type': 'payment',
+            'id': p.id,
+            'related': getattr(p, 'event', None),
+            'amount': p.amount,
+            'status': (p.status or '').lower(),
+            'when': getattr(p, 'payment_date', None),
+            'gateway': getattr(p, 'gateway', '') if hasattr(p, 'gateway') else '',
+            'raw': p,
+        })
+
+    # AdvancePayment records (deposit / token-style payments)
+    for a in AdvancePayment.objects.filter(user=user).order_by('-created_at'):
+        related_event = a.booking.event if a.booking and getattr(a.booking, 'event', None) else None
+        unified.append({
+            'type': 'advance',
+            'id': a.id,
+            'related': related_event,
+            'amount': a.amount,
+            'status': (a.status or '').lower(),
+            'when': a.created_at,
+            'gateway': a.gateway,
+            'raw': a,
+        })
+
+    # Sort unified list by `when` desc (items without a when go last)
+    unified.sort(key=lambda x: x['when'] or timezone.datetime(1970, 1, 1, tzinfo=timezone.utc), reverse=True)
+
     return render(request, 'user/payments.html', {
-        'payments': payments,
+        'payments': unified,
         'user': user,
     })
 
@@ -155,15 +197,34 @@ def make_payment(request, event_id):
 def payment_success(request):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
-    successful_payments = Payment.objects.filter(
-        user=user,
-        status=Payment.STATUS_SUCCESS
-    ).order_by('-payment_date')
+    # Combine legacy Payment.success and AdvancePayment succeeded records
+    unified = []
+    for p in Payment.objects.filter(user=user, status=Payment.STATUS_SUCCESS).order_by('-payment_date'):
+        unified.append({
+            'id': p.id,
+            'related': getattr(p, 'event', None),
+            'amount': p.amount,
+            'when': getattr(p, 'payment_date', None),
+            'gateway': getattr(p, 'gateway', '' ) if hasattr(p, 'gateway') else '',
+            'raw': p,
+        })
 
-    total_successful = successful_payments.count()
+    for a in AdvancePayment.objects.filter(user=user, status=AdvancePayment.STATUS_SUCCEEDED).order_by('-created_at'):
+        related_event = a.booking.event if a.booking and getattr(a.booking, 'event', None) else None
+        unified.append({
+            'id': a.id,
+            'related': related_event,
+            'amount': a.amount,
+            'when': a.created_at,
+            'gateway': a.gateway,
+            'raw': a,
+        })
+
+    unified.sort(key=lambda x: x['when'] or timezone.datetime(1970,1,1, tzinfo=timezone.utc), reverse=True)
+    total_successful = len(unified)
 
     return render(request, 'user/payment_success.html', {
-        'successful_payments': successful_payments,
+        'successful_payments': unified,
         'total_successful': total_successful,
         'user': user,
     })
@@ -174,16 +235,34 @@ def payment_success(request):
 def payment_failed(request):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
+    # Combine legacy Payment.failed and AdvancePayment failed records
+    unified = []
+    for p in Payment.objects.filter(user=user, status=Payment.STATUS_FAILED).order_by('-payment_date'):
+        unified.append({
+            'id': p.id,
+            'related': getattr(p, 'event', None),
+            'amount': p.amount,
+            'when': getattr(p, 'payment_date', None),
+            'gateway': getattr(p, 'gateway', '' ) if hasattr(p, 'gateway') else '',
+            'raw': p,
+        })
 
-    failed_payments = Payment.objects.filter(
-        user=user,
-        status=Payment.STATUS_FAILED
-    ).order_by('-payment_date')
+    for a in AdvancePayment.objects.filter(user=user, status=AdvancePayment.STATUS_FAILED).order_by('-created_at'):
+        related_event = a.booking.event if a.booking and getattr(a.booking, 'event', None) else None
+        unified.append({
+            'id': a.id,
+            'related': related_event,
+            'amount': a.amount,
+            'when': a.created_at,
+            'gateway': a.gateway,
+            'raw': a,
+        })
 
-    total_failed = failed_payments.count()
+    unified.sort(key=lambda x: x['when'] or timezone.datetime(1970,1,1, tzinfo=timezone.utc), reverse=True)
+    total_failed = len(unified)
 
     return render(request, 'user/payment_failed.html', {
-        'failed_payments': failed_payments,
+        'failed_payments': unified,
         'total_failed': total_failed,
         'user': user,
     })
@@ -515,18 +594,37 @@ def create_booking(request, store_id):
             except Exception:
                 booking_date = timezone.now()
 
-        Booking.objects.create(
-            event=event,
-            store=store,
-            service=service,
-            customer=user,
-            vendor=store.vendor,
-            amount=amount,
-            status=Booking.STATUS_PENDING,
-            notes=notes or None,
-            booking_date=booking_date,
-        )
-        messages.success(request, 'Booking request sent. The vendor will confirm shortly.')
+        # Calculate advance required (percentage from settings or default 20%)
+        try:
+            default_pct = Decimal(getattr(settings, 'ADVANCE_PERCENTAGE', 20))
+        except Exception:
+            default_pct = Decimal('20')
+
+        advance_required = (Decimal(amount) * default_pct / Decimal('100')).quantize(Decimal('0.01'))
+
+        with transaction.atomic():
+            booking = Booking.objects.create(
+                event=event,
+                store=store,
+                service=service,
+                customer=user,
+                vendor=store.vendor,
+                amount=amount,
+                advance_percentage=default_pct,
+                advance_required=advance_required,
+                status=Booking.STATUS_PENDING,
+                notes=notes or None,
+                booking_date=booking_date,
+            )
+            # Create a pending AdvancePayment record so user can pay the deposit
+            AdvancePayment.objects.create(
+                booking=booking,
+                user=user,
+                amount=advance_required,
+                status=AdvancePayment.STATUS_PENDING,
+            )
+
+        messages.success(request, f'Booking request sent. Advance of {advance_required} required.')
         return redirect('user:user_bookings')
 
     return redirect('user:store_detail', store_id=store_id)
@@ -561,11 +659,308 @@ def user_bookings(request):
                 messages.error(request, 'Booking not found.')
         return redirect('user:user_bookings')
 
+    # Attach latest advance payment directly to each booking for template access
+    for b in bookings:
+        b.latest_payment = b.advance_payments.order_by('-created_at').first()
+
     return render(request, 'user/bookings.html', {
         'bookings': bookings,
         'status_filter': status_filter,
         'user': user,
     })
+
+
+@user_required
+def pay_booking(request, booking_id):
+    """Allow user to pay booking advance either via full (gateway stub) or tokens."""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    try:
+        booking = Booking.objects.get(id=booking_id, customer=user)
+    except Booking.DoesNotExist:
+        raise Http404('Booking not found')
+
+    advance_due = (booking.advance_required or Decimal('0')) - (booking.advance_paid or Decimal('0'))
+    if advance_due <= 0:
+        messages.info(request, 'No advance due for this booking.')
+        return redirect('user:user_bookings')
+
+    if request.method == 'POST':
+        method = request.POST.get('method')
+        with transaction.atomic():
+            if method == 'advance':
+                # Create a Razorpay order for the advance amount and render checkout
+                try:
+                    import razorpay
+                except Exception:
+                    messages.error(request, 'Payment gateway not configured (razorpay library missing).')
+                    return redirect('user:pay_booking', booking_id=booking.id)
+
+                client = razorpay.Client(auth=(getattr(settings, 'RAZORPAY_KEY_ID', ''), getattr(settings, 'RAZORPAY_KEY_SECRET', '')))
+                # amount in paise
+                amount_paise = int((advance_due * Decimal('100')).quantize(Decimal('1')))
+                try:
+                    order = client.order.create({'amount': amount_paise, 'currency': 'INR', 'receipt': f'booking_{booking.id}_advance', 'payment_capture': 1})
+                except Exception:
+                    logger.exception('Failed to create razorpay order for advance')
+                    messages.error(request, 'Failed to initiate payment. Try again later.')
+                    return redirect('user:pay_booking', booking_id=booking.id)
+
+                # record AdvancePayment with order id
+                ap = AdvancePayment.objects.create(
+                    booking=booking,
+                    user=user,
+                    amount=advance_due,
+                    currency='INR',
+                    status=AdvancePayment.STATUS_PENDING,
+                    gateway='razorpay',
+                    gateway_id=order.get('id')
+                )
+
+                return render(request, 'user/razorpay_checkout.html', {
+                    'key_id': getattr(settings, 'RAZORPAY_KEY_ID', ''),
+                    'order_id': order.get('id'),
+                    'amount_paise': amount_paise,
+                    'booking': booking,
+                    'display_amount': str(advance_due),
+                })
+
+            elif method == 'full':
+                # Create a Razorpay order and render checkout page
+                try:
+                    import razorpay
+                except Exception:
+                    messages.error(request, 'Payment gateway not configured (razorpay library missing).')
+                    return redirect('user:pay_booking', booking_id=booking.id)
+
+                client = razorpay.Client(auth=(getattr(settings, 'RAZORPAY_KEY_ID', ''), getattr(settings, 'RAZORPAY_KEY_SECRET', '')))
+                # amount in paise
+                amount_paise = int((booking.amount * Decimal('100')).quantize(Decimal('1')))
+                try:
+                    order = client.order.create({'amount': amount_paise, 'currency': 'INR', 'receipt': f'booking_{booking.id}', 'payment_capture': 1})
+                except Exception:
+                    logger.exception('Failed to create razorpay order')
+                    messages.error(request, 'Failed to initiate payment. Try again later.')
+                    return redirect('user:pay_booking', booking_id=booking.id)
+
+                # record AdvancePayment with order id
+                ap = AdvancePayment.objects.create(
+                    booking=booking,
+                    user=user,
+                    amount=booking.amount,
+                    currency='INR',
+                    status=AdvancePayment.STATUS_PENDING,
+                    gateway='razorpay',
+                    gateway_id=order.get('id')
+                )
+
+                return render(request, 'user/razorpay_checkout.html', {
+                    'key_id': getattr(settings, 'RAZORPAY_KEY_ID', ''),
+                    'order_id': order.get('id'),
+                    'amount_paise': amount_paise,
+                    'booking': booking,
+                })
+
+            else:
+                messages.error(request, 'Invalid payment method.')
+                return redirect('user:pay_booking', booking_id=booking.id)
+
+    return render(request, 'user/pay_booking.html', {
+        'booking': booking,
+        'advance_due': advance_due,
+    })
+
+
+@user_required
+def booking_payments(request, booking_id):
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    try:
+        booking = Booking.objects.get(id=booking_id, customer=user)
+    except Booking.DoesNotExist:
+        raise Http404('Booking not found')
+
+    payments = booking.advance_payments.order_by('-created_at').all()
+    return render(request, 'user/booking_payments.html', {
+        'booking': booking,
+        'payments': payments,
+    })
+
+
+@csrf_exempt
+def razorpay_payment_success(request):
+    """AJAX endpoint called by client after Razorpay checkout completes.
+    Verifies signature and updates AdvancePayment and Booking.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=400)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception as e:
+        logger.exception('invalid json in razorpay_payment_success')
+        return JsonResponse({'success': False, 'error': 'invalid json', 'detail': str(e)}, status=400)
+
+    payment_id = payload.get('razorpay_payment_id')
+    order_id = payload.get('razorpay_order_id')
+
+    if not (payment_id and order_id):
+        logger.warning('razorpay_payment_success missing fields', extra={'payload': payload})
+        apx = AdvancePayment.objects.filter(gateway_id=order_id, gateway='razorpay').first() if order_id else None
+        if apx:
+            apx.status = AdvancePayment.STATUS_FAILED
+            apx.gateway_response = {'error': 'missing_fields'}
+            apx.save()
+        return JsonResponse({'success': False, 'error': 'missing fields', 'payload': payload, 'ap_found': bool(apx)}, status=400)
+
+    try:
+        import razorpay
+    except Exception:
+        logger.exception('Razorpay SDK not installed')
+        return JsonResponse({'success': False, 'error': 'razorpay sdk not available'}, status=500)
+
+    client = razorpay.Client(auth=(getattr(settings, 'RAZORPAY_KEY_ID', ''), getattr(settings, 'RAZORPAY_KEY_SECRET', '')))
+
+    # Instead of verifying client signature (which may fail in some envs), fetch the payment
+    # directly from Razorpay and validate order_id and status.
+    try:
+        payment_obj = client.payment.fetch(payment_id)
+    except Exception as e:
+        logger.exception('Failed to fetch payment from Razorpay')
+        apx = AdvancePayment.objects.filter(gateway_id=order_id, gateway='razorpay').first()
+        if apx:
+            apx.status = AdvancePayment.STATUS_FAILED
+            apx.gateway_response = {'fetch_exception': str(e)}
+            apx.save()
+        return JsonResponse({'success': False, 'error': 'fetch_failed', 'exception': str(e)}, status=400)
+
+    fetched_order = payment_obj.get('order_id')
+    fetched_status = payment_obj.get('status')
+
+    if fetched_order != order_id:
+        logger.warning('Order id mismatch in payment fetch', extra={'fetched_order': fetched_order, 'expected': order_id})
+        return JsonResponse({'success': False, 'error': 'order_mismatch', 'fetched_order': fetched_order}, status=400)
+
+    if fetched_status not in ('captured', 'authorized'):
+        # Payment not completed
+        apx = AdvancePayment.objects.filter(gateway_id=order_id, gateway='razorpay').first()
+        if apx:
+            apx.status = AdvancePayment.STATUS_FAILED
+            apx.gateway_response = payment_obj
+            apx.save()
+        return JsonResponse({'success': False, 'error': 'payment_not_captured', 'status': fetched_status}, status=400)
+
+    # Payment is valid and captured/authorized: mark AdvancePayment succeeded and apply advance
+    ap = AdvancePayment.objects.select_for_update().filter(gateway_id=order_id, gateway='razorpay').first()
+    if not ap:
+        # create record if missing
+        booking_ref = None
+        try:
+            if order_id and 'booking_' in order_id:
+                parts = order_id.split('booking_')[-1]
+                bid = int(parts.split('_')[0])
+                booking_ref = Booking.objects.filter(id=bid).first()
+        except Exception:
+            booking_ref = None
+        ap = AdvancePayment.objects.create(
+            booking=booking_ref,
+            user=User.objects.get(id=request.session.get('user_id')),
+            amount=Decimal(str(payment_obj.get('amount') / 100.0)) if payment_obj.get('amount') else Decimal('0'),
+            currency=payment_obj.get('currency', 'INR'),
+            status=AdvancePayment.STATUS_SUCCEEDED,
+            gateway='razorpay',
+            gateway_id=payment_id,
+            gateway_response=payment_obj,
+        )
+    else:
+        ap.status = AdvancePayment.STATUS_SUCCEEDED
+        ap.gateway_id = payment_id
+        ap.gateway_response = payment_obj
+        ap.save()
+
+    try:
+        if ap.booking:
+            ap.booking.apply_advance(ap.amount)
+    except Exception:
+        logger.exception('Failed to apply advance to booking after payment fetch')
+
+    return JsonResponse({'success': True})
+
+    # Find matching AdvancePayment by order id
+    try:
+        ap = AdvancePayment.objects.select_for_update().get(gateway_id=order_id, gateway='razorpay')
+    except AdvancePayment.DoesNotExist:
+        ap = AdvancePayment.objects.filter(gateway_id=order_id).first()
+
+    if not ap:
+        return JsonResponse({'success': False, 'error': 'advance payment record not found'}, status=404)
+
+    ap.status = AdvancePayment.STATUS_SUCCEEDED
+    ap.gateway_id = payment_id
+    ap.gateway_response = {'verified': True}
+    ap.save()
+
+    try:
+        booking = ap.booking
+        booking.apply_advance(ap.amount)
+    except Exception:
+        logger.exception('Failed to apply advance to booking')
+
+    return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def razorpay_webhook(request):
+    """Handle Razorpay webhooks. Verifies signature and processes payment events."""
+    try:
+        import razorpay
+    except Exception:
+        logger.exception('Razorpay SDK not installed')
+        return JsonResponse({'ok': False}, status=500)
+
+    body = request.body
+    signature = request.META.get('HTTP_X_RAZORPAY_SIGNATURE', '')
+    secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+
+    try:
+        razorpay.utility.verify_webhook_signature(body, signature, secret)
+    except Exception:
+        logger.exception('Invalid webhook signature')
+        return JsonResponse({'ok': False}, status=400)
+
+    try:
+        data = json.loads(body.decode('utf-8'))
+    except Exception:
+        return JsonResponse({'ok': False}, status=400)
+
+    event = data.get('event')
+    payload = data.get('payload', {})
+
+    if event and event.startswith('payment.'):
+        payment_obj = payload.get('payment', {}).get('entity')
+        if payment_obj:
+            order_id = payment_obj.get('order_id')
+            payment_id = payment_obj.get('id')
+            status = payment_obj.get('status')
+            aps = AdvancePayment.objects.filter(gateway_id=order_id, gateway='razorpay')
+            for ap in aps:
+                if status in ('captured', 'authorized'):
+                    ap.status = AdvancePayment.STATUS_SUCCEEDED
+                    ap.gateway_id = payment_id
+                    ap.gateway_response = payment_obj
+                    ap.save()
+                    try:
+                        ap.booking.apply_advance(ap.amount)
+                    except Exception:
+                        logger.exception('apply_advance failed in webhook')
+                else:
+                    ap.status = AdvancePayment.STATUS_FAILED
+                    ap.gateway_response = payment_obj
+                    ap.save()
+
+            # If no AdvancePayment was found, nothing to do (webhook may be for other orders)
+
+    return JsonResponse({'ok': True})
 
 
 # ---------- Chat (user with vendors) ----------

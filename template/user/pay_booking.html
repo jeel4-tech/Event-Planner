@@ -1,0 +1,31 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Pay Advance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Pay Advance for {{ booking.store.store_name }} — {{ booking.event.title }}</h5>
+            <p class="text-muted">Advance due: <strong>₹{{ advance_due }}</strong></p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Choose payment method</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="method" id="method_full" value="full" checked>
+                        <label class="form-check-label" for="method_full">Pay full amount (online)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="method" id="method_advance" value="advance">
+                        <label class="form-check-label" for="method_advance">Pay token amount (advance only)</label>
+                    </div>
+                </div>
+                <button class="btn btn-primary" type="submit">Pay</button>
+                <a href="{% url 'user:user_bookings' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

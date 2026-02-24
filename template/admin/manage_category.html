@@ -29,14 +29,11 @@
                     </span>
                 </td>
                 <td class="text-center">
-                    <a href="#" class="btn btn-sm btn-info">
-                        View
-                    </a>
-                    <a href="#"
-                       class="btn btn-sm btn-danger"
-                       onclick="return confirm('Are you sure?')">
-                        Delete
-                    </a>
+                    <a href="{% url 'admin_view_category' category.id %}" class="btn btn-sm btn-info">View</a>
+                    <form method="post" action="{% url 'admin_delete_category' category.id %}" style="display:inline" onsubmit="return confirm('Are you sure?')">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                    </form>
                 </td>
             </tr>
         {% empty %}

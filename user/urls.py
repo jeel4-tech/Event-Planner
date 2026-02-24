@@ -17,6 +17,7 @@ urlpatterns = [
     path('events/<int:event_id>/edit/', views.event_edit, name='event_edit'),
     path('events/<int:event_id>/delete/', views.event_delete, name='event_delete'),
     path('reviews/', views.user_reviews, name='user_reviews'),
+    path('reviews/write/', views.review_write_list, name='review_write'),
     path('reviews/add/<int:event_id>/', views.review_create, name='review_create'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('change-password/', views.change_password, name='change_password'),
@@ -29,5 +30,7 @@ urlpatterns = [
     # Chat with vendors
     path('chat/', views.user_chat, name='user_chat'),
     path('chat/<int:chat_id>/', views.user_chat_detail, name='user_chat_detail'),
+    path('chat/<int:chat_id>/delete/', views.user_delete_chat, name='user_delete_chat'),
+    path('chat/message/<int:message_id>/delete/', views.user_delete_message, name='user_delete_message'),
     path('store/<int:store_id>/chat/', views.start_chat, name='start_chat'),
 ]

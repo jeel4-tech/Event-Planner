@@ -76,13 +76,15 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group" role="group">
-                                        <a href="#" class="btn btn-sm btn-outline-primary" title="View Details">
+                                        <a href="{% url 'admin_view_vendor' vendor.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
                                             <i class="bi bi-eye me-1"></i>View
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Vendor" 
-                                                onclick="return confirm('Are you sure you want to delete {{ vendor.fullname }}?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        <form method="post" action="{% url 'admin_delete_user' vendor.id %}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete {{ vendor.fullname }}?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Vendor">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

@@ -356,6 +356,21 @@ def vendor_chat(request):
 
 
 @vendor_required
+def vendor_delete_chat(request, chat_id):
+    """Allow vendor to delete a chat/conversation they own."""
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+    chat = get_object_or_404(Chat, id=chat_id, vendor_id=vendor_id)
+
+    if request.method == 'POST':
+        chat.delete()
+        messages.success(request, 'Conversation deleted.')
+        return redirect('vendor_chat')
+
+    return redirect('vendor_chat')
+
+
+@vendor_required
 def vendor_chat_detail(request, chat_id):
     vendor_id = request.session.get('user_id')
     vendor = User.objects.get(id=vendor_id)
@@ -363,12 +378,14 @@ def vendor_chat_detail(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id, vendor_id=vendor_id)
 
     if request.method == 'POST':
-        message_text = request.POST.get('message')
-        if message_text:
+        message_text = request.POST.get('message', '').strip()
+        image = request.FILES.get('image')
+        if message_text or image:
             ChatMessage.objects.create(
                 chat=chat,
                 sender=vendor,
-                message=message_text
+                message=message_text or '',
+                image=image
             )
             # Notify user about new vendor message
             try:
@@ -395,12 +412,36 @@ def vendor_chat_detail(request, chat_id):
 
 
 @vendor_required
+def vendor_delete_message(request, message_id):
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+    msg = get_object_or_404(ChatMessage, id=message_id, sender_id=vendor_id)
+    if request.method == 'POST':
+        try:
+            if msg.image:
+                msg.image.delete(save=False)
+        except Exception:
+            pass
+        chat_id = msg.chat_id
+        msg.delete()
+        messages.success(request, 'Message deleted.')
+        return redirect('vendor_chat_detail', chat_id)
+    return redirect('vendor_chat')
+
+
+@vendor_required
 def vendor_open_chat_for_booking(request, booking_id):
     """Create or open chat between vendor and customer for a booking."""
     vendor_id = request.session.get('user_id')
     vendor = User.objects.get(id=vendor_id)
 
     booking = get_object_or_404(Booking, id=booking_id, vendor_id=vendor_id)
+
+    # Only allow chat when booking is approved/confirmed (or later statuses)
+    allowed_statuses = [Booking.STATUS_CONFIRMED, Booking.STATUS_IN_PROGRESS, Booking.STATUS_COMPLETED]
+    if booking.status not in allowed_statuses:
+        messages.error(request, 'Chat is available only after the booking is approved by the vendor.')
+        return redirect('vendor_orders')
 
     # Try to get existing chat or create one
     chat, created = Chat.objects.get_or_create(

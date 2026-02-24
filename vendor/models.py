@@ -152,6 +152,7 @@ class ExtraCharge(models.Model):
 
 class ChatMessage(models.Model):
     message = models.TextField()
+    image = models.ImageField(upload_to='chat_images/', null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='messages')

@@ -78,9 +78,15 @@
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm">
+                            {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}
                             <a href="{% url 'vendor_chat_with_booking' booking.id %}" class="btn btn-secondary btn-sm me-1" title="Chat with Customer">
                                 <i class="bi bi-chat-dots"></i>
                             </a>
+                            {% else %}
+                            <button type="button" class="btn btn-secondary btn-sm me-1 disabled" title="Chat available after approval" disabled>
+                                <i class="bi bi-chat-dots"></i>
+                            </button>
+                            {% endif %}
                             <a href="{% url 'vendor_add_extra' booking.id %}" class="btn btn-warning btn-sm me-1" title="Add Extra">
                                 <i class="bi bi-plus-circle"></i> Add Extra
                             </a>

@@ -57,26 +57,38 @@
                         <span class="active-indicator"></span>
                     {% endif %}
                 </a>
-                <a href="#" class="nav-link-custom">
+                <a href="{% url 'admin_manage_events' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_manage_events' %}active{% endif %}">
                     <i class="bi bi-calendar-week me-3"></i>
                     <span>Events</span>
+                    {% if request.resolver_match.url_name == 'admin_manage_events' %}
+                        <span class="active-indicator"></span>
+                    {% endif %}
                 </a>
-                <a href="#" class="nav-link-custom">
+                <a href="{% url 'admin_manage_reviews' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_manage_reviews' %}active{% endif %}">
                     <i class="bi bi-star me-3"></i>
                     <span>Reviews</span>
+                    {% if request.resolver_match.url_name == 'admin_manage_reviews' %}
+                        <span class="active-indicator"></span>
+                    {% endif %}
                 </a>
             </div>
 
             <!-- Settings -->
             <div class="nav-group mb-3">
                 <div class="nav-title text-uppercase small fw-semibold text-secondary mb-2">Settings</div>
-                <a href="#" class="nav-link-custom">
+                <a href="{% url 'admin_settings' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
                     <i class="bi bi-gear me-3"></i>
                     <span>Settings</span>
+                    {% if request.resolver_match.url_name == 'admin_settings' %}
+                        <span class="active-indicator"></span>
+                    {% endif %}
                 </a>
-                <a href="#" class="nav-link-custom">
+                <a href="{% url 'admin_analytics' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_analytics' %}active{% endif %}">
                     <i class="bi bi-bar-chart me-3"></i>
                     <span>Analytics</span>
+                    {% if request.resolver_match.url_name == 'admin_analytics' %}
+                        <span class="active-indicator"></span>
+                    {% endif %}
                 </a>
             </div>
         </div>

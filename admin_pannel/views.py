@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
+import csv
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
@@ -36,6 +38,47 @@ def admin_view_user(request, user_id):
 
     return render(request, 'admin/user_details.html', {
         'user': user,
+        'profile': profile,
+        'events': events,
+        'bookings': bookings,
+        'total_payments': total_payments,
+    })
+
+
+@check_admin_session
+def admin_view_vendor(request, vendor_id):
+    vendor = User.objects.filter(id=vendor_id, role__name__iexact='vendor').first()
+    if not vendor:
+        return redirect('manage_vendors')
+
+    profile = Profile.objects.filter(user=vendor).first()
+    stores = Store.objects.filter(vendor=vendor)
+    bookings = Booking.objects.filter(vendor=vendor)
+    total_earnings = 0
+    # total payments for vendor can be derived from bookings/payments if needed
+
+    return render(request, 'admin/user_details.html', {
+        'user': vendor,
+        'profile': profile,
+        'events': [],
+        'bookings': bookings,
+        'total_payments': total_earnings,
+    })
+
+
+@check_admin_session
+def admin_view_guest(request, guest_id):
+    guest = User.objects.filter(id=guest_id, role__name__iexact='guest').first()
+    if not guest:
+        return redirect('manage_guests')
+
+    profile = Profile.objects.filter(user=guest).first()
+    events = Event.objects.filter(owner=guest)
+    bookings = Booking.objects.filter(customer=guest)
+    total_payments = Payment.objects.filter(user=guest, status=Payment.STATUS_SUCCESS).aggregate(total=models.Sum('amount'))['total'] or 0
+
+    return render(request, 'admin/user_details.html', {
+        'user': guest,
         'profile': profile,
         'events': events,
         'bookings': bookings,
@@ -181,6 +224,50 @@ def analytics_view(request):
         'data': data
     })
 
+
+@check_admin_session
+def events_export(request):
+    """Export all events as CSV."""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="events.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['id', 'title', 'date', 'owner_email', 'status'])
+    for e in Event.objects.select_related('owner').all().order_by('-created_at'):
+        owner_email = getattr(e.owner, 'email', '') if e.owner else ''
+        writer.writerow([e.id, e.title, e.date.isoformat(), owner_email, e.status])
+    return response
+
+
+@check_admin_session
+def event_create(request):
+    """Simple admin event creation form."""
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        date_str = request.POST.get('date')
+        owner_id = request.POST.get('owner')
+        event_type = request.POST.get('event_type', Event.TYPE_OTHER)
+        try:
+            owner = User.objects.get(id=int(owner_id)) if owner_id else None
+        except Exception:
+            owner = None
+
+        if not title:
+            return render(request, 'admin/create_event.html', {'error': 'Title is required', 'users': User.objects.all()})
+
+        try:
+            from django.utils.dateparse import parse_datetime
+            date = parse_datetime(date_str) if date_str else timezone.now()
+            if not date:
+                date = timezone.now()
+        except Exception:
+            date = timezone.now()
+
+        Event.objects.create(owner=owner, title=title, date=date, event_type=event_type, status=Event.STATUS_PENDING)
+        return redirect('admin_dashboard')
+
+    users = User.objects.filter(role__name__iexact='user')
+    return render(request, 'admin/create_event.html', {'users': users})
+
 @check_admin_session
 def manage_guest(request):
     guests = User.objects.filter(role__name__iexact='guest')
@@ -216,3 +303,53 @@ def add_category(request):
             return redirect('manage_categories')
 
     return render(request, 'admin/add_category.html')
+
+
+@check_admin_session
+def admin_delete_category(request, category_id):
+    if request.method != 'POST':
+        return redirect('manage_categories')
+    cat = category.objects.filter(id=category_id).first()
+    if cat:
+        cat.delete()
+    return redirect('manage_categories')
+
+
+@check_admin_session
+def admin_view_category(request, category_id):
+    cat = category.objects.filter(id=category_id).first()
+    if not cat:
+        return redirect('manage_categories')
+    return render(request, 'admin/category_detail.html', {'category': cat})
+
+
+@check_admin_session
+def admin_delete_review(request, review_id):
+    if request.method != 'POST':
+        return redirect('admin_manage_reviews')
+    rev = Review.objects.filter(id=review_id).first()
+    if rev:
+        rev.delete()
+    return redirect('admin_manage_reviews')
+
+
+@check_admin_session
+def admin_delete_user(request, user_id):
+    """Delete a user (admin only). Accepts POST only."""
+    if request.method != 'POST':
+        return redirect('manage_users')
+
+    user = User.objects.filter(id=user_id).first()
+    if not user:
+        return redirect('manage_users')
+
+    role_name = user.role.name if user.role else 'user'
+    user.delete()
+
+    # Redirect to appropriate listing
+    if role_name.lower() == 'vendor':
+        return redirect('manage_vendors')
+    elif role_name.lower() == 'guest':
+        return redirect('manage_guests')
+    else:
+        return redirect('manage_users')

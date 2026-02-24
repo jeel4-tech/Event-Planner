@@ -36,7 +36,7 @@
                         <td>{{ r.rating }}</td>
                         <td class="text-truncate" style="max-width:300px">{{ r.comment }}</td>
                         <td class="text-end">
-                            <form method="post" action="#" style="display:inline">{% csrf_token %}
+                            <form method="post" action="{% url 'admin_delete_review' r.id %}" style="display:inline">{% csrf_token %}
                                 <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this review?')">Delete</button>
                             </form>
                         </td>

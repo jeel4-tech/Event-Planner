@@ -1,0 +1,43 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Create Event{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Create Event</h4>
+        <p class="text-muted small mb-0">Create a new event for a user</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input name="title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Owner (user)</label>
+            <select name="owner" class="form-select">
+                <option value="">-- Select user --</option>
+                {% for u in users %}
+                <option value="{{ u.id }}">{{ u.fullname }} ({{ u.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Date (ISO)</label>
+            <input name="date" class="form-control" placeholder="2026-02-24T14:00:00">
+        </div>
+        <button class="btn btn-primary">Create</button>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Event Details{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">{{ event.title }}</h4>
+        <p class="text-muted small mb-0">Event details and metadata</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_manage_events' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="card p-4">
+    <p><strong>ID:</strong> {{ event.id }}</p>
+    <p><strong>Title:</strong> {{ event.title }}</p>
+    <p><strong>Owner:</strong> {% if event.owner %}{{ event.owner.fullname }}{% else %}-{% endif %}</p>
+    <p><strong>Date:</strong> {{ event.date }}</p>
+    <p><strong>Status:</strong> {{ event.status }}</p>
+</div>
+
+{% endblock %}

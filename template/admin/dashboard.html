@@ -11,12 +11,12 @@
         <p class="text-muted small mb-0">Welcome back, {{ admin.fullname|default:'Admin' }}</p>
     </div>
     <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-secondary">
+        <a href="{% url 'admin_events_export' %}" class="btn btn-sm btn-outline-secondary">
             <i class="fas fa-download me-1"></i>Export
-        </button>
-        <button class="btn btn-sm btn-primary">
+        </a>
+        <a href="{% url 'admin_create_event' %}" class="btn btn-sm btn-primary">
             <i class="fas fa-plus-circle me-1"></i>New Event
-        </button>
+        </a>
     </div>
 </div>
 
@@ -172,7 +172,7 @@
             <h5 class="mb-1">Recent Events</h5>
             <p class="text-muted small mb-0">Latest events on your platform</p>
         </div>
-        <a href="#" class="btn btn-sm btn-link text-primary text-decoration-none">
+        <a href="{% url 'admin_manage_events' %}" class="btn btn-sm btn-link text-primary text-decoration-none">
             View All <i class="fas fa-arrow-right ms-1"></i>
         </a>
     </div>

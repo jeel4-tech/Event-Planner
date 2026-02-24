@@ -161,9 +161,12 @@
             </div>
             <div class="modal-footer border-0 justify-content-center">
                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4">
-                    <i class="bi bi-trash me-2"></i>Delete User
-                </a>
+                <form id="confirmDeleteForm" method="post" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash me-2"></i>Delete User
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -304,7 +307,7 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
 // Delete confirmation function
 function confirmDelete(userId, userName) {
     document.getElementById('deleteUserName').textContent = userName;
-    document.getElementById('confirmDeleteBtn').href = `/admin/user/${userId}/delete/`; // Update with your delete URL
+    document.getElementById('confirmDeleteForm').action = `/admin/user/${userId}/delete/`;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 

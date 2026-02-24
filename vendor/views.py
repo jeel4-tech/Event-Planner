@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, F, Value, DecimalField
+from django.db.models.functions import Coalesce
 from django.contrib.auth.hashers import make_password, check_password
 from account.models import User
 from user.models import Event, Payment, Review, Notification
@@ -244,6 +246,10 @@ def vendor_orders(request):
     vendor = User.objects.get(id=vendor_id)
     bookings = Booking.objects.filter(vendor_id=vendor_id).select_related(
         'event', 'store', 'service', 'customer'
+    ).annotate(
+        extras_total=Coalesce(Sum('extras__amount'), Value(0), output_field=DecimalField())
+    ).annotate(
+        total_amount=F('amount') + F('extras_total')
     ).order_by('-created_at')
     
     # Filter by status if provided
@@ -356,6 +362,26 @@ def vendor_chat(request):
 
 
 @vendor_required
+def vendor_booking_detail(request, booking_id):
+    """Show booking details to the vendor, including any extra charges and total amount."""
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+    booking = get_object_or_404(Booking, id=booking_id, vendor_id=vendor_id)
+
+    extras = booking.extras.all()
+    extras_total = extras.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    total_amount = booking.amount + extras_total
+
+    return render(request, 'vendor/booking_detail.html', {
+        'vendor': vendor,
+        'booking': booking,
+        'extras': extras,
+        'extras_total': extras_total,
+        'total_amount': total_amount,
+    })
+
+
+@vendor_required
 def vendor_delete_chat(request, chat_id):
     """Allow vendor to delete a chat/conversation they own."""
     vendor_id = request.session.get('user_id')
@@ -425,6 +451,9 @@ def vendor_delete_message(request, message_id):
         chat_id = msg.chat_id
         msg.delete()
         messages.success(request, 'Message deleted.')
+        # Return JSON for AJAX callers
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'deleted': True, 'message_id': message_id})
         return redirect('vendor_chat_detail', chat_id)
     return redirect('vendor_chat')
 

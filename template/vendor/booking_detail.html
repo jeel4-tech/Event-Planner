@@ -1,0 +1,374 @@
+{% extends 'vendor/base.html' %}
+{% block title %}Booking #{{ booking.id }}{% endblock %}
+
+{% block content %}
+<style>
+  .booking-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+  }
+  
+  .booking-id {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+  
+  .status-confirmed {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+  
+  .status-in_progress {
+    background: #d4edda;
+    color: #155724;
+  }
+  
+  .status-completed {
+    background: #c3e6cb;
+    color: #155724;
+  }
+  
+  .status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  
+  .modern-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .modern-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .section-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .info-row {
+    display: flex;
+    align-items: start;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid #667eea;
+  }
+  
+  .info-label {
+    font-weight: 600;
+    color: #4a5568;
+    min-width: 120px;
+    font-size: 0.875rem;
+  }
+  
+  .info-value {
+    color: #2d3748;
+    flex: 1;
+  }
+  
+  .extra-item {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+  }
+  
+  .extra-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.1);
+  }
+  
+  .extra-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .extra-title {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1.125rem;
+  }
+  
+  .extra-amount {
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1.25rem;
+  }
+  
+  .summary-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    position: sticky;
+    top: 20px;
+  }
+  
+  .summary-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .summary-row:last-of-type {
+    border-bottom: none;
+    padding-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid white;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  
+  .btn-back:hover {
+    background: white;
+    color: #667eea;
+  }
+  
+  .btn-approve {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.125rem;
+    width: 100%;
+    margin-top: 1.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-approve:hover {
+    background: #f7fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  .event-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.25rem;
+    transition: color 0.2s;
+  }
+  
+  .event-link:hover {
+    color: #764ba2;
+  }
+  
+  .no-extras {
+    text-align: center;
+    padding: 2rem;
+    color: #a0aec0;
+    font-style: italic;
+  }
+</style>
+
+<div class="booking-header">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <div class="booking-id">Booking #{{ booking.id }}</div>
+      <span class="status-badge status-{{ booking.status }}">
+        {{ booking.get_status_display }}
+      </span>
+    </div>
+    <a href="{% url 'vendor_orders' %}" class="btn-back">
+      <i class="bi bi-arrow-left me-2"></i>Back to Orders
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="modern-card">
+      <div class="section-icon">
+        <i class="bi bi-calendar-event"></i>
+      </div>
+      <h2 class="section-title">Event Details</h2>
+      <div class="info-row">
+        <div class="info-label">Event Name</div>
+        <div class="info-value">
+          <a href="{% url 'user:event_detail' booking.event.id %}" class="event-link">
+            {{ booking.event.title }}
+          </a>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Date & Time</div>
+        <div class="info-value">
+          <i class="bi bi-clock me-2"></i>{{ booking.event.date|date:"l, F d, Y" }} at {{ booking.event.date|date:"h:i A" }}
+        </div>
+      </div>
+      {% if booking.event.venue %}
+      <div class="info-row">
+        <div class="info-label">Venue</div>
+        <div class="info-value">
+          <i class="bi bi-geo-alt me-2"></i>{{ booking.event.venue }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="modern-card">
+      <div class="section-icon">
+        <i class="bi bi-briefcase"></i>
+      </div>
+      <h2 class="section-title">Service Information</h2>
+      <div class="info-row">
+        <div class="info-label">Service</div>
+        <div class="info-value">
+          {% if booking.service %}
+            <strong>{{ booking.service.name }}</strong>
+          {% else %}
+            <strong>General / Custom Service</strong>
+          {% endif %}
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Base Amount</div>
+        <div class="info-value">
+          <span style="font-size: 1.25rem; font-weight: 700; color: #667eea;">₹{{ booking.amount }}</span>
+        </div>
+      </div>
+    </div>
+
+    {% if booking.notes %}
+    <div class="modern-card">
+      <div class="section-icon">
+        <i class="bi bi-pencil-square"></i>
+      </div>
+      <h2 class="section-title">Special Notes</h2>
+      <div class="info-row">
+        <div class="info-value">{{ booking.notes }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="modern-card">
+      <div class="section-icon">
+        <i class="bi bi-plus-circle"></i>
+      </div>
+      <h2 class="section-title">Extra Charges</h2>
+      {% if extras %}
+        {% for ex in extras %}
+        <div class="extra-item">
+          <div class="extra-header">
+            <span class="extra-title">{{ ex.title }}</span>
+            <span class="extra-amount">₹{{ ex.amount }}</span>
+          </div>
+          {% if ex.description %}
+          <div class="text-muted">{{ ex.description }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="no-extras">
+          <i class="bi bi-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+          No extra charges added
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="summary-card">
+      <div class="summary-title">
+        <i class="bi bi-receipt me-2"></i>Summary
+      </div>
+      <div class="summary-row">
+        <span>Base Amount</span>
+        <span>₹{{ booking.amount }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Extra Charges</span>
+        <span>₹{{ extras_total }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Total Amount</span>
+        <span>₹{{ total_amount }}</span>
+      </div>
+      
+      {% if booking.status == 'pending' %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="booking_id" value="{{ booking.id }}">
+        <input type="hidden" name="action" value="approve">
+        <button type="submit" class="btn-approve">
+          <i class="bi bi-check-circle me-2"></i>Approve Booking
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

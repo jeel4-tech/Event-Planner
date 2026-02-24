@@ -63,7 +63,13 @@
                     <td>
                         <i class="bi bi-person me-1"></i>{{ booking.customer.fullname }}
                     </td>
-                    <td><strong class="text-success">₹{{ booking.amount }}</strong></td>
+                    <td>
+                        {% if booking.extras_total and booking.extras_total|floatformat:2 != '0.00' %}
+                        <strong class="text-success">₹{{ booking.total_amount }}</strong>
+                        {% else %}
+                        <strong class="text-success">₹{{ booking.amount }}</strong>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if booking.booking_date %}
                             {{ booking.booking_date|date:"M d, Y" }}
@@ -90,6 +96,9 @@
                             <a href="{% url 'vendor_add_extra' booking.id %}" class="btn btn-warning btn-sm me-1" title="Add Extra">
                                 <i class="bi bi-plus-circle"></i> Add Extra
                             </a>
+                                <a href="{% url 'vendor_booking_detail' booking.id %}" class="btn btn-info btn-sm me-1" title="View details">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
                             {% if booking.status == 'pending' %}
                             <form method="POST" style="display: inline;">
                                 {% csrf_token %}

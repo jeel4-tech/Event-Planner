@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.db.models import Count, Q, Avg
 from .models import Notification, Profile, Event, Payment, Review
 from django.utils import timezone
@@ -78,29 +79,27 @@ def edit_profile(request):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
 
-    if request.method == "POST":
-        fullname = request.POST.get("fullname", "").strip()
-        email = request.POST.get("email", "").strip()
-        mobile = request.POST.get("mobile", "").strip()
+    if request.method == 'POST':
+        fullname = request.POST.get('fullname', '').strip()
+        email = request.POST.get('email', '').strip()
+        mobile = request.POST.get('mobile', '').strip()
 
-        # 🔴 BACKEND VALIDATIONS
         if not fullname:
-            messages.error(request, "Full name is required")
+            messages.error(request, 'Full name is required')
         elif len(fullname) < 3:
-            messages.error(request, "Full name must be at least 3 characters")
+            messages.error(request, 'Full name must be at least 3 characters')
         elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            messages.error(request, "Enter a valid email address")
+            messages.error(request, 'Enter a valid email address')
         elif mobile and not mobile.isdigit():
-            messages.error(request, "Mobile number must contain only digits")
+            messages.error(request, 'Mobile number must contain only digits')
         elif mobile and len(mobile) != 10:
-            messages.error(request, "Mobile number must be 10 digits")
+            messages.error(request, 'Mobile number must be 10 digits')
         else:
             user.fullname = fullname
             user.email = email
             user.mobile = mobile
             user.save()
-
-            messages.success(request, "Profile updated successfully")
+            messages.success(request, 'Profile updated successfully')
             return redirect('user:user_details')
 
     return render(request, 'user/edit_profile.html', {'user': user})
@@ -635,6 +634,9 @@ def user_delete_message(request, message_id):
         chat_id = msg.chat_id
         msg.delete()
         messages.success(request, 'Message deleted.')
+        # If this was an AJAX request, return JSON so client can update UI without redirect
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'deleted': True, 'message_id': message_id})
         return redirect('user:user_chat_detail', chat_id=chat_id)
     return redirect('user:user_chat')
 

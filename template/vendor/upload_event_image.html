@@ -1,63 +1,92 @@
 {% extends "vendor/base.html" %}
-{% block title %}Upload Event Image{% endblock %}
+{% block title %}Event Photos{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h3 class="mb-4">Upload Event Image</h3>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="upload">
-        <div class="mb-3">
-            <label class="form-label">Select Event <span class="text-danger">*</span></label>
-            <select name="event_id" class="form-select" required>
-                <option value="">Choose an event</option>
-                {% for event in events %}
-                <option value="{{ event.id }}">{{ event.title }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Select Images <span class="text-danger">*</span></label>
-            <input type="file" name="images" class="form-control" accept="image/*" multiple required>
-            <small class="text-muted">You can select multiple images at once.</small>
-        </div>
-        <button type="submit" class="btn btn-primary">Upload Images</button>
-    </form>
 
-    <hr class="my-4">
-    <h4>Uploaded Images</h4>
-    {% if images_by_store %}
-        {% for store_name, images in images_by_store.items %}
-        <div class="card-box mb-4">
-            <h5 class="mb-3">
-                <i class="bi bi-shop me-2"></i>{{ store_name }}
-                <span class="badge bg-primary ms-2">{{ images|length }} image{{ images|length|pluralize }}</span>
-            </h5>
-            <div class="row g-3">
-                {% for img in images %}
-                <div class="col-md-3 col-sm-4 col-6">
-                    <div class="position-relative">
-                        <img src="{{ img.image.url }}" alt="{{ store_name }}" class="img-fluid rounded" style="height: 200px; width: 100%; object-fit: cover;">
-                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this image?')">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="image_id" value="{{ img.id }}">
-                            <button type="submit" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Event Photos</h3>
+        <p class="text-muted mb-0">Click on an event to view and manage its photos</p>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if events %}
+<div class="row g-4">
+    {% for event in events %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'event_photos_detail' event.id %}" class="text-decoration-none">
+            <div class="card h-100 shadow-sm border-0 event-photo-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1 text-dark">{{ event.title }}</h5>
+                            <span class="badge bg-{% if event.status == 'pending' %}warning{% elif event.status == 'confirmed' %}success{% elif event.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                                {{ event.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                                <i class="bi bi-camera text-success fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-muted mb-1 small">
+                        <i class="bi bi-calendar me-1"></i>{{ event.date|date:"F d, Y" }}
+                    </p>
+                    <p class="text-muted mb-1 small">
+                        <i class="bi bi-clock me-1"></i>{{ event.date|date:"g:i A" }}
+                    </p>
+                    <p class="text-muted mb-3 small">
+                        <i class="bi bi-person me-1"></i>{{ event.owner.fullname }}
+                    </p>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                        <span class="text-muted small">
+                            <i class="bi bi-images me-1"></i>
+                            {% if event.photo_count %}
+                                {{ event.photo_count }} photo{{ event.photo_count|pluralize }} uploaded
+                            {% else %}
+                                No photos yet
+                            {% endif %}
+                        </span>
+                        <span class="btn btn-sm btn-outline-success">
+                            View Photos <i class="bi bi-arrow-right ms-1"></i>
+                        </span>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="card-box text-center py-5">
-            <i class="bi bi-images fs-1 text-muted mb-3"></i>
-            <h5 class="text-muted">No images uploaded yet</h5>
-            <p class="text-muted">Upload images to showcase your events.</p>
-        </div>
-    {% endif %}
+        </a>
+    </div>
+    {% endfor %}
 </div>
+{% else %}
+    <div class="card-box text-center py-5">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No events found</h5>
+        <p class="text-muted">Events will appear here once customers book your photography services.</p>
+    </div>
+{% endif %}
+
+<style>
+.event-photo-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+.event-photo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+</style>
+
 {% endblock %}

@@ -25,6 +25,26 @@
     </div>
 </div>
 
+<!-- Filter Tabs -->
+<ul class="nav nav-pills mb-3" id="vendorTabs">
+    <li class="nav-item">
+        <button class="nav-link active" onclick="filterVendors('all')">
+            All <span class="badge bg-secondary ms-1">{{ vendors|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="filterVendors('pending')">
+            Pending Approval
+            <span class="badge bg-warning text-dark ms-1" id="pendingCount"></span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="filterVendors('active')">
+            Active <span class="badge bg-success ms-1" id="activeCount"></span>
+        </button>
+    </li>
+</ul>
+
 <!-- Vendors Table Card -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
@@ -45,14 +65,14 @@
                         <th class="ps-4" width="80">#ID</th>
                         <th>Full Name</th>
                         <th>Email</th>
-                        <th>Role</th>
+                        <th>Status</th>
                         <th class="text-end pe-4">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if vendors %}
                         {% for vendor in vendors %}
-                            <tr>
+                            <tr data-status="{% if vendor.is_active %}active{% else %}pending{% endif %}">
                                 <td class="ps-4">
                                     <span class="fw-medium text-primary">{{ forloop.counter }}</span>
                                 </td>
@@ -61,25 +81,54 @@
                                         <div class="avatar-circle bg-success bg-opacity-10 me-3">
                                             <span class="text-success fw-bold">{{ vendor.fullname|first|upper }}</span>
                                         </div>
-                                        <span class="fw-semibold">{{ vendor.fullname }}</span>
+                                        <div>
+                                            <span class="fw-semibold d-block">{{ vendor.fullname }}</span>
+                                            <small class="text-muted">{{ vendor.email }}</small>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
                                     <small class="text-muted">
-                                        <i class="bi bi-envelope me-1"></i>{{ vendor.email }}
+                                        <i class="bi bi-calendar me-1"></i>{{ vendor.created_at|date:"d M Y" }}
                                     </small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
-                                        <i class="bi bi-person-badge me-1"></i>{{ vendor.role|title }}
-                                    </span>
+                                    {% if vendor.is_active %}
+                                        <span class="badge bg-success px-3 py-2">
+                                            <i class="bi bi-check-circle me-1"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark px-3 py-2">
+                                            <i class="bi bi-clock me-1"></i>Pending
+                                        </span>
+                                    {% endif %}
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="btn-group" role="group">
+                                    <div class="d-flex justify-content-end gap-1 flex-wrap">
                                         <a href="{% url 'admin_view_vendor' vendor.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
                                             <i class="bi bi-eye me-1"></i>View
                                         </a>
-                                        <form method="post" action="{% url 'admin_delete_user' vendor.id %}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete {{ vendor.fullname }}?');">
+                                        {% if not vendor.is_active %}
+                                        <form method="post" action="{% url 'activate_vendor' vendor.id %}" style="display:inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="approve">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Approve Vendor"
+                                                    onclick="return confirm('Approve {{ vendor.fullname }} as a vendor?')">
+                                                <i class="bi bi-check-circle me-1"></i>Approve
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="{% url 'activate_vendor' vendor.id %}" style="display:inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="deactivate">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate Vendor"
+                                                    onclick="return confirm('Deactivate {{ vendor.fullname }}?')">
+                                                <i class="bi bi-pause-circle me-1"></i>Deactivate
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <form method="post" action="{% url 'admin_delete_user' vendor.id %}" style="display:inline"
+                                              onsubmit="return confirm('Delete {{ vendor.fullname }}?');">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Vendor">
                                                 <i class="bi bi-trash"></i>
@@ -202,6 +251,31 @@
 </style>
 
 <script>
+// Count badges on load
+(function(){
+    var rows = document.querySelectorAll('#vendorsTable tbody tr[data-status]');
+    var pending = 0, active = 0;
+    rows.forEach(function(r){
+        if(r.dataset.status === 'pending') pending++;
+        else active++;
+    });
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('activeCount').textContent = active;
+})();
+
+// Tab filter
+var currentFilter = 'all';
+function filterVendors(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('#vendorTabs .nav-link').forEach(function(btn){ btn.classList.remove('active'); });
+    event.target.classList.add('active');
+    var rows = document.querySelectorAll('#vendorsTable tbody tr[data-status]');
+    rows.forEach(function(row){
+        if(filter === 'all') row.style.display = '';
+        else row.style.display = (row.dataset.status === filter) ? '' : 'none';
+    });
+}
+
 // Search functionality
 document.getElementById('searchInput').addEventListener('keyup', function() {
     let searchText = this.value.toLowerCase();
@@ -209,7 +283,9 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     
     tableRows.forEach(row => {
         let text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchText) ? '' : 'none';
+        let matchesSearch = text.includes(searchText);
+        let matchesFilter = currentFilter === 'all' || row.dataset.status === currentFilter;
+        row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
     });
 });
 

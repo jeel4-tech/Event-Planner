@@ -34,42 +34,45 @@
                 <a href="{% url 'manage_users' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'manage_users' %}active{% endif %}">
                     <i class="bi bi-people me-3"></i>
                     <span>Manage Users</span>
-                    {% if request.resolver_match.url_name == 'manage_users' %}
-                        <span class="active-indicator"></span>
-                    {% endif %}
+                    {% if request.resolver_match.url_name == 'manage_users' %}<span class="active-indicator"></span>{% endif %}
                 </a>
                 <a href="{% url 'manage_vendors' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'manage_vendors' %}active{% endif %}">
                     <i class="bi bi-shop me-3"></i>
                     <span>Manage Vendors</span>
-                    {% if request.resolver_match.url_name == 'manage_vendors' %}
-                        <span class="active-indicator"></span>
+                    {% if admin_pending_vendors > 0 %}
+                        <span class="badge bg-warning text-dark ms-auto">{{ admin_pending_vendors }}</span>
                     {% endif %}
+                    {% if request.resolver_match.url_name == 'manage_vendors' %}<span class="active-indicator"></span>{% endif %}
+                </a>
+                <a href="{% url 'manage_guests' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'manage_guests' %}active{% endif %}">
+                    <i class="bi bi-person-badge me-3"></i>
+                    <span>Manage Guests</span>
+                    {% if request.resolver_match.url_name == 'manage_guests' %}<span class="active-indicator"></span>{% endif %}
                 </a>
             </div>
 
-            <!-- Vendor Management -->
+            <!-- Platform Management -->
             <div class="nav-group mb-3">
-                <div class="nav-title text-uppercase small fw-semibold text-secondary mb-2">Vendor Management</div>
+                <div class="nav-title text-uppercase small fw-semibold text-secondary mb-2">Platform</div>
+                <a href="{% url 'admin_bookings' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_bookings' %}active{% endif %}">
+                    <i class="bi bi-receipt me-3"></i>
+                    <span>Bookings</span>
+                    {% if request.resolver_match.url_name == 'admin_bookings' %}<span class="active-indicator"></span>{% endif %}
+                </a>
                 <a href="{% url 'manage_categories' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'manage_categories' %}active{% endif %}">
                     <i class="bi bi-tags me-3"></i>
                     <span>Categories</span>
-                    {% if request.resolver_match.url_name == 'manage_categories' %}
-                        <span class="active-indicator"></span>
-                    {% endif %}
+                    {% if request.resolver_match.url_name == 'manage_categories' %}<span class="active-indicator"></span>{% endif %}
                 </a>
                 <a href="{% url 'admin_manage_events' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_manage_events' %}active{% endif %}">
                     <i class="bi bi-calendar-week me-3"></i>
                     <span>Events</span>
-                    {% if request.resolver_match.url_name == 'admin_manage_events' %}
-                        <span class="active-indicator"></span>
-                    {% endif %}
+                    {% if request.resolver_match.url_name == 'admin_manage_events' %}<span class="active-indicator"></span>{% endif %}
                 </a>
                 <a href="{% url 'admin_manage_reviews' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'admin_manage_reviews' %}active{% endif %}">
                     <i class="bi bi-star me-3"></i>
                     <span>Reviews</span>
-                    {% if request.resolver_match.url_name == 'admin_manage_reviews' %}
-                        <span class="active-indicator"></span>
-                    {% endif %}
+                    {% if request.resolver_match.url_name == 'admin_manage_reviews' %}<span class="active-indicator"></span>{% endif %}
                 </a>
             </div>
 

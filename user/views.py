@@ -666,9 +666,12 @@ def user_bookings(request):
                 messages.error(request, 'Booking not found.')
         return redirect('user:user_bookings')
 
-    # Attach latest advance payment directly to each booking for template access
+    # Attach latest advance payment and remaining amount to each booking
     for b in bookings:
         b.latest_payment = b.advance_payments.order_by('-created_at').first()
+        paid = b.advance_paid or Decimal('0')
+        total = b.amount or Decimal('0')
+        b.amount_remaining = max(total - paid, Decimal('0'))
 
     return render(request, 'user/bookings.html', {
         'bookings': bookings,

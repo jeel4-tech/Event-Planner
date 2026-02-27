@@ -209,11 +209,14 @@ class ChatMessage(models.Model):
         return f"Message from {self.sender.fullname} at {self.created_at}"
     
 class GalleryImage(models.Model):
-    """Images uploaded by vendors for events they worked on"""
+    """Images uploaded by vendors (photographers) for specific events they worked on"""
     event = models.ForeignKey('user.Event', on_delete=models.CASCADE, related_name='gallery_images')
+    vendor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gallery_images', null=True, blank=True)
     image = models.ImageField(upload_to='gallery/')
     description = models.TextField(blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    guest_access = models.ForeignKey('user.EventGuestAccess', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_photos')
+    uploaded_by_guest = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-uploaded_at']

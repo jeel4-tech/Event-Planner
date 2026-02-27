@@ -1,0 +1,155 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Manage Bookings{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Bookings</h4>
+        <p class="text-muted small mb-0">
+            <i class="bi bi-receipt me-1"></i>All platform bookings
+        </p>
+    </div>
+    <div class="input-group" style="width:260px;">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+        </span>
+        <input type="text" class="form-control border-start-0" placeholder="Search bookings..." id="searchInput">
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-4 fw-bold text-dark">{{ counts.total|default:0 }}</div>
+            <div class="text-muted small">Total</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 col-lg">
+        <a href="?status=pending" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'pending' %}border-warning border{% endif %}">
+                <div class="fs-4 fw-bold text-warning">{{ counts.pending|default:0 }}</div>
+                <div class="text-muted small">Pending</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3 col-lg">
+        <a href="?status=confirmed" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'confirmed' %}border-success border{% endif %}">
+                <div class="fs-4 fw-bold text-success">{{ counts.confirmed|default:0 }}</div>
+                <div class="text-muted small">Approved</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3 col-lg">
+        <a href="?status=completed" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'completed' %}border-primary border{% endif %}">
+                <div class="fs-4 fw-bold text-primary">{{ counts.completed|default:0 }}</div>
+                <div class="text-muted small">Completed</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3 col-lg">
+        <a href="?status=cancelled" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'cancelled' %}border-danger border{% endif %}">
+                <div class="fs-4 fw-bold text-danger">{{ counts.cancelled|default:0 }}</div>
+                <div class="text-muted small">Rejected</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card border-0 shadow-sm text-center p-3 bg-success bg-opacity-10">
+            <div class="fs-4 fw-bold text-success">₹{{ counts.revenue|default:0 }}</div>
+            <div class="text-muted small">Revenue</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pending</a>
+    <a href="?status=confirmed" class="btn btn-sm {% if status_filter == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %}">Approved</a>
+    <a href="?status=in_progress" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-info{% else %}btn-outline-info{% endif %}">In Progress</a>
+    <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-outline-primary{% endif %}">Completed</a>
+    <a href="?status=cancelled" class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">Rejected</a>
+</div>
+
+<!-- Bookings Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="bookingsTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">#</th>
+                        <th>Event</th>
+                        <th>Customer</th>
+                        <th>Vendor / Store</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if bookings %}
+                        {% for b in bookings %}
+                        <tr>
+                            <td class="ps-4 text-muted small">{{ forloop.counter }}</td>
+                            <td>
+                                <span class="fw-semibold">{{ b.event.title }}</span><br>
+                                <small class="text-muted">{{ b.event.date|date:"d M Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="fw-medium">{{ b.customer.fullname }}</span><br>
+                                <small class="text-muted">{{ b.customer.email }}</small>
+                            </td>
+                            <td>
+                                <span class="fw-medium">{{ b.store.store_name }}</span><br>
+                                <small class="text-muted">{{ b.vendor.fullname }}</small>
+                            </td>
+                            <td class="fw-semibold">₹{{ b.amount }}</td>
+                            <td>
+                                <small class="text-muted">{{ b.created_at|date:"d M Y" }}</small>
+                            </td>
+                            <td>
+                                {% if b.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif b.status == 'confirmed' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif b.status == 'in_progress' %}
+                                    <span class="badge bg-info">In Progress</span>
+                                {% elif b.status == 'completed' %}
+                                    <span class="badge bg-primary">Completed</span>
+                                {% elif b.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+                                No bookings found
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('#bookingsTable tbody tr').forEach(function(row) {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
+
+{% endblock %}

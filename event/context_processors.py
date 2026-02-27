@@ -18,6 +18,38 @@ def vendor_stores(request):
     }
 
 
+def vendor_is_photographer(request):
+    """Check if the logged-in vendor has a photographer store."""
+    try:
+        user_id = request.session.get('user_id')
+        role = request.session.get('role')
+        if user_id and role == 'vendor':
+            from vendor.models import Store
+            is_photographer = Store.objects.filter(
+                vendor_id=user_id,
+                category__name__icontains='photographer'
+            ).exists()
+            return {'is_photographer': is_photographer}
+    except Exception:
+        pass
+    return {'is_photographer': False}
+
+
+def admin_pending_counts(request):
+    """Provide pending vendor count for admin sidebar badge."""
+    try:
+        role = request.session.get('role')
+        if role == 'admin':
+            from account.models import User
+            pending_vendors = User.objects.filter(
+                role__name__iexact='vendor', is_active=False
+            ).count()
+            return {'admin_pending_vendors': pending_vendors}
+    except Exception:
+        pass
+    return {'admin_pending_vendors': 0}
+
+
 def unread_counts(request):
     """
     Provide unread counters for sidebar badges (safe if DB unavailable).

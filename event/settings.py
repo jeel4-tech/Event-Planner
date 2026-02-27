@@ -69,6 +69,8 @@ TEMPLATES = [
                 'event.context_processors.global_app_info',
                 'event.context_processors.vendor_stores',
                 'event.context_processors.unread_counts',
+                'event.context_processors.vendor_is_photographer',
+                'event.context_processors.admin_pending_counts',
 
             ],
         },

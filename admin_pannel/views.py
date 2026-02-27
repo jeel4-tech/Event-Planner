@@ -2,12 +2,15 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 import csv
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from account.models import Role, User
 from functools import wraps
+from django.db.models import Sum, Count
 from vendor.models import category, Store, Booking
-from user.models import Profile, Event, Payment, Review
+
+from user.models import Profile, Event, Payment, Review, EventGuestAccess
 
 # 🔐 Admin session decorator
 def check_admin_session(view_func):
@@ -43,6 +46,24 @@ def admin_view_user(request, user_id):
         'bookings': bookings,
         'total_payments': total_payments,
     })
+
+
+@check_admin_session
+def activate_vendor(request, vendor_id):
+    """Approve (activate) or deactivate a vendor account."""
+    if request.method != 'POST':
+        return redirect('manage_vendors')
+    vendor = User.objects.filter(id=vendor_id, role__name__iexact='vendor').first()
+    if not vendor:
+        return redirect('manage_vendors')
+    action = request.POST.get('action')
+    if action == 'approve':
+        vendor.is_active = True
+        vendor.save()
+    elif action == 'deactivate':
+        vendor.is_active = False
+        vendor.save()
+    return redirect('manage_vendors')
 
 
 @check_admin_session
@@ -168,13 +189,20 @@ def manage_users(request):
         'users': users
     })
 
-# 👥 Manage Guests (Admin Only)
+# 👥 Manage Guests (Admin Only) — shows photographer-generated guest credentials
 @check_admin_session
 def manage_guests(request):
-    guests = User.objects.filter(role__name__iexact='guest')
-
+    guest_credentials = (
+        EventGuestAccess.objects
+        .select_related('event', 'vendor', 'created_by', 'event__owner')
+        .order_by('-created_at')
+    )
+    total = guest_credentials.count()
+    active_count = guest_credentials.filter(is_active=True).count()
     return render(request, 'admin/manage_guest.html', {
-        'guests': guests
+        'guest_credentials': guest_credentials,
+        'total': total,
+        'active_count': active_count,
     })
 
 # 👥 Manage Vendors (Admin Only)
@@ -353,3 +381,32 @@ def admin_delete_user(request, user_id):
         return redirect('manage_guests')
     else:
         return redirect('manage_users')
+
+
+@check_admin_session
+def admin_bookings(request):
+    """Platform-wide bookings overview for admin."""
+    status_filter = request.GET.get('status', '')
+    bookings = Booking.objects.select_related(
+        'event', 'store', 'customer', 'vendor'
+    ).order_by('-created_at')
+
+    if status_filter:
+        bookings = bookings.filter(status=status_filter)
+
+    # Summary counts
+    counts = Booking.objects.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=models.Q(status='pending')),
+        confirmed=Count('id', filter=models.Q(status='confirmed')),
+        completed=Count('id', filter=models.Q(status='completed')),
+        cancelled=Count('id', filter=models.Q(status='cancelled')),
+        revenue=Sum('amount', filter=models.Q(status='completed')),
+    )
+
+    return render(request, 'admin/manage_bookings.html', {
+        'bookings': bookings,
+        'status_filter': status_filter,
+        'counts': counts,
+        'status_choices': Booking.STATUS_CHOICES,
+    })

@@ -55,7 +55,13 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="card-title mb-0">{{ s.store_name }}</h5>
-                            <span class="badge bg-primary">{{ s.category.name }}</span>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <span class="badge bg-primary">{{ s.category.name }}</span>
+                                <span class="badge {% if s.status %}bg-success{% else %}bg-danger{% endif %}">
+                                    <i class="bi bi-{% if s.status %}check-circle{% else %}x-circle{% endif %} me-1"></i>
+                                    {% if s.status %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </div>
                         </div>
                         <p class="text-muted small mb-3">{{ s.description|truncatewords:20 }}</p>
                         <div class="mb-3">
@@ -71,18 +77,27 @@
                                 <i class="bi bi-currency-rupee me-1"></i>Starting from ₹{{ s.price_start }}
                             </p>
                         </div>
-                        <button class="btn btn-sm btn-outline-primary w-100 edit-store" 
-                                data-id="{{ s.id }}"
-                                data-name="{{ s.store_name|escapejs }}"
-                                data-category="{{ s.category.id }}"
-                                data-description="{{ s.description|escapejs }}"
-                                data-city="{{ s.city|escapejs }}"
-                                data-address="{{ s.address|escapejs }}"
-                                data-price="{{ s.price_start }}"
-                                data-phone="{{ s.phone|default_if_none:'' }}"
-                                data-image-url="{% if s.profile_image %}{{ s.profile_image.url }}{% endif %}">
-                            <i class="bi bi-pencil me-1"></i> Edit Store
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary flex-grow-1 edit-store"
+                                    data-id="{{ s.id }}"
+                                    data-name="{{ s.store_name|escapejs }}"
+                                    data-category="{{ s.category.id }}"
+                                    data-description="{{ s.description|escapejs }}"
+                                    data-city="{{ s.city|escapejs }}"
+                                    data-address="{{ s.address|escapejs }}"
+                                    data-price="{{ s.price_start }}"
+                                    data-phone="{{ s.phone|default_if_none:'' }}"
+                                    data-image-url="{% if s.profile_image %}{{ s.profile_image.url }}{% endif %}">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </button>
+                            <a href="{% url 'toggle_store_status' s.id %}"
+                               class="btn btn-sm {% if s.status %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                               onclick="return confirm('{% if s.status %}Deactivate{% else %}Activate{% endif %} this store?')"
+                               title="{% if s.status %}Deactivate{% else %}Activate{% endif %} store">
+                                <i class="bi bi-{% if s.status %}toggle-on{% else %}toggle-off{% endif %}"></i>
+                                {% if s.status %}Disable{% else %}Enable{% endif %}
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,6 +136,9 @@
                                     <option value="{{ cat.id }}">{{ cat.name }}</option>
                                     {% endfor %}
                                 </select>
+                                <small id="category_locked_note" class="text-muted" style="display:none;">
+                                    <i class="bi bi-lock me-1"></i>Category cannot be changed after store is created.
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -166,14 +184,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Additional Store Photos</label>
-                                <input type="file" name="store_images" id="store_images" class="form-control" accept="image/*" multiple>
-                                <div class="mt-2 small text-muted">You can upload multiple photos for your store.</div>
-                            </div>
-                        </div>
                     </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -195,7 +207,10 @@
         document.getElementById('storeModalLabel').textContent = 'Add New Store';
         document.getElementById('store_id').value = '';
         document.getElementById('store_name').value = '';
-        document.getElementById('category').value = '';
+        var catSelect = document.getElementById('category');
+        catSelect.selectedIndex = 0;
+        catSelect.disabled = false;
+        document.getElementById('category_locked_note').style.display = 'none';
         document.getElementById('description').value = '';
         document.getElementById('city').value = '';
         document.getElementById('phone').value = '';
@@ -218,10 +233,10 @@
     document.querySelectorAll('.edit-store').forEach(function(b){
         b.addEventListener('click', function(){
             var id = this.dataset.id;
+            var categoryId = this.dataset.category || '';
             document.getElementById('storeModalLabel').textContent = 'Edit Store';
             document.getElementById('store_id').value = id;
             document.getElementById('store_name').value = this.dataset.name || '';
-            document.getElementById('category').value = this.dataset.category || '';
             document.getElementById('description').value = this.dataset.description || '';
             document.getElementById('city').value = this.dataset.city || '';
             document.getElementById('address').value = this.dataset.address || '';
@@ -235,6 +250,13 @@
             } else { 
                 img.style.display='none'; 
             }
+            // Set category and lock it — cannot be changed on edit
+            var catSelect = document.getElementById('category');
+            for (var i = 0; i < catSelect.options.length; i++) {
+                catSelect.options[i].selected = (catSelect.options[i].value == categoryId);
+            }
+            catSelect.disabled = true;
+            document.getElementById('category_locked_note').style.display = 'block';
             storeModal.show();
         });
     });

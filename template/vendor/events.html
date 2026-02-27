@@ -66,6 +66,7 @@
                     {% endif %}
                     {% endwith %}
                     
+                    {% if event.is_photographer_booking %}
                     <div class="border-top pt-3 mt-3">
                         {% if event.has_guest_access %}
                             <div class="alert alert-info mb-2 py-2">
@@ -88,6 +89,7 @@
                             </a>
                         {% endif %}
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

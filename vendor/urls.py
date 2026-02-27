@@ -8,7 +8,7 @@ from .views import (
     vendor_delete_chat, vendor_delete_message, vendor_booking_detail, generate_guest_credentials,
     view_guest_credentials
 )
-from .views import upload_event_image
+from .views import upload_event_image, event_photos_detail, toggle_store_status
 from .views import store_detail, stores_list
 
 urlpatterns = [
@@ -25,8 +25,10 @@ urlpatterns = [
     path('events/', vendor_events, name='vendor_events'),
     path('events/<int:event_id>/generate-credentials/', generate_guest_credentials, name='generate_guest_credentials'),
     path('events/<int:event_id>/view-credentials/', view_guest_credentials, name='view_guest_credentials'),
+    path('store/<int:store_id>/toggle-status/', toggle_store_status, name='toggle_store_status'),
     path('gallery/', vendor_gallery, name='vendor_gallery'),
     path('upload-event-image/', upload_event_image, name='upload_event_image'),
+    path('upload-event-image/<int:event_id>/', event_photos_detail, name='event_photos_detail'),
     path('chat/', vendor_chat, name='vendor_chat'),
     path('chat/<int:chat_id>/', vendor_chat_detail, name='vendor_chat_detail'),
     path('chat/<int:chat_id>/delete/', vendor_delete_chat, name='vendor_delete_chat'),

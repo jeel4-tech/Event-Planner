@@ -1,151 +1,250 @@
-{% extends 'user/base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% extends "user/base.html" %}
+{% block title %}User Dashboard{% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
+
+<div class="welcome-section mb-4">
+    <h3 class="mb-1">Welcome back, {{ user.fullname }}</h3>
+    <p class="text-muted mb-0">Here's what's happening with your events today.</p>
+</div>
+
+<!-- Stats Cards Row -->
 <div class="row g-4 mb-4">
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon primary">
-                <i class="bi bi-calendar-event"></i>
+    <div class="col-md-3 col-sm-6">
+        <div class="card-box stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-2">TOTAL EVENTS</h6>
+                    <h2 class="mb-0">{{ total_events|default:"0" }}</h2>
+                </div>
+                <div class="stats-icon bg-primary bg-opacity-10">
+                    <i class="bi bi-calendar-event fs-2 text-primary"></i>
+                </div>
             </div>
-            <h6>Total Events</h6>
-            <h2>{{ total_events }}</h2>
-            <small class="text-muted">Your events</small>
+            <div class="mt-3">
+                <a href="{% url 'user:user_events' %}" class="text-decoration-none small">
+                    View All Events <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon success">
-                <i class="bi bi-journal-check"></i>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card-box stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-2">MY BOOKINGS</h6>
+                    <h2 class="mb-0">{{ total_bookings|default:"0" }}</h2>
+                </div>
+                <div class="stats-icon bg-success bg-opacity-10">
+                    <i class="bi bi-journal-check fs-2 text-success"></i>
+                </div>
             </div>
-            <h6>My Bookings</h6>
-            <h2>{{ total_bookings }}</h2>
-            <small class="text-muted"><a href="{% url 'user:user_bookings' %}">View all</a></small>
+            <div class="mt-3">
+                <a href="{% url 'user:user_bookings' %}" class="text-decoration-none small">
+                    View Bookings <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon warning">
-                <i class="bi bi-hourglass-split"></i>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card-box stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-2">PENDING BOOKINGS</h6>
+                    <h2 class="mb-0">{{ pending_bookings|default:"0" }}</h2>
+                </div>
+                <div class="stats-icon bg-warning bg-opacity-10">
+                    <i class="bi bi-hourglass-split fs-2 text-warning"></i>
+                </div>
             </div>
-            <h6>Pending Bookings</h6>
-            <h2>{{ pending_bookings }}</h2>
-            <small class="text-muted">Awaiting vendor</small>
+            <div class="mt-3">
+                <a href="{% url 'user:user_bookings' %}?status=pending" class="text-decoration-none small">
+                    View Pending <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon info">
-                <i class="bi bi-calendar-week"></i>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card-box stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-2">ACTIVE VENDORS</h6>
+                    <h2 class="mb-0">{{ active_vendors|default:"0" }}</h2>
+                </div>
+                <div class="stats-icon bg-info bg-opacity-10">
+                    <i class="bi bi-shop fs-2 text-info"></i>
+                </div>
             </div>
-            <h6>Upcoming Events</h6>
-            <h2>{{ upcoming_events }}</h2>
-            <small class="text-muted">Next events</small>
+            <div class="mt-3">
+                <a href="{% url 'user:stores_list' %}" class="text-decoration-none small">
+                    Browse Vendors <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Secondary Stats -->
-<div class="row g-4 mb-4">
-    <div class="col-md-6">
+<!-- Recent Events and Bookings Row -->
+<div class="row">
+    <!-- Recent Events -->
+    <div class="col-md-6 mb-4">
         <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">Recent Bookings</h5>
-                <a href="{% url 'user:user_bookings' %}" class="btn btn-sm btn-outline-primary">View All</a>
-            </div>
-            {% if recent_bookings %}
-            <div class="list-group list-group-flush">
-                {% for b in recent_bookings %}
-                <div class="list-group-item px-0 border-0 border-bottom">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1">{{ b.store.store_name }}</h6>
-                            <p class="mb-0 small text-muted">{{ b.event.title }} · ₹{{ b.amount }}</p>
-                        </div>
-                        <span class="badge bg-{% if b.status == 'pending' %}warning text-dark{% elif b.status == 'confirmed' %}primary{% elif b.status == 'completed' %}success{% else %}secondary{% endif %}">{{ b.status|title }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-journal-x fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No bookings yet. <a href="{% url 'user:stores_list' %}">Browse vendors</a></p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">Recent Events</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-week me-2 text-primary"></i>Recent Events
+                </h5>
                 <a href="{% url 'user:user_events' %}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
+            
             {% if recent_events %}
-            <div class="list-group list-group-flush">
                 {% for event in recent_events %}
-                <div class="list-group-item px-0 border-0 border-bottom">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1">{{ event.title }}</h6>
-                            <p class="mb-0 small text-muted">{{ event.date|date:"M d, Y" }} · {{ event.get_event_type_display }}</p>
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div>
+                        <h6 class="mb-1">{{ event.title }}</h6>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>{{ event.date|date:"M d, Y" }}
+                        </small>
+                    </div>
+                    <span class="badge {% if event.status == 'completed' %}bg-success{% elif event.status == 'pending' %}bg-warning{% else %}bg-info{% endif %}">
+                        {{ event.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center py-3">No recent events</p>
+                <div class="text-center">
+                    <a href="{% url 'user:event_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-2"></i>Create Event
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="col-md-6 mb-4">
+        <div class="card-box">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt me-2 text-success"></i>Recent Bookings
+                </h5>
+                <a href="{% url 'user:user_bookings' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            
+            {% if recent_bookings %}
+                {% for booking in recent_bookings %}
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div>
+                        <h6 class="mb-1">{{ booking.store.store_name }}</h6>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>{{ booking.booking_date|date:"M d, Y"|default:"Date TBD" }}
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <div class="mb-1">
+                            <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-info{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
                         </div>
-                        <span class="badge bg-{% if event.status == 'pending' %}warning text-dark{% elif event.status == 'confirmed' %}primary{% elif event.status == 'completed' %}success{% else %}secondary{% endif %}">{{ event.status|title }}</span>
+                        <small class="text-muted">₹{{ booking.amount }}</small>
                     </div>
                 </div>
                 {% endfor %}
-            </div>
             {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-calendar-x fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No events yet. <a href="{% url 'user:event_create' %}">Create one</a></p>
-            </div>
+                <p class="text-muted text-center py-3">No recent bookings</p>
+                <div class="text-center">
+                    <a href="{% url 'user:stores_list' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-shop me-2"></i>Browse Vendors
+                    </a>
+                </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="mt-5">
-    <h5 class="mb-4 text-center">Quick Actions</h5>
-    <div class="row g-4 justify-content-center">
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'user:event_create' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-calendar-plus fs-1 mb-3"></i>
-                    <h6 class="card-title">Create Event</h6>
-                    <p class="card-text small">Add new event</p>
+<!-- Quick Actions Row -->
+<div class="row">
+    <div class="col-12">
+        <div class="card-box">
+            <h5 class="mb-3"><i class="bi bi-lightning-charge me-2 text-warning"></i>Quick Actions</h5>
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'user:event_create' %}" class="btn btn-outline-primary w-100 py-3">
+                        <i class="bi bi-plus-circle d-block fs-4 mb-2"></i>
+                        <span>Create Event</span>
+                    </a>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'user:stores_list' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-shop fs-1 mb-3"></i>
-                    <h6 class="card-title">Browse Vendors</h6>
-                    <p class="card-text small">Find stores & services</p>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'user:stores_list' %}" class="btn btn-outline-success w-100 py-3">
+                        <i class="bi bi-shop d-block fs-4 mb-2"></i>
+                        <span>Find Vendors</span>
+                    </a>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'user:user_bookings' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-journal-check fs-1 mb-3"></i>
-                    <h6 class="card-title">My Bookings</h6>
-                    <p class="card-text small">View booking status</p>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'user:vendor_photos' %}" class="btn btn-outline-info w-100 py-3">
+                        <i class="bi bi-camera d-block fs-4 mb-2"></i>
+                        <span>Vendor Photos</span>
+                    </a>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'user:user_payments' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-credit-card fs-1 mb-3"></i>
-                    <h6 class="card-title">Payments</h6>
-                    <p class="card-text small">Payment history</p>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'user:user_payments' %}" class="btn btn-outline-warning w-100 py-3">
+                        <i class="bi bi-credit-card d-block fs-4 mb-2"></i>
+                        <span>Payments</span>
+                    </a>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .card-box {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        height: 100%;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .stats-card .text-muted {
+        color: rgba(255,255,255,0.8) !important;
+    }
+    
+    .stats-card a {
+        color: white !important;
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+    }
+    
+    .stats-icon i {
+        color: #667eea !important;
+    }
+    
+    .btn-outline-primary, .btn-outline-success, .btn-outline-info, .btn-outline-warning {
+        border-width: 2px;
+        font-weight: 500;
+    }
+    
+    .border-bottom:last-child {
+        border-bottom: none !important;
+    }
+</style>
+
 {% endblock %}

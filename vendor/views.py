@@ -6,12 +6,14 @@ from django.db.models import Sum, Count, Q, F, Value, DecimalField
 from django.db.models.functions import Coalesce
 from django.contrib.auth.hashers import make_password, check_password
 from account.models import User
-from user.models import Event, Payment, Review, Notification
+from user.models import Event, Payment, Review, Notification, EventGuestAccess
 from vendor.models import (
     Store, category as Category, Service, Booking, VendorEarning, StoreImage,
     Chat, ChatMessage
 )
 from decimal import Decimal
+import secrets
+import string
 
 def vendor_required(view_func):
     """Decorator to check if user is a vendor"""
@@ -338,10 +340,124 @@ def vendor_events(request):
     if status_filter:
         events = events.filter(status=status_filter)
     
+    # Get guest access credentials for each event and annotate events
+    event_ids = list(events.values_list('id', flat=True))
+    guest_accesses = EventGuestAccess.objects.filter(event_id__in=event_ids, vendor_id=vendor_id)
+    access_by_event = {access.event_id: access for access in guest_accesses}
+    
+    # Add access info to each event for template
+    events_list = list(events)
+    for event in events_list:
+        event.has_guest_access = event.id in access_by_event
+        if event.has_guest_access:
+            event.guest_access_obj = access_by_event[event.id]  # Use different attribute name to avoid reverse relationship conflict
+    
     return render(request, 'vendor/events.html', {
-        'events': events,
+        'events': events_list,
         'bookings': bookings,
         'status_filter': status_filter,
+        'vendor': vendor,
+    })
+
+
+@vendor_required
+def generate_guest_credentials(request, event_id):
+    """Generate guest login credentials for an event"""
+    vendor_id = request.session.get("user_id")
+    vendor = User.objects.get(id=vendor_id)
+    
+    # Verify vendor has a booking for this event
+    booking = Booking.objects.filter(vendor_id=vendor_id, event_id=event_id).first()
+    if not booking:
+        messages.error(request, 'You are not associated with this event.')
+        return redirect('vendor_events')
+    
+    event = booking.event
+    
+    # Generate unique guest ID (format: EVENT-XXXX)
+    def generate_guest_id():
+        while True:
+            random_part = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(4))
+            guest_id = f"EVENT-{random_part}"
+            if not EventGuestAccess.objects.filter(guest_id=guest_id).exists():
+                return guest_id
+    
+    # Generate password (6-8 characters)
+    def generate_password():
+        chars = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(chars) for _ in range(6))
+    
+    guest_id = generate_guest_id()
+    password = generate_password()
+    
+    # Create or update guest access
+    access, created = EventGuestAccess.objects.update_or_create(
+        event=event,
+        vendor=vendor,
+        defaults={
+            'guest_id': guest_id,
+            'password': make_password(password),
+            'is_active': True,
+            'created_by': vendor,
+        }
+    )
+    
+    # Store plain password in session temporarily (for display only)
+    request.session[f'guest_password_{event_id}'] = password
+    request.session[f'guest_password_time_{event_id}'] = timezone.now().timestamp()
+    
+    if created:
+        messages.success(request, f'Guest credentials generated successfully!')
+    else:
+        messages.success(request, f'Guest credentials updated successfully!')
+    
+    return redirect('view_guest_credentials', event_id=event_id)
+
+
+@vendor_required
+def view_guest_credentials(request, event_id):
+    """View guest credentials for an event"""
+    vendor_id = request.session.get("user_id")
+    vendor = User.objects.get(id=vendor_id)
+    
+    # Verify vendor has a booking for this event
+    booking = Booking.objects.filter(vendor_id=vendor_id, event_id=event_id).first()
+    if not booking:
+        messages.error(request, 'You are not associated with this event.')
+        return redirect('vendor_events')
+    
+    event = booking.event
+    
+    # Get guest access if exists
+    try:
+        access = EventGuestAccess.objects.get(event=event, vendor=vendor, is_active=True)
+        guest_id = access.guest_id
+        
+        # Try to get password from session (if recently generated)
+        password = request.session.get(f'guest_password_{event_id}')
+        password_time = request.session.get(f'guest_password_time_{event_id}')
+        
+        # Password only available for 5 minutes after generation
+        if password and password_time:
+            time_diff = timezone.now().timestamp() - password_time
+            if time_diff > 300:  # 5 minutes
+                password = None
+                # Clear expired session data
+                del request.session[f'guest_password_{event_id}']
+                del request.session[f'guest_password_time_{event_id}']
+        else:
+            password = None
+            
+    except EventGuestAccess.DoesNotExist:
+        access = None
+        guest_id = None
+        password = None
+    
+    return render(request, 'vendor/view_credentials.html', {
+        'event': event,
+        'access': access,
+        'guest_id': guest_id,
+        'password': password,
         'vendor': vendor,
     })
 
@@ -732,6 +848,59 @@ def vendor_gallery(request):
         'stores': stores,
         'images_by_store': images_by_store,
         'vendor': vendor,
+    })
+
+
+# Dedicated page for uploading event images
+@vendor_required
+def upload_event_image(request):
+    vendor_id = request.session.get('user_id')
+    vendor = User.objects.get(id=vendor_id)
+    stores = Store.objects.filter(vendor_id=vendor_id)
+
+    # Get all events associated with this vendor (via bookings)
+    event_ids = Booking.objects.filter(vendor_id=vendor_id).values_list('event_id', flat=True).distinct()
+    events = Event.objects.filter(id__in=event_ids)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'upload':
+            event_id = request.POST.get('event_id')
+            files = request.FILES.getlist('images')
+            try:
+                # Find the first store for this vendor and event
+                booking = Booking.objects.filter(vendor_id=vendor_id, event_id=event_id).first()
+                if not booking:
+                    messages.error(request, 'No store found for this event.')
+                    return redirect('upload_event_image')
+                store = booking.store
+            except Exception:
+                messages.error(request, 'Invalid event selected!')
+                return redirect('upload_event_image')
+            for f in files:
+                StoreImage.objects.create(store=store, image=f)
+            messages.success(request, 'Images uploaded successfully!')
+            return redirect('upload_event_image')
+        elif action == 'delete':
+            image_id = request.POST.get('image_id')
+            try:
+                img = StoreImage.objects.get(id=image_id, store__vendor_id=vendor_id)
+                img.delete()
+                messages.success(request, 'Image deleted successfully!')
+            except StoreImage.DoesNotExist:
+                messages.error(request, 'Image not found!')
+            return redirect('upload_event_image')
+
+    images = StoreImage.objects.filter(store__vendor_id=vendor_id).select_related('store')
+    images_by_store = {}
+    for img in images:
+        images_by_store.setdefault(img.store.store_name, []).append(img)
+
+    return render(request, 'vendor/upload_event_image.html', {
+        'stores': stores,
+        'images_by_store': images_by_store,
+        'vendor': vendor,
+        'events': events,
     })
 
 

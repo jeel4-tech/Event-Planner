@@ -364,22 +364,22 @@
             <form method="post" novalidate>
                 {% csrf_token %}
                 
-                <!-- Email Input -->
+                <!-- Email/Guest ID Input -->
                 <div class="mb-4">
-                    <label for="email" class="form-label">Email Address</label>
+                    <label for="email" class="form-label">Email Address or Guest ID</label>
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bi bi-envelope"></i>
                         </span>
-                        <input type="email" 
+                        <input type="text" 
                                class="form-control" 
                                id="email" 
                                name="email" 
-                               placeholder="name@example.com"
+                               placeholder="name@example.com or EVENT-XXXX"
                                required>
                     </div>
                     <div class="form-text text-white-50 mt-1">
-                        We'll never share your email with anyone else.
+                        Enter your email for regular login or Guest ID (EVENT-XXXX) for guest access.
                     </div>
                 </div>
 
@@ -470,6 +470,13 @@
                 passwordInput.type = 'password';
                 icon.classList.remove('bi-eye-slash');
                 icon.classList.add('bi-eye');
+            }
+        });
+
+        // Auto-uppercase Guest ID
+        document.getElementById('email').addEventListener('input', function() {
+            if (this.value.toUpperCase().startsWith('EVENT-')) {
+                this.value = this.value.toUpperCase();
             }
         });
 

@@ -1,41 +1,51 @@
 {% load static %}
 
 <div class="col-lg-3 col-xl-2 p-0">
-    <div class="sidebar-container bg-white min-vh-100 border-end">
-
-        <div class="admin-brand p-4 border-bottom">
-            <h3 class="text-primary">
+    <div class="sidebar-container">
+        <div class="admin-brand">
+            <h3>
                 <i class="bi bi-calendar-event me-2"></i>{{ APP_NAME }}
             </h3>
-            <p class="text-muted">Guest Dashboard</p>
+            <p>Guest Access</p>
         </div>
 
+        {% if event %}
+        <div class="p-3 border-bottom">
+            <div class="card border-0 shadow-sm mb-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white p-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-calendar-check fs-4 me-2"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ event.title|truncatewords:4 }}</h6>
+                            <small class="opacity-75">{{ event.date|date:"M d, Y" }}</small>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="p-3">
-            <div class="nav-divider">Navigation</div>
-
-            <a href="#" class="nav-link-custom active">
-                <i class="bi bi-speedometer2"></i> Dashboard
+            <a href="{% url 'guest_dashboard' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'guest_dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> 
+                <span>Dashboard</span>
             </a>
 
-            <div class="nav-divider mt-4">Explore</div>
-
-            <a href="#" class="nav-link-custom">
-                <i class="bi bi-calendar-week"></i> Events
+            <a href="{% url 'guest_dashboard' %}#event-photos" class="nav-link-custom">
+                <i class="bi bi-images"></i> 
+                <span>Event Photos</span>
+                {% if gallery_images and gallery_images.count > 0 %}
+                <span class="badge bg-primary ms-auto">{{ gallery_images.count }}</span>
+                {% endif %}
             </a>
 
-            <a href="#" class="nav-link-custom">
-                <i class="bi bi-chat-left-text"></i> Reviews
-            </a>
-
-            <div class="nav-divider mt-4">Support</div>
-
-            <a href="#" class="nav-link-custom">
-                <i class="bi bi-gear"></i> Settings
-            </a>
-
-            <a href="{% url 'logout' %}" class="nav-link-custom logout mt-4">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
+            <div class="mt-4 pt-3 border-top">
+                <a href="{% url 'guest_logout' %}" class="nav-link-custom logout">
+                    <i class="bi bi-box-arrow-right"></i> 
+                    <span>Logout</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>

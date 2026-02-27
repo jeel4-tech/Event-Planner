@@ -207,3 +207,16 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.fullname} at {self.created_at}"
+    
+class GalleryImage(models.Model):
+    """Images uploaded by vendors for events they worked on"""
+    event = models.ForeignKey('user.Event', on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ImageField(upload_to='gallery/')
+    description = models.TextField(blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"Gallery Image {self.id}"

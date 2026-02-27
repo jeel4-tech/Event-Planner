@@ -37,4 +37,8 @@ urlpatterns = [
     path('chat/<int:chat_id>/delete/', views.user_delete_chat, name='user_delete_chat'),
     path('chat/message/<int:message_id>/delete/', views.user_delete_message, name='user_delete_message'),
     path('store/<int:store_id>/chat/', views.start_chat, name='start_chat'),
+
+     # Add these two new lines (make sure there's a comma after each)
+    path('vendor-photos/', views.vendor_photos, name='vendor_photos'),
+path('vendor-photos/event/<int:event_id>/', views.vendor_event_photos, name='vendor_event_photos'),
 ]

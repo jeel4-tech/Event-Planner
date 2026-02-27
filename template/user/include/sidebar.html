@@ -34,6 +34,12 @@
                 <i class="bi bi-journal-check"></i> My Bookings
             </a>
 
+            <!-- Vendor Photos Link -->
+            <a href="{% url 'user:vendor_photos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'vendor_photos' %}active{% endif %}">
+    <i class="bi bi-camera"></i> Vendor Photos
+    <span class="badge bg-info ms-2">New</span>
+</a>
+
             <a href="{% url 'user:user_chat' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'user_chat user_chat_detail' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> Chat
             </a>

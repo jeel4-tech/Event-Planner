@@ -1,0 +1,63 @@
+{% extends "user/base.html" %}
+{% block title %}Vendor Photos{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Vendor Photos</h3>
+        <p class="text-muted mb-0">Photos uploaded by vendors for your events</p>
+    </div>
+    <span class="badge bg-primary p-2">
+        <i class="bi bi-camera me-2"></i>{{ total_photos }} Photos
+    </span>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if photos_by_event %}
+    {% for event_name, data in photos_by_event.items %}
+    <div class="card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-calendar-event me-2 text-primary"></i>{{ event_name }}
+                <span class="badge bg-secondary ms-2">{{ data.photos|length }} photo{{ data.photos|length|pluralize }}</span>
+            </h5>
+            <a href="{% url 'user:vendor_event_photos' data.event.id %}" class="btn btn-sm btn-outline-primary">
+                View All
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for photo in data.photos|slice:":4" %}
+                <div class="col-md-3 col-6 mb-3">
+                    <img src="{{ photo.image.url }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
+                </div>
+                {% endfor %}
+            </div>
+            {% if data.photos|length > 4 %}
+            <div class="text-center mt-2">
+                <a href="{% url 'user:vendor_event_photos' data.event.id %}" class="text-primary">
+                    +{{ data.photos|length|add:"-4" }} more photos
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-camera fs-1 text-muted"></i>
+        <h5 class="text-muted mt-3">No vendor photos yet</h5>
+        <p class="text-muted">When vendors upload photos, they will appear here.</p>
+    </div>
+{% endif %}
+
+{% endblock %}

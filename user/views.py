@@ -6,8 +6,9 @@ from django.utils import timezone
 from datetime import timedelta
 from account.models import User
 from vendor.models import (
-    Store, Service, Booking, Chat, ChatMessage,
+    Store, Service, Booking, Chat, ChatMessage,GalleryImage
 )
+
 from vendor.models import AdvancePayment
 from django.conf import settings
 from django.db import transaction
@@ -120,7 +121,13 @@ def user_details(request):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
     return render(request, 'user/user_details.html', {'user': user})
+def vendor_photos(request):
+    # Your code here
+    pass
 
+def vendor_event_photos(request, event_id):
+    # Your code here
+    pass
 
 # ✅ USER PAYMENTS
 @user_required
@@ -1064,3 +1071,53 @@ def start_chat(request, store_id):
         chat.store = store
         chat.save(update_fields=['store'])
     return redirect('user:user_chat_detail', chat_id=chat.id)
+
+@user_required
+def vendor_photos(request):
+    """Display all vendor photos grouped by user's events"""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    
+    # Get all events created by this user
+    user_events = Event.objects.filter(owner=user)
+    
+    # Get photos from vendors for these events
+    vendor_photos = GalleryImage.objects.filter(
+        event__in=user_events
+    ).select_related('event').order_by('-uploaded_at')
+    
+    # Group photos by event
+    photos_by_event = {}
+    for photo in vendor_photos:
+        event_name = photo.event.title
+        if event_name not in photos_by_event:
+            photos_by_event[event_name] = {
+                'event': photo.event,
+                'photos': []
+            }
+        photos_by_event[event_name]['photos'].append(photo)
+    
+    context = {
+        'photos_by_event': photos_by_event,
+        'total_photos': vendor_photos.count(),
+        'user': user,
+    }
+    return render(request, 'user/vendor_photos.html', context)
+
+
+@user_required
+def vendor_event_photos(request, event_id):
+    """Display all photos for a specific event"""
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    
+    # Get specific event photos (ensure user owns this event)
+    event = get_object_or_404(Event, id=event_id, owner=user)
+    photos = GalleryImage.objects.filter(event=event).order_by('-uploaded_at')
+    
+    context = {
+        'event': event,
+        'photos': photos,
+        'user': user,
+    }
+    return render(request, 'user/vendor_event_photos.html', context)

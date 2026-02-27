@@ -3,6 +3,16 @@
 
 {% block content %}
 
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="mb-1">My Events</h3>
@@ -55,6 +65,29 @@
                     </div>
                     {% endif %}
                     {% endwith %}
+                    
+                    <div class="border-top pt-3 mt-3">
+                        {% if event.has_guest_access %}
+                            <div class="alert alert-info mb-2 py-2">
+                                <small>
+                                    <i class="bi bi-key me-1"></i><strong>Guest ID:</strong> {{ event.guest_access_obj.guest_id }}<br>
+                                    <small class="text-muted">Credentials already generated</small>
+                                </small>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'view_guest_credentials' event.id %}" class="btn btn-sm btn-primary w-100">
+                                    <i class="bi bi-eye me-1"></i>View Credentials
+                                </a>
+                                <a href="{% url 'generate_guest_credentials' event.id %}" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+                                </a>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'generate_guest_credentials' event.id %}" class="btn btn-sm btn-primary w-100">
+                                <i class="bi bi-key me-1"></i>Generate Guest Credentials
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

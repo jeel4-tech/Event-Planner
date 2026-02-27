@@ -5,8 +5,10 @@ from .views import (
     vendor_orders, vendor_events, vendor_earnings, vendor_payments,
     vendor_reviews, vendor_settings, vendor_profile, vendor_gallery,
     vendor_chat, vendor_chat_detail, vendor_open_chat_for_booking, vendor_add_extra, change_password,
-    vendor_delete_chat, vendor_delete_message, vendor_booking_detail
+    vendor_delete_chat, vendor_delete_message, vendor_booking_detail, generate_guest_credentials,
+    view_guest_credentials
 )
+from .views import upload_event_image
 from .views import store_detail, stores_list
 
 urlpatterns = [
@@ -21,7 +23,10 @@ urlpatterns = [
     path('orders/<int:booking_id>/add-extra/', vendor_add_extra, name='vendor_add_extra'),
     path('orders/<int:booking_id>/', vendor_booking_detail, name='vendor_booking_detail'),
     path('events/', vendor_events, name='vendor_events'),
+    path('events/<int:event_id>/generate-credentials/', generate_guest_credentials, name='generate_guest_credentials'),
+    path('events/<int:event_id>/view-credentials/', view_guest_credentials, name='view_guest_credentials'),
     path('gallery/', vendor_gallery, name='vendor_gallery'),
+    path('upload-event-image/', upload_event_image, name='upload_event_image'),
     path('chat/', vendor_chat, name='vendor_chat'),
     path('chat/<int:chat_id>/', vendor_chat_detail, name='vendor_chat_detail'),
     path('chat/<int:chat_id>/delete/', vendor_delete_chat, name='vendor_delete_chat'),
@@ -32,4 +37,5 @@ urlpatterns = [
     path('settings/', vendor_settings, name='vendor_settings'),
     path('profile/', vendor_profile, name='vendor_profile'),
     path('change-password/', change_password, name='change_password'),
+    
 ]

@@ -90,7 +90,7 @@
                 <div class="chat-item-info">
                     <div class="chat-item-name">
                         <i class="bi bi-person-circle me-1" style="color:#4A7A9B;"></i>
-                        {{ chat.user.fullname }}
+                        {{ chat.counterparty_display }}
                     </div>
                     <div class="chat-item-preview">
                         {% if chat.store %}<span style="color:#4A7A9B;">{{ chat.store.store_name }}</span> · {% endif %}

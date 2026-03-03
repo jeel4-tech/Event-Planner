@@ -222,3 +222,6 @@ body {
   .dashboard-header { padding: 1rem; }
 }
 
+/* Logo without black background */
+.logo-no-bg { mix-blend-mode: screen; }
+

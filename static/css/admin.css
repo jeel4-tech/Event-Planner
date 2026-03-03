@@ -139,3 +139,6 @@ body {
     background-color: rgba(74,122,155,.12) !important;
 }
 .avatar-circle span { color: #4A7A9B !important; }
+
+/* Logo without black background */
+.logo-no-bg { mix-blend-mode: screen; }

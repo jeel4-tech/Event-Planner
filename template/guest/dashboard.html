@@ -107,6 +107,24 @@
 .empty-state { text-align: center; padding: 3rem 1rem; }
 .empty-state i { font-size: 2.5rem; color: #8AB4C8; display: block; margin-bottom: .7rem; }
 .empty-state p { color: #4a6278; font-size: .85rem; margin: 0; }
+
+/* ── View photos gate ── */
+.gallery-gate {
+    text-align: center; padding: 2.5rem 1.5rem;
+    background: linear-gradient(135deg, #eef5f9 0%, #e4eff5 100%);
+    border: 2px dashed #8AB4C8; border-radius: 14px;
+}
+.gallery-gate i { font-size: 2.5rem; color: #4A7A9B; display: block; margin-bottom: 1rem; }
+.gallery-gate h6 { font-weight: 700; color: #1E2D40; margin-bottom: .4rem; }
+.gallery-gate p { font-size: .85rem; color: #4a6278; margin-bottom: 1.2rem; }
+.btn-view-gallery {
+    background: linear-gradient(135deg, #4A7A9B, #1E2D40);
+    color: #fff; border: none; border-radius: 10px;
+    padding: .65rem 1.5rem; font-size: .9rem; font-weight: 700;
+    display: inline-flex; align-items: center; gap: .5rem;
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+}
+.btn-view-gallery:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,122,155,.35); }
 </style>
 {% endblock %}
 
@@ -128,8 +146,10 @@
 
 <!-- KPI row -->
 <div class="kpi-row">
+    
     <div class="kpi-card">
         <div class="kpi-icon" style="background:#ddeaf3;">
+           
             <i class="bi bi-calendar-event" style="color:#4A7A9B;"></i>
         </div>
         <div>
@@ -208,6 +228,22 @@
     </div>
 </div>
 
+<!-- Chat with Vendor CTA -->
+<div style="background:linear-gradient(135deg,#2d5a3d,#3d7a4d);border-radius:14px;padding:1rem 1.3rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div>
+        <div style="color:rgba(255,255,255,.85);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem;">
+            <i class="bi bi-chat-dots me-1"></i>Questions?
+        </div>
+        <div style="color:#fff;font-size:.95rem;font-weight:700;">Message your event's vendor</div>
+        <div style="color:rgba(255,255,255,.8);font-size:.82rem;margin-top:.1rem;">Chat with your photographer or vendor about the event.</div>
+    </div>
+    <a href="{% url 'guest_start_chat' %}"
+       style="background:#fff;color:#2d5a3d;border-radius:10px;padding:.5rem 1.2rem;font-size:.86rem;font-weight:700;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:.4rem;transition:opacity .2s;"
+       onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <i class="bi bi-chat-text"></i> Chat
+    </a>
+</div>
+
 <!-- Find My Photos CTA -->
 <div style="background:linear-gradient(135deg,#1E2D40,#4A7A9B);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1.3rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <div>
@@ -237,21 +273,33 @@
     </div>
     <div class="gallery-body">
         {% if gallery_images %}
-        <div class="row g-3">
-            {% for image in gallery_images %}
-            <div class="col-6 col-md-4 col-lg-3">
-                <a href="{{ image.image.url }}" target="_blank" class="text-decoration-none">
-                    <div class="photo-card">
-                        <img src="{{ image.image.url }}" alt="Event Photo">
-                        {% if image.description %}
-                        <div class="photo-card-body">
-                            <div class="photo-desc">{{ image.description|truncatewords:12 }}</div>
+        <!-- Gate: show until guest clicks View Photos -->
+        <div class="gallery-gate" id="galleryGate">
+            <i class="bi bi-images"></i>
+            <h6>Event Photos &amp; Gallery</h6>
+            <p>{{ gallery_images|length }} photo{{ gallery_images|length|pluralize }} from this event. Click below to view.</p>
+            <button type="button" class="btn-view-gallery" id="btnViewGallery" onclick="revealGallery()">
+                <i class="bi bi-eye"></i> View Photos
+            </button>
+        </div>
+        <!-- Actual gallery: hidden until guest clicks View Photos -->
+        <div class="gallery-grid-wrap" id="galleryGrid" style="display:none;">
+            <div class="row g-3">
+                {% for image in gallery_images %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ image.image.url }}" target="_blank" class="text-decoration-none">
+                        <div class="photo-card">
+                            <img src="{{ image.image.url }}" alt="Event Photo">
+                            {% if image.description %}
+                            <div class="photo-card-body">
+                                <div class="photo-desc">{{ image.description|truncatewords:12 }}</div>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
-                    </div>
-                </a>
+                    </a>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
         {% else %}
         <div class="empty-state">
@@ -261,5 +309,28 @@
         {% endif %}
     </div>
 </div>
+
+{% if gallery_images %}
+<script>
+(function() {
+    var key = 'guest_gallery_viewed_{{ event.id }}';
+    if (sessionStorage.getItem(key) === '1') {
+        var gate = document.getElementById('galleryGate');
+        var grid = document.getElementById('galleryGrid');
+        if (gate) gate.style.display = 'none';
+        if (grid) grid.style.display = '';
+    }
+})();
+function revealGallery() {
+    var gate = document.getElementById('galleryGate');
+    var grid = document.getElementById('galleryGrid');
+    if (gate) gate.style.display = 'none';
+    if (grid) {
+        grid.style.display = '';
+        sessionStorage.setItem('guest_gallery_viewed_{{ event.id }}', '1');
+    }
+}
+</script>
+{% endif %}
 
 {% endblock %}

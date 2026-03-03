@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
 from account.models import User
 from user.models import Event, Payment, Review
@@ -171,14 +172,47 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     store = models.ForeignKey(Store, blank=True, null=True, on_delete=models.CASCADE, related_name='chats')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_chats')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='user_chats')
+    guest_access = models.ForeignKey(
+        'user.EventGuestAccess', on_delete=models.CASCADE, null=True, blank=True, related_name='chats'
+    )
     vendor = models.ForeignKey(User, limit_choices_to={'role__name__iexact': 'vendor'}, on_delete=models.CASCADE, related_name='vendor_chats')
 
     class Meta:
-        unique_together = (('user', 'vendor'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'vendor'], condition=Q(user__isnull=False), name='unique_user_vendor_chat'
+            ),
+            models.UniqueConstraint(
+                fields=['guest_access', 'vendor'], condition=Q(guest_access__isnull=False), name='unique_guest_vendor_chat'
+            ),
+        ]
 
     def __str__(self):
-        return f"Chat between {self.user.fullname} and {self.vendor.fullname}"
+        if self.user_id:
+            return f"Chat between {self.user.fullname} and {self.vendor.fullname}"
+        return f"Chat: Guest ({self.guest_access.event.title}) - {self.vendor.fullname}"
+
+    @property
+    def last_message(self):
+        """Last message text for list previews."""
+        last = self.messages.order_by('-created_at').first()
+        if not last:
+            return ''
+        if last.message:
+            return last.message
+        return '[Photo]' if last.image else ''
+
+    @property
+    def counterparty_display(self):
+        """Display name for the other party (user or guest)."""
+        if self.user_id:
+            return self.user.fullname
+        if self.guest_access_id:
+            if self.guest_access.guest_name and self.guest_access.guest_name.strip():
+                return self.guest_access.guest_name.strip()
+            return f"Guest ({self.guest_access.event.title})"
+        return 'Unknown'
 
 
 class ExtraCharge(models.Model):
@@ -200,13 +234,34 @@ class ChatMessage(models.Model):
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='sent_messages')
+    guest_sender = models.ForeignKey(
+        'user.EventGuestAccess', on_delete=models.CASCADE, null=True, blank=True, related_name='sent_messages'
+    )
 
     class Meta:
         ordering = ['created_at']
 
+    @property
+    def sender_display(self):
+        """Display name for message sender (User or Guest)."""
+        if self.sender_id:
+            return self.sender.fullname
+        if self.guest_sender_id:
+            if self.guest_sender.guest_name.strip():
+                return self.guest_sender.guest_name.strip()
+            return f"Guest ({self.guest_sender.event.title})"
+        return 'Unknown'
+
+    @property
+    def is_from_vendor(self):
+        """True if this message was sent by the chat's vendor."""
+        if self.chat and self.sender_id and self.sender_id == self.chat.vendor_id:
+            return True
+        return False
+
     def __str__(self):
-        return f"Message from {self.sender.fullname} at {self.created_at}"
+        return f"Message from {self.sender_display} at {self.created_at}"
     
 class GalleryImage(models.Model):
     """Images uploaded by vendors (photographers) for specific events they worked on"""

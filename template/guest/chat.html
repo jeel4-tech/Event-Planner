@@ -1,0 +1,86 @@
+{% extends 'guest/base.html' %}
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+<style>
+    .page-header h3 { font-size: 1.5rem; font-weight: 700; color: #1E2D40; }
+    .chat-list { display: flex; flex-direction: column; gap: .6rem; }
+    .chat-item {
+        background: #eef5f9; border: 1.5px solid #ccdde8;
+        border-radius: 12px; padding: .9rem 1.1rem;
+        display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+        text-decoration: none; color: inherit;
+        transition: all .2s; position: relative; overflow: hidden;
+    }
+    .chat-item::before {
+        content: ''; position: absolute; top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, #4A7A9B, #8AB4C8);
+        border-radius: 12px 0 0 12px;
+    }
+    .chat-item:hover { border-color: #8AB4C8; background: rgba(74,122,155,.07); transform: translateX(3px); text-decoration: none; color: inherit; }
+    .chat-item.unread { border-color: #4A7A9B; }
+    .chat-item-info { flex: 1; min-width: 0; }
+    .chat-item-name { font-size: .95rem; font-weight: 700; color: #1E2D40; margin-bottom: .15rem; }
+    .chat-item-preview { font-size: .8rem; color: #4a6278; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .unread-badge {
+        background: #4A7A9B; color: #fff; border-radius: 20px; font-size: .7rem;
+        font-weight: 700; padding: .15rem .55rem;
+    }
+    .empty-state { text-align: center; padding: 3rem 2rem; color: #8AB4C8; }
+    .empty-state i { font-size: 3rem; display: block; margin-bottom: .75rem; }
+    .empty-state p { color: #4a6278; font-size: .92rem; margin: 0 0 1rem 0; }
+    .btn-start-chat {
+        display: inline-flex; align-items: center; gap: .35rem;
+        background: linear-gradient(135deg, #1E2D40, #4A7A9B);
+        color: #fff; font-size: .9rem; font-weight: 700;
+        padding: .5rem 1.2rem; border-radius: 10px; border: none;
+        text-decoration: none; cursor: pointer; transition: opacity .18s;
+    }
+    .btn-start-chat:hover { opacity: .88; color: #fff; }
+</style>
+
+<div class="mb-4 page-header">
+    <h3><i class="bi bi-chat-dots me-2" style="color:#4A7A9B;"></i>Chat with Vendor</h3>
+    <p class="text-muted mb-0" style="font-size:.92rem;">Message your event photographer or vendor</p>
+</div>
+{% if not access.guest_name or not access.guest_name.strip %}
+<div style="background:#fef3dc; border:1.5px solid #c47c1a; border-radius:12px; padding:.8rem 1.1rem; margin-bottom:1.2rem; display:flex; align-items:center; gap:.75rem;">
+    <i class="bi bi-person-badge" style="font-size:1.3rem; color:#c47c1a;"></i>
+    <div style="flex:1;">
+        <strong style="color:#1E2D40;">Set your display name</strong>
+        <p class="mb-0" style="font-size:.82rem; color:#4a6278;">The photographer will see your name in chat. <a href="{% url 'guest_notification_preferences' %}">Set it in Preferences</a>.</p>
+    </div>
+</div>
+{% endif %}
+
+{% if chats %}
+<div class="chat-list">
+    {% for chat in chats %}
+    <a href="{% url 'guest_chat_detail' chat.id %}" class="chat-item {% if chat.unread_count %}unread{% endif %}">
+        <div class="chat-item-info">
+            <div class="chat-item-name">
+                <i class="bi bi-person-circle me-1" style="color:#4A7A9B;"></i>
+                {{ chat.vendor.fullname }}
+            </div>
+            <div class="chat-item-preview">
+                {% if chat.store %}<span style="color:#4A7A9B;">{{ chat.store.store_name }}</span> · {% endif %}
+                {{ chat.last_message|truncatechars:55|default:"No messages yet" }}
+            </div>
+        </div>
+        {% if chat.unread_count %}
+        <span class="unread-badge">{{ chat.unread_count }}</span>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-chat-square-dots"></i>
+    <p>No conversations yet. Start a chat with your event vendor.</p>
+    <a href="{% url 'guest_start_chat' %}" class="btn-start-chat">
+        <i class="bi bi-chat-plus"></i> Start Chat
+    </a>
+</div>
+{% endif %}
+{% endblock %}

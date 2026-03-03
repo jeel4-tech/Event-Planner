@@ -505,9 +505,10 @@ def vendor_chat(request):
     vendor_id = request.session.get('user_id')
     vendor = User.objects.get(id=vendor_id)
 
-    # Annotate unread counts
-    chats = Chat.objects.filter(vendor_id=vendor_id).select_related('user', 'store')
-    chats = chats.annotate(unread_count=Count('messages', filter=Q(messages__is_read=False)))
+    # Include both user and guest chats
+    chats = Chat.objects.filter(vendor_id=vendor_id).select_related(
+        'user', 'store', 'guest_access', 'guest_access__event'
+    ).annotate(unread_count=Count('messages', filter=Q(messages__is_read=False)))
 
     return render(request, 'vendor/chat.html', {
         'chats': chats,
@@ -567,22 +568,32 @@ def vendor_chat_detail(request, chat_id):
                 message=message_text or '',
                 image=image
             )
-            # Notify user about new vendor message
+            # Notify user (for user chats) or guest (for guest chats) about new vendor message
             try:
-                Notification.objects.create(
-                    user=chat.user,
-                    title='New Message',
-                    message=f'New message from {vendor.fullname}.',
-                    is_read=False,
-                )
+                if chat.user_id:
+                    Notification.objects.create(
+                        user=chat.user,
+                        title='New Message',
+                        message=f'New message from {vendor.fullname}.',
+                        is_read=False,
+                    )
+                elif chat.guest_access_id:
+                    from user.models import GuestNotification
+                    GuestNotification.objects.create(
+                        guest_access=chat.guest_access,
+                        notification_type='other',
+                        title='New Message',
+                        message=f'New message from {vendor.fullname}.',
+                        is_read=False,
+                    )
             except Exception:
                 pass
         return redirect('vendor_chat_detail', chat.id)
 
-    # Mark other user's unread messages as read
+    # Mark other party's unread messages as read (not vendor's)
     chat.messages.filter(is_read=False).exclude(sender_id=vendor_id).update(is_read=True)
 
-    messages_qs = chat.messages.select_related('sender').all()
+    messages_qs = chat.messages.select_related('sender', 'guest_sender', 'guest_sender__event').all()
 
     return render(request, 'vendor/chat_detail.html', {
         'chat': chat,
@@ -964,6 +975,27 @@ def event_photos_detail(request, event_id):
 
             t = threading.Thread(target=_generate_embeddings, args=(new_images,), daemon=True)
             t.start()
+
+            # Notify all guests of this event about new photos
+            from user.models import GuestNotification, GuestNotificationPreference
+            guest_accesses = EventGuestAccess.objects.filter(event=event, is_active=True)
+            count = len(files)
+            photo_word = 'photo' if count == 1 else 'photos'
+            title = f'New {photo_word} added to {event.title}'
+            message = f'The photographer has uploaded {count} new {photo_word} from the event. Check out the gallery!'
+            for access in guest_accesses:
+                try:
+                    pref = access.notification_preference
+                    notify = pref.notify_new_photos
+                except GuestNotificationPreference.DoesNotExist:
+                    notify = True  # default on when no preference set
+                if notify:
+                    GuestNotification.objects.create(
+                        guest_access=access,
+                        title=title,
+                        message=message,
+                        notification_type='new_photos',
+                    )
 
             messages.success(request, f'{len(files)} photo(s) uploaded successfully! Face indexing is running in the background.')
             return redirect('event_photos_detail', event_id=event_id)

@@ -2,7 +2,7 @@ def global_app_info(request):
     return {
         'APP_NAME': 'Planify.Ai',
         'APP_LOGO_TEXT': 'PA',                 # Text logo (initials)
-        'APP_LOGO_IMAGE': '/static/images/LOGO.png',   # Image logo (inside static/)
+        'APP_LOGO_IMAGE': '/static/images/planify_logo.png',   # Image logo (inside static/)
     }
 
 
@@ -62,6 +62,8 @@ def unread_counts(request):
         user_id = None
 
     unread_notifications = 0
+    unread_guest_notifications = 0
+
     try:
         if user_id:
             from user.models import Notification
@@ -69,6 +71,17 @@ def unread_counts(request):
     except Exception:
         unread_notifications = 0
 
+    try:
+        access_id = request.session.get('guest_access_id')
+        if access_id:
+            from user.models import GuestNotification
+            unread_guest_notifications = GuestNotification.objects.filter(
+                guest_access_id=access_id, is_read=False
+            ).count()
+    except Exception:
+        unread_guest_notifications = 0
+
     return {
         'unread_notifications': unread_notifications,
+        'unread_guest_notifications': unread_guest_notifications,
     }

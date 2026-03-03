@@ -1,0 +1,120 @@
+{% extends 'guest/base.html' %}
+{% block title %}Notification Preferences{% endblock %}
+
+{% block styles %}
+<style>
+.page-title { font-size:1.35rem; font-weight:800; color:#1E2D40; margin-bottom:.2rem; }
+.page-sub   { font-size:.82rem; color:#4a6278; margin:0 0 1.2rem 0; }
+
+.pref-panel {
+    background:#eef5f9; border:1.5px solid #ccdde8;
+    border-radius:14px; overflow:hidden; max-width:480px;
+}
+.pref-panel-head {
+    background:#e4eff5; border-bottom:1.5px solid #ccdde8;
+    padding:.75rem 1.2rem;
+}
+.pref-panel-head span { font-size:.88rem; font-weight:700; color:#1E2D40; }
+.pref-panel-body { padding:1.2rem; }
+
+.pref-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.8rem 0; border-bottom:1px solid #e4eff5;
+}
+.pref-row:last-child { border-bottom:none; }
+.pref-label { font-size:.9rem; font-weight:600; color:#1E2D40; }
+.pref-desc { font-size:.78rem; color:#4a6278; margin-top:.15rem; }
+
+/* Toggle switch */
+.pref-toggle {
+    position:relative; width:44px; height:24px;
+    background:#ccdde8; border-radius:20px; cursor:pointer;
+    transition:background .2s;
+}
+.pref-toggle.on { background:#4A7A9B; }
+.pref-toggle::after {
+    content:''; position:absolute; top:2px; left:2px;
+    width:20px; height:20px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2);
+    transition:transform .2s;
+}
+.pref-toggle.on::after { transform:translateX(20px); }
+
+.btn-save {
+    background:linear-gradient(135deg,#4A7A9B,#1E2D40);
+    color:#fff; border:none; border-radius:10px;
+    padding:.6rem 1.5rem; font-weight:700; font-size:.9rem;
+    margin-top:1rem; cursor:pointer; transition:opacity .2s;
+}
+.btn-save:hover { color:#fff; opacity:.9; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="mb-3">
+    <div class="page-title">
+        <i class="bi bi-gear me-2" style="color:#4A7A9B;"></i>Notification Preferences
+    </div>
+    <p class="page-sub">Choose which notifications you want to receive for {{ event.title }}</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="pref-panel" style="margin-bottom:1.2rem;">
+        <div class="pref-panel-head">
+            <span>Display name (for chat)</span>
+        </div>
+        <div class="pref-panel-body">
+            <p class="pref-desc" style="margin-bottom:.8rem;">Your name as shown to the photographer when you chat. Leave blank to show &quot;Guest (event)&quot;.</p>
+            <input type="text" name="guest_name" value="{{ access.guest_name|default:'' }}" maxlength="120"
+                   placeholder="e.g. John Smith"
+                   style="width:100%; padding:.6rem .9rem; border:1.5px solid #ccdde8; border-radius:10px; font-size:.9rem; color:#1E2D40;">
+        </div>
+    </div>
+    <div class="pref-panel">
+        <div class="pref-panel-head">
+            <span>Email & in-app notifications</span>
+        </div>
+        <div class="pref-panel-body">
+            <div class="pref-row">
+                <div>
+                    <div class="pref-label">New photos added</div>
+                    <div class="pref-desc">Get notified when the photographer uploads new event photos</div>
+                </div>
+                <div class="pref-toggle {% if pref.notify_new_photos %}on{% endif %}" 
+                     data-for="notify_new_photos" role="button" tabindex="0">
+                </div>
+                <input type="hidden" name="notify_new_photos" value="{% if pref.notify_new_photos %}on{% endif %}" id="inp_notify_new_photos">
+            </div>
+            <div class="pref-row">
+                <div>
+                    <div class="pref-label">Event updates</div>
+                    <div class="pref-desc">Get notified about event date changes or other updates</div>
+                </div>
+                <div class="pref-toggle {% if pref.notify_event_updates %}on{% endif %}" 
+                     data-for="notify_event_updates" role="button" tabindex="0">
+                </div>
+                <input type="hidden" name="notify_event_updates" value="{% if pref.notify_event_updates %}on{% endif %}" id="inp_notify_event_updates">
+            </div>
+            <button type="submit" class="btn-save">
+                <i class="bi bi-check-lg me-1"></i>Save Preferences
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.pref-toggle').forEach(function(toggle) {
+        toggle.addEventListener('click', function() {
+            this.classList.toggle('on');
+            var name = this.getAttribute('data-for');
+            var inp = document.getElementById('inp_' + name);
+            if (inp) inp.value = this.classList.contains('on') ? 'on' : '';
+        });
+    });
+});
+</script>
+
+{% endblock %}

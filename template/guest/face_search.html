@@ -165,8 +165,14 @@
 <h4 class="mb-0" style="font-weight:800;color:#1E2D40;margin-bottom:.2rem;">
     <i class="bi bi-person-bounding-box me-2" style="color:#4A7A9B;"></i>Find My Photos
 </h4>
-<p class="mb-4 small" style="color:#4a6278;">
+<p class="mb-3 small" style="color:#4a6278;">
     Choose how you want to identify yourself in photos from <strong>{{ event.title }}</strong>
+</p>
+<p class="mb-4">
+    <a href="{% url 'guest_dashboard' %}#event-photos" class="btn btn-outline-primary btn-sm" style="border-color:#4A7A9B;color:#4A7A9B;font-weight:600;">
+        <i class="bi bi-images me-1"></i>View all event photos
+    </a>
+    <span class="text-muted small ms-2">or scan/upload below to find photos of you</span>
 </p>
 
 <!-- Django messages -->

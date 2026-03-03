@@ -1,5 +1,5 @@
 {% extends 'vendor/base.html' %}
-{% block title %}Chat - {{ chat.user.fullname }}{% endblock %}
+{% block title %}Chat - {{ chat.counterparty_display }}{% endblock %}
 
 {% block content %}
 <style>
@@ -163,11 +163,13 @@ button.btn-modal-delete:hover { opacity: .85; }
     <!-- Header -->
     <div class="chat-header">
         <div class="chat-header-left">
-            <div class="chat-avatar">{{ chat.user.fullname|first|upper }}</div>
+            <div class="chat-avatar">{{ chat.counterparty_display|slice:":1"|upper }}</div>
             <div>
-                <div class="chat-name">{{ chat.user.fullname }}</div>
+                <div class="chat-name">{{ chat.counterparty_display }}</div>
                 {% if chat.store %}
                 <div class="chat-store"><i class="bi bi-shop me-1"></i>{{ chat.store.store_name }}</div>
+                {% elif chat.guest_access %}
+                <div class="chat-store"><i class="bi bi-calendar-event me-1"></i>{{ chat.guest_access.event.title }}</div>
                 {% endif %}
             </div>
         </div>
@@ -189,11 +191,11 @@ button.btn-modal-delete:hover { opacity: .85; }
     <div class="chat-body" id="chatBody">
         <div id="messagesContainer" style="display:flex;flex-direction:column;gap:.65rem;">
             {% for message in messages %}
-            <div class="msg-row {% if message.sender.id == vendor.id %}sent{% else %}recv{% endif %}"
+            <div class="msg-row {% if message.is_from_vendor %}sent{% else %}recv{% endif %}"
                  data-message-id="{{ message.id }}">
-                <div class="bubble {% if message.sender.id == vendor.id %}bubble-sent{% else %}bubble-recv{% endif %}">
+                <div class="bubble {% if message.is_from_vendor %}bubble-sent{% else %}bubble-recv{% endif %}">
                     <div class="bubble-meta">
-                        <span>{{ message.sender.fullname }}</span>
+                        <span>{{ message.sender_display }}</span>
                         <span>·</span>
                         <span>{{ message.created_at|date:"g:i A" }}</span>
                     </div>
@@ -204,7 +206,7 @@ button.btn-modal-delete:hover { opacity: .85; }
                     {% endif %}
                     {% if message.message %}<div>{{ message.message }}</div>{% endif %}
                 </div>
-                {% if message.sender.id == vendor.id %}
+                {% if message.is_from_vendor %}
                 <button type="button" class="btn-del-msg delete-message-btn"
                         data-url="{% url 'vendor_delete_message' message.id %}"
                         data-msgid="{{ message.id }}" title="Delete">

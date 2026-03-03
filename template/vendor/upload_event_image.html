@@ -639,7 +639,9 @@ function reEditQueued(i) {
 ═══════════════════════════════════════════════ */
 function getCsrfToken() {
     const el = document.querySelector('#quickUploadForm input[name="csrfmiddlewaretoken"]');
-    return el ? el.value : '';
+    if (el && el.value) return el.value;
+    const cookieMatch = document.cookie.match(/csrftoken=([^;]+)/);
+    return cookieMatch ? decodeURIComponent(cookieMatch[1]) : '';
 }
 
 async function submitCroppedPhotos() {
@@ -648,27 +650,32 @@ async function submitCroppedPhotos() {
     const btn   = document.getElementById('uploadSubmitBtn');
     const label = document.getElementById('uploadBtnLabel');
     const form  = document.getElementById('quickUploadForm');
-    if (!form.action) {
+    const uploadUrl = form.getAttribute('action') || form.action;
+    if (!uploadUrl) {
         alert('Upload target not set. Please close and re-open the upload modal.');
         return;
     }
+    const url = uploadUrl.startsWith('http') ? uploadUrl : (window.location.origin + (uploadUrl.startsWith('/') ? uploadUrl : '/' + uploadUrl));
 
     btn.disabled = true;
     label.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading…';
 
-    const fd = new FormData(form);
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', getCsrfToken());
+    fd.append('action', 'upload');
     croppedBlobs.forEach((item) => {
         fd.append('images', item.blob, item.name);
     });
 
     try {
-        const resp = await fetch(form.action, {
+        const resp = await fetch(url, {
             method: 'POST',
             body: fd,
             credentials: 'same-origin',
-            headers: { 'X-CSRFToken': getCsrfToken() }
+            redirect: 'follow',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
-        if (resp.ok) {
+        if (resp.ok || resp.redirected) {
             if (resp.redirected) {
                 window.location.href = resp.url;
             } else {

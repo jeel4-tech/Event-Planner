@@ -2,251 +2,505 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<style>
+/* ════════ KPI CARDS ════════ */
+.kpi-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 16px;
+    padding: 1.3rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    position: relative; overflow: hidden;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+}
+.kpi-card:hover { box-shadow: 0 8px 24px rgba(30,45,64,.11); border-color: #8AB4C8; transform: translateY(-3px); }
 
-<!-- Statistics Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon primary">
-                <i class="bi bi-shop"></i>
+
+.kpi-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+    transition: transform .22s;
+}
+.kpi-card:hover .kpi-icon { transform: scale(1.1) rotate(-5deg); }
+.kpi-icon-1 { background: #ddeaf3; color: #4A7A9B; }
+.kpi-icon-2 { background: #d6f0e4; color: #2d8a5e; }
+.kpi-icon-3 { background: #fef3dc; color: #c47c1a; }
+.kpi-icon-4 { background: #d6e8f2; color: #1E2D40; }
+
+.kpi-body { flex: 1; min-width: 0; }
+.kpi-label { font-size: .7rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .2rem; }
+.kpi-value { font-size: 1.85rem; font-weight: 800; color: #1E2D40; line-height: 1.1; }
+.kpi-sub   { font-size: .72rem; color: #8AB4C8; margin-top: .2rem; display: flex; align-items: center; gap: .3rem; }
+
+/* ════════ MINI STAT CARDS ════════ */
+.mini-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 16px;
+    padding: 1.3rem 1.4rem;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+    position: relative; overflow: hidden;
+}
+.mini-card:hover { box-shadow: 0 8px 22px rgba(30,45,64,.1); border-color: #8AB4C8; transform: translateY(-3px); }
+
+
+
+.mini-card-accent {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 16px 16px 0 0;
+}
+.accent-amber { background: linear-gradient(90deg,#c47c1a,#e9a84c); }
+.accent-green { background: linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.accent-blue  { background: linear-gradient(90deg,#4A7A9B,#8AB4C8); }
+
+.mini-top   { display: flex; align-items: center; justify-content: space-between; margin-bottom: .7rem; }
+.mini-icon  { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+.mi-amber   { background: #fef3dc; color: #c47c1a; }
+.mi-green   { background: #d6f0e4; color: #2d8a5e; }
+.mi-blue    { background: #ddeaf3; color: #4A7A9B; }
+.mini-title { font-size: .72rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; }
+.mini-badge { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .18rem .65rem; }
+.badge-amber { background: #fef3dc; color: #c47c1a; }
+.badge-green { background: #d6f0e4; color: #2d8a5e; }
+.badge-blue  { background: #ddeaf3; color: #4A7A9B; }
+
+.mini-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: .6rem; }
+.val-amber  { color: #c47c1a; }
+.val-green  { color: #2d8a5e; }
+.val-blue   { color: #4A7A9B; }
+
+a.mini-link, a.mini-link:visited {
+    font-size: .78rem; font-weight: 600; text-decoration: none;
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .75rem; border-radius: 8px; border: 1.5px solid;
+    transition: all .18s;
+}
+.ml-amber { color: #c47c1a; border-color: #c47c1a; }
+.ml-amber:hover { background: #c47c1a; color: #fff; }
+.ml-green { color: #2d8a5e; border-color: #2d8a5e; }
+.ml-green:hover { background: #2d8a5e; color: #fff; }
+.ml-blue  { color: #4A7A9B; border-color: #4A7A9B; }
+.ml-blue:hover  { background: #4A7A9B; color: #fff; }
+
+/* ════════ PANELS ════════ */
+.panel {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 14px;
+    overflow: hidden; height: 100%;
+    transition: box-shadow .22s;
+}
+.panel:hover { box-shadow: 0 6px 20px rgba(30,45,64,.08); }
+
+.panel-head {
+    padding: .9rem 1.3rem;
+    border-bottom: 1px solid #ccdde8;
+    background: #e4eff5;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.panel-head-left { display: flex; align-items: center; gap: .6rem; }
+.panel-head-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; background: #ddeaf3; color: #4A7A9B;
+}
+.panel-head h5 { font-size: .92rem; font-weight: 700; color: #1E2D40; margin: 0; }
+
+a.panel-btn, a.panel-btn:visited {
+    font-size: .73rem; font-weight: 600; color: #4A7A9B;
+    text-decoration: none; border: 1.5px solid #4A7A9B;
+    border-radius: 7px; padding: .22rem .65rem;
+    transition: background .18s, color .18s;
+}
+a.panel-btn:hover { background: #4A7A9B; color: #fff; }
+
+/* ════════ ACTIVITY ROWS ════════ */
+.act-row {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .7rem 1.2rem;
+    border-bottom: 1px solid #e4eff5;
+    transition: background .15s;
+}
+.act-row:last-child { border-bottom: none; }
+.act-row:hover { background: rgba(74,122,155,.05); }
+
+.act-avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; flex-shrink: 0;
+    background: #ddeaf3; color: #4A7A9B;
+}
+.act-info  { flex: 1; min-width: 0; }
+.act-title { font-size: .85rem; font-weight: 600; color: #1E2D40; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.act-sub   { font-size: .72rem; color: #4a6278; margin-top: .08rem; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.act-sub i { color: #8AB4C8; }
+.act-amount { font-size: .8rem; font-weight: 700; color: #2d8a5e; }
+
+.spill { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .2rem .65rem; white-space: nowrap; flex-shrink: 0; }
+.spill-pending   { background: #fef3dc; color: #c47c1a; }
+.spill-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.spill-completed { background: #ddeaf3; color: #4A7A9B; }
+.spill-rejected  { background: #fde8e6; color: #c0392b; }
+
+.panel-empty { text-align: center; padding: 2.5rem 1rem; }
+.panel-empty i { font-size: 2.2rem; color: #8AB4C8; display: block; margin-bottom: .6rem; }
+.panel-empty p { font-size: .82rem; color: #4a6278; margin: 0; }
+
+/* ════════ REVIEWS ════════ */
+.review-card {
+    background: #f5f9fc;
+    border: 1.5px solid #ccdde8;
+    border-radius: 10px;
+    padding: .9rem 1rem;
+    transition: box-shadow .18s, transform .18s;
+}
+.review-card:hover { box-shadow: 0 4px 14px rgba(30,45,64,.09); transform: translateY(-2px); }
+.review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .35rem; }
+.review-name   { font-size: .85rem; font-weight: 700; color: #1E2D40; display: flex; align-items: center; gap: .4rem; }
+.review-avatar { width: 26px; height: 26px; border-radius: 50%; background: #ddeaf3; color: #4A7A9B; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; }
+.review-event  { font-size: .72rem; color: #4a6278; margin-bottom: .4rem; display: flex; align-items: center; gap: .3rem; }
+.review-text   { font-size: .82rem; color: #4a6278; line-height: 1.5; }
+.review-quote  { color: #8AB4C8; font-size: 1.1rem; line-height: 1; }
+
+/* ════════ QUICK ACTIONS ════════ */
+.qa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px,1fr)); gap: .85rem; }
+a.qa-tile, a.qa-tile:visited {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 13px;
+    padding: 1.2rem 1rem 1rem;
+    text-align: center; text-decoration: none;
+    display: flex; flex-direction: column; align-items: center; gap: .45rem;
+    transition: box-shadow .2s, border-color .2s, transform .2s, background .2s;
+    position: relative; overflow: hidden;
+}
+a.qa-tile::before {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; border-radius: 0 0 13px 13px;
+    transition: height .2s;
+}
+a.qa-tile:hover::before { height: 4px; }
+.qt-1::before { background: linear-gradient(90deg,#4A7A9B,#8AB4C8); }
+.qt-2::before { background: linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.qt-3::before { background: linear-gradient(90deg,#c47c1a,#e9a84c); }
+.qt-4::before { background: linear-gradient(90deg,#1E2D40,#4A7A9B); }
+.qt-5::before { background: linear-gradient(90deg,#4A7A9B,#1E2D40); }
+.qt-6::before { background: linear-gradient(90deg,#8AB4C8,#4A7A9B); }
+
+a.qa-tile:hover {
+    box-shadow: 0 8px 22px rgba(30,45,64,.12);
+    border-color: #8AB4C8;
+    transform: translateY(-4px);
+    background: #e4eff5;
+    text-decoration: none;
+}
+.qa-icon {
+    width: 42px; height: 42px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; transition: transform .2s;
+}
+a.qa-tile:hover .qa-icon { transform: scale(1.12) rotate(-4deg); }
+.qi-1 { background: #ddeaf3; color: #4A7A9B; }
+.qi-2 { background: #d6f0e4; color: #2d8a5e; }
+.qi-3 { background: #fef3dc; color: #c47c1a; }
+.qi-4 { background: #d6e8f2; color: #1E2D40; }
+.qi-5 { background: #ddeaf3; color: #4A7A9B; }
+.qi-6 { background: #e4eff5; color: #8AB4C8; }
+.qa-label { font-size: .83rem; font-weight: 700; color: #1E2D40; }
+.qa-sub   { font-size: .7rem; color: #4a6278; }
+.qa-arrow { font-size: .7rem; color: #8AB4C8; transition: transform .2s; }
+a.qa-tile:hover .qa-arrow { transform: translateX(3px); color: #4A7A9B; }
+
+/* ════════ SECTION HEADER ════════ */
+.sec-hd  { font-size: 1rem; font-weight: 700; color: #1E2D40; }
+.sec-sub { font-size: .78rem; color: #4a6278; }
+
+/* ════════ DIVIDER ════════ */
+.dash-divider { border: none; border-top: 1.5px solid #e4eff5; margin: .25rem 0 1rem; }
+</style>
+
+<!-- ══ KPI ROW ══ -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card kc-1">
+            <div class="kpi-icon kpi-icon-1"><i class="bi bi-shop-window"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Total Stores</div>
+                <div class="kpi-value">{{ total_stores }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-circle-fill" style="font-size:.45rem;color:#2d8a5e;"></i>
+                    Active stores
+                </div>
             </div>
-            <h6>Total Stores</h6>
-            <h2>{{ total_stores }}</h2>
-            <small class="text-muted">Active stores</small>
         </div>
     </div>
-
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon success">
-                <i class="bi bi-list-check"></i>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card kc-2">
+            <div class="kpi-icon kpi-icon-2"><i class="bi bi-grid-1x2"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Total Services</div>
+                <div class="kpi-value">{{ total_services }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-circle-fill" style="font-size:.45rem;color:#2d8a5e;"></i>
+                    Available services
+                </div>
             </div>
-            <h6>Total Services</h6>
-            <h2>{{ total_services }}</h2>
-            <small class="text-muted">Available services</small>
         </div>
     </div>
-
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon warning">
-                <i class="bi bi-receipt"></i>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card kc-3">
+            <div class="kpi-icon kpi-icon-3"><i class="bi bi-bag-check"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Total Bookings</div>
+                <div class="kpi-value">{{ total_bookings }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-arrow-up-short" style="color:#2d8a5e;font-size:.9rem;"></i>
+                    All time
+                </div>
             </div>
-            <h6>Total Bookings</h6>
-            <h2>{{ total_bookings }}</h2>
-            <small class="text-muted">All time bookings</small>
         </div>
     </div>
-
-    <div class="col-md-6 col-lg-3">
-        <div class="stat-card">
-            <div class="stat-card-icon info">
-                <i class="bi bi-cash-stack"></i>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card kc-4">
+            <div class="kpi-icon kpi-icon-4"><i class="bi bi-wallet2"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Total Earnings</div>
+                <div class="kpi-value">₹{{ total_earnings|floatformat:0 }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-currency-rupee" style="font-size:.75rem;"></i>
+                    Total revenue
+                </div>
             </div>
-            <h6>Total Earnings</h6>
-            <h2>₹{{ total_earnings|floatformat:0 }}</h2>
-            <small class="text-muted">Total revenue</small>
         </div>
     </div>
 </div>
 
-<!-- Secondary Stats -->
-<div class="row g-4 mb-4">
+<!-- ══ MINI STATS ══ -->
+<div class="row g-3 mb-3">
     <div class="col-md-4">
-        <div class="card-box">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h6 class="mb-0">Pending Bookings</h6>
-                <span class="badge bg-warning">{{ pending_bookings }}</span>
+        <div class="mini-card mc-amber">
+            <div class="mini-card-accent accent-amber"></div>
+            <div class="mini-top">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-icon mi-amber"><i class="bi bi-hourglass-split"></i></div>
+                    <span class="mini-title">Pending Bookings</span>
+                </div>
+                <span class="mini-badge badge-amber">{{ pending_bookings }}</span>
             </div>
-            <h3 class="text-warning mb-2">{{ pending_bookings }}</h3>
-            <a href="{% url 'vendor_orders' %}?status=pending" class="btn btn-sm btn-outline-warning">
-                View All <i class="bi bi-arrow-right ms-1"></i>
+            <div class="mini-value val-amber">{{ pending_bookings }}</div>
+            <a href="{% url 'vendor_orders' %}?status=pending" class="mini-link ml-amber">
+                <i class="bi bi-eye"></i> View All <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
-
     <div class="col-md-4">
-        <div class="card-box">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h6 class="mb-0">Confirmed Bookings</h6>
-                <span class="badge bg-success">{{ confirmed_bookings }}</span>
+        <div class="mini-card mc-green">
+            <div class="mini-card-accent accent-green"></div>
+            <div class="mini-top">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-icon mi-green"><i class="bi bi-check-circle"></i></div>
+                    <span class="mini-title">Confirmed Bookings</span>
+                </div>
+                <span class="mini-badge badge-green">{{ confirmed_bookings }}</span>
             </div>
-            <h3 class="text-success mb-2">{{ confirmed_bookings }}</h3>
-            <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn btn-sm btn-outline-success">
-                View All <i class="bi bi-arrow-right ms-1"></i>
+            <div class="mini-value val-green">{{ confirmed_bookings }}</div>
+            <a href="{% url 'vendor_orders' %}?status=confirmed" class="mini-link ml-green">
+                <i class="bi bi-eye"></i> View All <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
-
     <div class="col-md-4">
-        <div class="card-box">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h6 class="mb-0">Pending Earnings</h6>
-                <span class="badge bg-info">Pending</span>
+        <div class="mini-card mc-blue">
+            <div class="mini-card-accent accent-blue"></div>
+            <div class="mini-top">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-icon mi-blue"><i class="bi bi-clock-history"></i></div>
+                    <span class="mini-title">Pending Earnings</span>
+                </div>
+                <span class="mini-badge badge-blue">Pending</span>
             </div>
-            <h3 class="text-info mb-2">₹{{ pending_earnings|floatformat:0 }}</h3>
-            <a href="{% url 'vendor_earnings' %}?status=pending" class="btn btn-sm btn-outline-info">
-                View All <i class="bi bi-arrow-right ms-1"></i>
+            <div class="mini-value val-blue">₹{{ pending_earnings|floatformat:0 }}</div>
+            <a href="{% url 'vendor_earnings' %}?status=pending" class="mini-link ml-blue">
+                <i class="bi bi-eye"></i> View All <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
 </div>
 
-<!-- Recent Activity -->
-<div class="row g-4">
+<!-- ══ ACTIVITY PANELS ══ -->
+<div class="row g-3 mb-3">
     <div class="col-lg-6">
-        <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">Recent Bookings</h5>
-                <a href="{% url 'vendor_orders' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <div class="panel-head-icon"><i class="bi bi-bag-check"></i></div>
+                    <h5>Recent Bookings</h5>
+                </div>
+                <a href="{% url 'vendor_orders' %}" class="panel-btn"><i class="bi bi-arrow-right me-1"></i>View All</a>
             </div>
             {% if recent_bookings %}
-                <div class="list-group list-group-flush">
-                    {% for booking in recent_bookings %}
-                    <div class="list-group-item px-0 border-0 border-bottom">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">{{ booking.store.store_name }}</h6>
-                                <p class="mb-1 small text-muted">{{ booking.event.title }}</p>
-                                <p class="mb-0 small">
-                                    <i class="bi bi-person me-1"></i>{{ booking.customer.fullname }}
-                                    <span class="ms-3"><i class="bi bi-currency-rupee me-1"></i>{{ booking.amount }}</span>
-                                </p>
-                            </div>
-                            <span class="badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'confirmed' %}success{% elif booking.status == 'completed' %}primary{% else %}secondary{% endif %}">
-                                {{ booking.get_status_display }}
-                            </span>
+                {% for booking in recent_bookings %}
+                <div class="act-row">
+                    <div class="act-avatar"><i class="bi bi-receipt"></i></div>
+                    <div class="act-info">
+                        <div class="act-title">{{ booking.store.store_name }} — {{ booking.event.title }}</div>
+                        <div class="act-sub">
+                            <i class="bi bi-person"></i> {{ booking.customer.fullname }}
+                            <span class="act-amount"><i class="bi bi-currency-rupee"></i>{{ booking.amount }}</span>
                         </div>
                     </div>
-                    {% endfor %}
+                    <span class="spill
+                        {% if booking.status == 'pending' %}spill-pending
+                        {% elif booking.status == 'confirmed' %}spill-confirmed
+                        {% elif booking.status == 'completed' %}spill-completed
+                        {% else %}spill-rejected{% endif %}">
+                        <i class="bi bi-{% if booking.status == 'pending' %}hourglass-split{% elif booking.status == 'confirmed' %}check-circle{% elif booking.status == 'completed' %}check-all{% else %}x-circle{% endif %} me-1"></i>
+                        {{ booking.get_status_display }}
+                    </span>
                 </div>
+                {% endfor %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox fs-1 text-muted"></i>
-                    <p class="text-muted mt-3">No bookings yet</p>
-                </div>
+            <div class="panel-empty">
+                <i class="bi bi-inbox"></i>
+                <p>No bookings yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
 
     <div class="col-lg-6">
-        <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">Upcoming Events</h5>
-                <a href="{% url 'vendor_events' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <div class="panel-head-icon"><i class="bi bi-calendar-event"></i></div>
+                    <h5>Upcoming Events</h5>
+                </div>
+                <a href="{% url 'vendor_events' %}" class="panel-btn"><i class="bi bi-arrow-right me-1"></i>View All</a>
             </div>
             {% if upcoming_bookings %}
-                <div class="list-group list-group-flush">
-                    {% for booking in upcoming_bookings %}
-                    <div class="list-group-item px-0 border-0 border-bottom">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">{{ booking.event.title }}</h6>
-                                <p class="mb-1 small text-muted">{{ booking.store.store_name }}</p>
-                                <p class="mb-0 small">
-                                    <i class="bi bi-calendar me-1"></i>
-                                    {% if booking.booking_date %}
-                                        {{ booking.booking_date|date:"M d, Y" }}
-                                    {% else %}
-                                        {{ booking.event.date|date:"M d, Y" }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <span class="badge bg-success">{{ booking.get_status_display }}</span>
+                {% for booking in upcoming_bookings %}
+                <div class="act-row">
+                    <div class="act-avatar"><i class="bi bi-calendar3"></i></div>
+                    <div class="act-info">
+                        <div class="act-title">{{ booking.event.title }}</div>
+                        <div class="act-sub">
+                            <i class="bi bi-shop"></i> {{ booking.store.store_name }}
+                            <i class="bi bi-calendar ms-1"></i>
+                            {% if booking.booking_date %}{{ booking.booking_date|date:"M d, Y" }}
+                            {% else %}{{ booking.event.date|date:"M d, Y" }}{% endif %}
                         </div>
                     </div>
-                    {% endfor %}
+                    <span class="spill spill-confirmed">
+                        <i class="bi bi-check-circle me-1"></i>{{ booking.get_status_display }}
+                    </span>
                 </div>
+                {% endfor %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-calendar-x fs-1 text-muted"></i>
-                    <p class="text-muted mt-3">No upcoming events</p>
-                </div>
+            <div class="panel-empty">
+                <i class="bi bi-calendar-x"></i>
+                <p>No upcoming events</p>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Recent Reviews -->
+<!-- ══ REVIEWS ══ -->
 {% if recent_reviews %}
-<div class="row g-4 mt-2">
+<div class="row g-3 mb-3">
     <div class="col-12">
-        <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">Recent Reviews</h5>
-                <a href="{% url 'vendor_reviews' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <div class="panel-head-icon" style="background:#fef3dc;color:#c47c1a;"><i class="bi bi-star-fill"></i></div>
+                    <h5>Recent Reviews</h5>
+                </div>
+                <a href="{% url 'vendor_reviews' %}" class="panel-btn"><i class="bi bi-arrow-right me-1"></i>View All</a>
             </div>
-            <div class="row g-3">
-                {% for review in recent_reviews %}
-                <div class="col-md-6">
-                    <div class="border rounded p-3 bg-light">
-                        <div class="d-flex justify-content-between mb-2">
-                            <strong>{{ review.user.fullname }}</strong>
-                            <div>
-                                {% for i in "12345" %}
-                                    {% if forloop.counter <= review.rating %}
-                                        <i class="bi bi-star-fill text-warning"></i>
-                                    {% else %}
-                                        <i class="bi bi-star text-muted"></i>
-                                    {% endif %}
-                                {% endfor %}
+            <div class="p-3">
+                <div class="row g-2">
+                    {% for review in recent_reviews %}
+                    <div class="col-md-6">
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="review-name">
+                                    <div class="review-avatar">{{ review.user.fullname|first|upper }}</div>
+                                    {{ review.user.fullname }}
+                                </div>
+                                <div>
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="bi bi-star-fill" style="color:#c47c1a;font-size:.75rem;"></i>
+                                        {% else %}
+                                            <i class="bi bi-star" style="color:#ccdde8;font-size:.75rem;"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="review-event">
+                                <i class="bi bi-calendar3"></i> {{ review.event.title }}
+                            </div>
+                            <div class="review-text">
+                                <span class="review-quote">"</span>
+                                {{ review.comment|truncatewords:20 }}
+                                <span class="review-quote">"</span>
                             </div>
                         </div>
-                        <p class="mb-1 small text-muted">{{ review.event.title }}</p>
-                        <p class="mb-0">{{ review.comment|truncatewords:20 }}</p>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
-<!-- Quick Actions -->
-<div class="mt-5">
-    <h5 class="mb-4 text-center">Quick Actions</h5>
-    <div class="row g-4 justify-content-center">
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'vendor_store' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-shop fs-1 mb-3"></i>
-                    <h6 class="card-title">My Store</h6>
-                    <p class="card-text small">Manage your stores</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'vendor_services' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-list-check fs-1 mb-3"></i>
-                    <h6 class="card-title">Services</h6>
-                    <p class="card-text small">Manage services</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'vendor_orders' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-receipt fs-1 mb-3"></i>
-                    <h6 class="card-title">Orders</h6>
-                    <p class="card-text small">View bookings</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <a href="{% url 'vendor_earnings' %}" class="card text-white text-center text-decoration-none h-100" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-cash-stack fs-1 mb-3"></i>
-                    <h6 class="card-title">Earnings</h6>
-                    <p class="card-text small">Track payments</p>
-                </div>
-            </a>
-        </div>
+<!-- ══ QUICK ACTIONS ══ -->
+<hr class="dash-divider">
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <div>
+        <div class="sec-hd"><i class="bi bi-lightning-charge me-2" style="color:#4A7A9B;"></i>Quick Actions</div>
+        <div class="sec-sub">Jump to any section instantly</div>
     </div>
+</div>
+<div class="qa-grid">
+    <a href="{% url 'vendor_store' %}" class="qa-tile qt-1">
+        <div class="qa-icon qi-1"><i class="bi bi-shop-window"></i></div>
+        <div class="qa-label">My Store</div>
+        <div class="qa-sub">Manage stores</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'vendor_services' %}" class="qa-tile qt-2">
+        <div class="qa-icon qi-2"><i class="bi bi-grid-1x2"></i></div>
+        <div class="qa-label">Services</div>
+        <div class="qa-sub">Manage services</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'vendor_orders' %}" class="qa-tile qt-3">
+        <div class="qa-icon qi-3"><i class="bi bi-bag-check"></i></div>
+        <div class="qa-label">Orders</div>
+        <div class="qa-sub">View bookings</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'vendor_earnings' %}" class="qa-tile qt-4">
+        <div class="qa-icon qi-4"><i class="bi bi-wallet2"></i></div>
+        <div class="qa-label">Earnings</div>
+        <div class="qa-sub">Track payments</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'vendor_events' %}" class="qa-tile qt-5">
+        <div class="qa-icon qi-5"><i class="bi bi-calendar-event"></i></div>
+        <div class="qa-label">Events</div>
+        <div class="qa-sub">View events</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'vendor_chat' %}" class="qa-tile qt-6">
+        <div class="qa-icon qi-6"><i class="bi bi-chat-dots"></i></div>
+        <div class="qa-label">Messages</div>
+        <div class="qa-sub">Chat with customers</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
 </div>
 
 {% endblock %}

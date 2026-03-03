@@ -2,61 +2,239 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h3 class="page-title mb-0"><i class="bi bi-pencil me-2"></i>Edit Profile</h3>
-    <p class="page-subtitle mb-0">Update your personal information</p>
-  </div>
-  <a href="{% url 'user:user_details' %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-2"></i>Back to Profile
-  </a>
+<style>
+/* ── Header ── */
+.page-title { font-size:1.35rem; font-weight:800; color:#1E2D40; margin-bottom:.2rem; }
+.page-sub   { font-size:.82rem; color:#4a6278; margin:0; }
+
+a.btn-back-pg {
+    display:inline-flex; align-items:center; gap:.4rem;
+    border:1.5px solid #4A7A9B; color:#4A7A9B; background:transparent;
+    font-size:.82rem; font-weight:600; padding:.38rem .9rem;
+    border-radius:8px; text-decoration:none; transition:all .18s;
+}
+a.btn-back-pg:hover { background:#4A7A9B; color:#fff; }
+
+/* ── Alert ── */
+.alert-navy {
+    background:#ddeaf3; border:1.5px solid #8AB4C8; color:#1E2D40;
+    border-radius:10px; padding:.65rem 1rem; font-size:.84rem;
+    display:flex; align-items:center; gap:.5rem; margin-bottom:1rem;
+}
+.alert-success-navy {
+    background:#d6f0e4; border:1.5px solid #5cb88a; color:#2d8a5e;
+    border-radius:10px; padding:.65rem 1rem; font-size:.84rem;
+    display:flex; align-items:center; gap:.5rem; margin-bottom:1rem;
+}
+
+/* ── Form panel ── */
+.form-panel {
+    background:#eef5f9; border:1.5px solid #ccdde8;
+    border-radius:16px; overflow:hidden;
+}
+.form-panel-head {
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    padding:.8rem 1.3rem; display:flex; align-items:center; gap:.6rem;
+}
+.form-panel-head i    { color:#8AB4C8; font-size:1rem; }
+.form-panel-head span { color:#fff; font-size:.88rem; font-weight:700; }
+.form-panel-body { padding:1.4rem 1.5rem; }
+
+/* ── Form fields ── */
+.field-group { margin-bottom:1.2rem; }
+.field-label {
+    font-size:.72rem; font-weight:700; color:#4a6278;
+    text-transform:uppercase; letter-spacing:.4px;
+    margin-bottom:.38rem; display:flex; align-items:center; gap:.3rem;
+}
+.field-label .req { color:#c0392b; }
+.field-input {
+    width:100%; border:1.5px solid #ccdde8; border-radius:10px;
+    background:#f5f9fc; color:#1E2D40; font-size:.88rem;
+    padding:.55rem .9rem; outline:none; transition:border-color .18s, box-shadow .18s;
+}
+.field-input:focus { border-color:#4A7A9B; box-shadow:0 0 0 3px rgba(74,122,155,.1); }
+.field-input::placeholder { color:#8AB4C8; }
+.field-hint { font-size:.72rem; color:#8AB4C8; margin-top:.3rem; }
+
+/* ── Buttons ── */
+button.btn-save {
+    display:inline-flex; align-items:center; gap:.4rem;
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    color:#fff; font-size:.88rem; font-weight:700;
+    padding:.52rem 1.3rem; border-radius:10px; border:none;
+    cursor:pointer; transition:opacity .18s, transform .18s;
+}
+button.btn-save:hover { opacity:.88; transform:translateY(-1px); }
+
+a.btn-cancel {
+    display:inline-flex; align-items:center; gap:.4rem;
+    border:1.5px solid #4A7A9B; color:#4A7A9B; background:transparent;
+    font-size:.88rem; font-weight:600; padding:.5rem 1.1rem;
+    border-radius:10px; text-decoration:none; transition:all .18s;
+}
+a.btn-cancel:hover { background:#4A7A9B; color:#fff; }
+
+/* ── Tips panel ── */
+.tips-panel {
+    background:#eef5f9; border:1.5px solid #ccdde8;
+    border-radius:16px; overflow:hidden;
+}
+.tips-head {
+    background:#e4eff5; border-bottom:1.5px solid #ccdde8;
+    padding:.7rem 1.1rem; display:flex; align-items:center; gap:.5rem;
+}
+.tips-head i    { color:#4A7A9B; }
+.tips-head span { font-size:.82rem; font-weight:700; color:#1E2D40; }
+.tips-body { padding:1rem 1.2rem; }
+
+.tip-row {
+    display:flex; align-items:flex-start; gap:.6rem;
+    padding:.5rem 0; border-bottom:1px solid #e4eff5; font-size:.82rem; color:#4a6278;
+}
+.tip-row:last-child { border-bottom:none; }
+.tip-row i { color:#4A7A9B; font-size:.85rem; margin-top:.1rem; flex-shrink:0; }
+
+/* ── Avatar preview ── */
+.avatar-circle {
+    width:64px; height:64px; border-radius:50%;
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.6rem; font-weight:800; color:#fff; flex-shrink:0;
+}
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">
+            <i class="bi bi-pencil-square me-2" style="color:#4A7A9B;"></i>Edit Profile
+        </div>
+        <p class="page-sub">Update your personal information</p>
+    </div>
+    <a href="{% url 'user:user_details' %}" class="btn-back-pg">
+        <i class="bi bi-arrow-left"></i> Back to Profile
+    </a>
 </div>
 
+<!-- Messages -->
 {% if messages %}
-  {% for message in messages %}
-  <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-  {% endfor %}
+    {% for message in messages %}
+    <div class="{% if 'success' in message.tags %}alert-success-navy{% else %}alert-navy{% endif %}">
+        <i class="bi bi-{% if 'success' in message.tags %}check-circle-fill{% else %}info-circle{% endif %}"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
 {% endif %}
 
 <div class="row g-4">
-  <div class="col-lg-8">
-    <div class="card-box">
-      <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label class="form-label">Full name <span class="text-danger">*</span></label>
-          <input type="text" name="fullname" class="form-control" value="{{ user.fullname }}" required minlength="3">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Email <span class="text-danger">*</span></label>
-          <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Mobile</label>
-          <input type="text" name="mobile" class="form-control" value="{{ user.mobile|default:'' }}" maxlength="15" placeholder="e.g. 9876543210">
-          <small class="text-muted">Optional</small>
-        </div>
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-save me-2"></i>Save Changes
-          </button>
-          <a href="{% url 'user:user_details' %}" class="btn btn-secondary">Cancel</a>
-        </div>
-      </form>
-    </div>
-  </div>
+    <!-- Form -->
+    <div class="col-lg-8">
+        <div class="form-panel">
+            <div class="form-panel-head">
+                <i class="bi bi-person-fill"></i>
+                <span>Personal Information</span>
+            </div>
+            <div class="form-panel-body">
+                <!-- Avatar preview -->
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="avatar-circle">{{ user.fullname|first|upper }}</div>
+                    <div>
+                        <div style="font-size:.9rem;font-weight:700;color:#1E2D40;">{{ user.fullname }}</div>
+                        <div style="font-size:.78rem;color:#4a6278;">{{ user.email }}</div>
+                    </div>
+                </div>
 
-  <div class="col-lg-4">
-    <div class="card-box">
-      <h6 class="mb-3">Tips</h6>
-      <ul class="mb-0 text-muted small">
-        <li>Keep your email correct for notifications.</li>
-        <li>Mobile number helps vendors contact you faster.</li>
-      </ul>
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="bi bi-person"></i> Full Name <span class="req">*</span>
+                        </div>
+                        <input type="text" name="fullname" class="field-input"
+                               value="{{ user.fullname }}" required minlength="3"
+                               placeholder="Enter your full name">
+                    </div>
+
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="bi bi-envelope"></i> Email Address <span class="req">*</span>
+                        </div>
+                        <input type="email" name="email" class="field-input"
+                               value="{{ user.email }}" required
+                               placeholder="Enter your email">
+                    </div>
+
+                    <div class="field-group">
+                        <div class="field-label">
+                            <i class="bi bi-telephone"></i> Mobile Number
+                        </div>
+                        <input type="text" name="mobile" class="field-input"
+                               value="{{ user.mobile|default:'' }}" maxlength="15"
+                               placeholder="e.g. 9876543210">
+                        <div class="field-hint"><i class="bi bi-info-circle me-1"></i>Optional</div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'user:user_details' %}" class="btn-cancel">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Tips -->
+    <div class="col-lg-4">
+        <div class="tips-panel">
+            <div class="tips-head">
+                <i class="bi bi-lightbulb-fill"></i>
+                <span>Tips</span>
+            </div>
+            <div class="tips-body">
+                <div class="tip-row">
+                    <i class="bi bi-envelope-check"></i>
+                    Keep your email correct to receive booking notifications.
+                </div>
+                <div class="tip-row">
+                    <i class="bi bi-telephone-fill"></i>
+                    Mobile number helps vendors contact you faster.
+                </div>
+                <div class="tip-row">
+                    <i class="bi bi-shield-check"></i>
+                    Use a strong, unique email for account security.
+                </div>
+                <div class="tip-row">
+                    <i class="bi bi-person-check"></i>
+                    Your full name appears on all bookings and events.
+                </div>
+            </div>
+        </div>
+
+        <!-- Change password shortcut -->
+        <div class="tips-panel mt-3">
+            <div class="tips-head">
+                <i class="bi bi-key-fill"></i>
+                <span>Security</span>
+            </div>
+            <div class="tips-body">
+                <div class="tip-row">
+                    <i class="bi bi-lock"></i>
+                    Want to update your password?
+                </div>
+                <a href="{% url 'user:change_password' %}"
+                   style="display:inline-flex;align-items:center;gap:.4rem;margin-top:.6rem;
+                          background:#4A7A9B;color:#fff;font-size:.8rem;font-weight:600;
+                          padding:.38rem .9rem;border-radius:8px;text-decoration:none;transition:background .18s;">
+                    <i class="bi bi-key"></i> Change Password
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

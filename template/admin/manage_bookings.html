@@ -2,144 +2,215 @@
 {% block title %}Manage Bookings{% endblock %}
 
 {% block content %}
+<style>
+/* ── Summary stat cards ── */
+.stat-card {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; padding: 1rem 1.1rem;
+    text-align: center; text-decoration: none;
+    display: block; transition: box-shadow .2s, border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+}
+.stat-card:hover { box-shadow: 0 6px 20px rgba(30,45,64,.1); border-color: #8AB4C8; transform: translateY(-2px); }
+.stat-card.active-card { border-color: #4A7A9B; box-shadow: 0 4px 16px rgba(74,122,155,.18); }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.sc-total::before    { background: linear-gradient(90deg,#1E2D40,#4A7A9B); }
+.sc-pending::before  { background: linear-gradient(90deg,#c47c1a,#e9a84c); }
+.sc-approved::before { background: linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.sc-completed::before{ background: linear-gradient(90deg,#4A7A9B,#8AB4C8); }
+.sc-rejected::before { background: linear-gradient(90deg,#c0392b,#e74c3c); }
+.sc-revenue::before  { background: linear-gradient(90deg,#2d8a5e,#4A7A9B); }
+
+.stat-num  { font-size: 1.7rem; font-weight: 800; line-height: 1.1; margin-bottom: .15rem; }
+.stat-label{ font-size: .72rem; font-weight: 600; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; }
+.sn-dark    { color: #1E2D40; }
+.sn-amber   { color: #c47c1a; }
+.sn-green   { color: #2d8a5e; }
+.sn-blue    { color: #4A7A9B; }
+.sn-red     { color: #c0392b; }
+.sn-teal    { color: #2d8a5e; }
+
+/* ── Filter buttons ── */
+a.flt-btn, a.flt-btn:visited {
+    display: inline-block; border-radius: 8px;
+    font-size: .82rem; font-weight: 600; padding: .36rem .95rem;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B;
+    background: transparent; text-decoration: none; transition: all .18s;
+}
+a.flt-btn.active, a.flt-btn:hover { background: #4A7A9B; color: #fff; border-color: #4A7A9B; }
+
+/* ── Search bar ── */
+.search-wrap { position: relative; width: 260px; }
+.search-wrap i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: #8AB4C8; pointer-events: none; }
+.search-wrap input {
+    width: 100%; padding: .42rem .9rem .42rem 2.2rem;
+    border: 1.5px solid #ccdde8; border-radius: 9px;
+    background: #f5f9fc; color: #1E2D40; font-size: .85rem;
+    outline: none; transition: border-color .18s;
+}
+.search-wrap input:focus { border-color: #4A7A9B; }
+.search-wrap input::placeholder { color: #8AB4C8; }
+
+/* ── Table panel ── */
+.table-panel { background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px; overflow: hidden; }
+.table thead th {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #4a6278;
+    background: #d6e8f2 !important; border-bottom: 2px solid #ccdde8 !important;
+    padding: .72rem 1rem;
+}
+.table td { vertical-align: middle; font-size: .87rem; color: #1E2D40; border-color: #e4eff5 !important; padding: .78rem 1rem; }
+.table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+
+/* ── Status pills ── */
+.sp { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .22rem .75rem; display: inline-flex; align-items: center; gap: .28rem; }
+.sp-pending   { background: #fef3dc; color: #c47c1a; }
+.sp-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.sp-progress  { background: #ddeaf3; color: #4A7A9B; }
+.sp-completed { background: #d6e8f2; color: #1E2D40; }
+.sp-cancelled { background: #fde8e6; color: #c0392b; }
+
+/* ── Row number ── */
+.row-num { font-weight: 700; color: #8AB4C8; font-size: .82rem; }
+
+/* ── Amount ── */
+.amt { font-weight: 700; color: #2d8a5e; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-state i { font-size: 2.4rem; color: #8AB4C8; display: block; margin-bottom: .7rem; }
+.empty-state p { color: #4a6278; font-size: .88rem; margin: 0; }
+</style>
 
 <!-- Header -->
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1">Bookings</h4>
-        <p class="text-muted small mb-0">
-            <i class="bi bi-receipt me-1"></i>All platform bookings
-        </p>
+        <h4 style="font-weight:700;color:#1E2D40;margin-bottom:.2rem;">
+            <i class="bi bi-receipt me-2" style="color:#4A7A9B;"></i>Bookings
+        </h4>
+        <p style="font-size:.82rem;color:#4a6278;margin:0;">All platform bookings</p>
     </div>
-    <div class="input-group" style="width:260px;">
-        <span class="input-group-text bg-white border-end-0">
-            <i class="bi bi-search text-muted"></i>
-        </span>
-        <input type="text" class="form-control border-start-0" placeholder="Search bookings..." id="searchInput">
+    <div class="search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search bookings..." id="searchInput">
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3 col-lg">
-        <div class="card border-0 shadow-sm text-center p-3">
-            <div class="fs-4 fw-bold text-dark">{{ counts.total|default:0 }}</div>
-            <div class="text-muted small">Total</div>
+<!-- Summary stat cards -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card sc-total">
+            <div class="stat-num sn-dark">{{ counts.total|default:0 }}</div>
+            <div class="stat-label">Total</div>
         </div>
     </div>
-    <div class="col-6 col-md-3 col-lg">
-        <a href="?status=pending" class="text-decoration-none">
-            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'pending' %}border-warning border{% endif %}">
-                <div class="fs-4 fw-bold text-warning">{{ counts.pending|default:0 }}</div>
-                <div class="text-muted small">Pending</div>
-            </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="?status=pending" class="stat-card sc-pending {% if status_filter == 'pending' %}active-card{% endif %}">
+            <div class="stat-num sn-amber">{{ counts.pending|default:0 }}</div>
+            <div class="stat-label">Pending</div>
         </a>
     </div>
-    <div class="col-6 col-md-3 col-lg">
-        <a href="?status=confirmed" class="text-decoration-none">
-            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'confirmed' %}border-success border{% endif %}">
-                <div class="fs-4 fw-bold text-success">{{ counts.confirmed|default:0 }}</div>
-                <div class="text-muted small">Approved</div>
-            </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="?status=confirmed" class="stat-card sc-approved {% if status_filter == 'confirmed' %}active-card{% endif %}">
+            <div class="stat-num sn-green">{{ counts.confirmed|default:0 }}</div>
+            <div class="stat-label">Approved</div>
         </a>
     </div>
-    <div class="col-6 col-md-3 col-lg">
-        <a href="?status=completed" class="text-decoration-none">
-            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'completed' %}border-primary border{% endif %}">
-                <div class="fs-4 fw-bold text-primary">{{ counts.completed|default:0 }}</div>
-                <div class="text-muted small">Completed</div>
-            </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="?status=completed" class="stat-card sc-completed {% if status_filter == 'completed' %}active-card{% endif %}">
+            <div class="stat-num sn-blue">{{ counts.completed|default:0 }}</div>
+            <div class="stat-label">Completed</div>
         </a>
     </div>
-    <div class="col-6 col-md-3 col-lg">
-        <a href="?status=cancelled" class="text-decoration-none">
-            <div class="card border-0 shadow-sm text-center p-3 {% if status_filter == 'cancelled' %}border-danger border{% endif %}">
-                <div class="fs-4 fw-bold text-danger">{{ counts.cancelled|default:0 }}</div>
-                <div class="text-muted small">Rejected</div>
-            </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="?status=cancelled" class="stat-card sc-rejected {% if status_filter == 'cancelled' %}active-card{% endif %}">
+            <div class="stat-num sn-red">{{ counts.cancelled|default:0 }}</div>
+            <div class="stat-label">Rejected</div>
         </a>
     </div>
-    <div class="col-6 col-md-3 col-lg">
-        <div class="card border-0 shadow-sm text-center p-3 bg-success bg-opacity-10">
-            <div class="fs-4 fw-bold text-success">₹{{ counts.revenue|default:0 }}</div>
-            <div class="text-muted small">Revenue</div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card sc-revenue">
+            <div class="stat-num sn-teal">₹{{ counts.revenue|default:0 }}</div>
+            <div class="stat-label">Revenue</div>
         </div>
     </div>
 </div>
 
-<!-- Filter Bar -->
+<!-- Filter buttons -->
 <div class="d-flex gap-2 mb-3 flex-wrap">
-    <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
-    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pending</a>
-    <a href="?status=confirmed" class="btn btn-sm {% if status_filter == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %}">Approved</a>
-    <a href="?status=in_progress" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-info{% else %}btn-outline-info{% endif %}">In Progress</a>
-    <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-primary{% else %}btn-outline-primary{% endif %}">Completed</a>
-    <a href="?status=cancelled" class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">Rejected</a>
+    <a href="?"               class="flt-btn {% if not status_filter %}active{% endif %}">All</a>
+    <a href="?status=pending"     class="flt-btn {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+    <a href="?status=confirmed"   class="flt-btn {% if status_filter == 'confirmed' %}active{% endif %}">Approved</a>
+    <a href="?status=in_progress" class="flt-btn {% if status_filter == 'in_progress' %}active{% endif %}">In Progress</a>
+    <a href="?status=completed"   class="flt-btn {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+    <a href="?status=cancelled"   class="flt-btn {% if status_filter == 'cancelled' %}active{% endif %}">Rejected</a>
 </div>
 
-<!-- Bookings Table -->
-<div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="bookingsTable">
-                <thead class="bg-light">
+<!-- Table -->
+<div class="table-panel">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="bookingsTable">
+            <thead>
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Event</th>
+                    <th>Customer</th>
+                    <th>Vendor / Store</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if bookings %}
+                    {% for b in bookings %}
                     <tr>
-                        <th class="ps-4">#</th>
-                        <th>Event</th>
-                        <th>Customer</th>
-                        <th>Vendor / Store</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                        <th>Status</th>
+                        <td class="ps-3"><span class="row-num">{{ forloop.counter }}</span></td>
+                        <td>
+                            <div style="font-weight:700;">{{ b.event.title }}</div>
+                            <div style="font-size:.75rem;color:#4a6278;">
+                                <i class="bi bi-calendar me-1" style="color:#8AB4C8;"></i>{{ b.event.date|date:"d M Y" }}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">{{ b.customer.fullname }}</div>
+                            <div style="font-size:.75rem;color:#4a6278;">{{ b.customer.email }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">{{ b.store.store_name }}</div>
+                            <div style="font-size:.75rem;color:#4a6278;">{{ b.vendor.fullname }}</div>
+                        </td>
+                        <td><span class="amt">₹{{ b.amount }}</span></td>
+                        <td style="font-size:.82rem;color:#4a6278;">
+                            <i class="bi bi-calendar me-1" style="color:#ccdde8;"></i>{{ b.created_at|date:"d M Y" }}
+                        </td>
+                        <td>
+                            {% if b.status == 'pending' %}
+                                <span class="sp sp-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                            {% elif b.status == 'confirmed' %}
+                                <span class="sp sp-confirmed"><i class="bi bi-check-circle-fill"></i>Approved</span>
+                            {% elif b.status == 'in_progress' %}
+                                <span class="sp sp-progress"><i class="bi bi-arrow-repeat"></i>In Progress</span>
+                            {% elif b.status == 'completed' %}
+                                <span class="sp sp-completed"><i class="bi bi-check-all"></i>Completed</span>
+                            {% elif b.status == 'cancelled' %}
+                                <span class="sp sp-cancelled"><i class="bi bi-x-circle-fill"></i>Rejected</span>
+                            {% endif %}
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% if bookings %}
-                        {% for b in bookings %}
-                        <tr>
-                            <td class="ps-4 text-muted small">{{ forloop.counter }}</td>
-                            <td>
-                                <span class="fw-semibold">{{ b.event.title }}</span><br>
-                                <small class="text-muted">{{ b.event.date|date:"d M Y" }}</small>
-                            </td>
-                            <td>
-                                <span class="fw-medium">{{ b.customer.fullname }}</span><br>
-                                <small class="text-muted">{{ b.customer.email }}</small>
-                            </td>
-                            <td>
-                                <span class="fw-medium">{{ b.store.store_name }}</span><br>
-                                <small class="text-muted">{{ b.vendor.fullname }}</small>
-                            </td>
-                            <td class="fw-semibold">₹{{ b.amount }}</td>
-                            <td>
-                                <small class="text-muted">{{ b.created_at|date:"d M Y" }}</small>
-                            </td>
-                            <td>
-                                {% if b.status == 'pending' %}
-                                    <span class="badge bg-warning text-dark">Pending</span>
-                                {% elif b.status == 'confirmed' %}
-                                    <span class="badge bg-success">Approved</span>
-                                {% elif b.status == 'in_progress' %}
-                                    <span class="badge bg-info">In Progress</span>
-                                {% elif b.status == 'completed' %}
-                                    <span class="badge bg-primary">Completed</span>
-                                {% elif b.status == 'cancelled' %}
-                                    <span class="badge bg-danger">Rejected</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="bi bi-receipt fs-1 d-block mb-2"></i>
-                                No bookings found
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="bi bi-receipt"></i>
+                                <p>No bookings found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -151,5 +222,4 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     });
 });
 </script>
-
 {% endblock %}

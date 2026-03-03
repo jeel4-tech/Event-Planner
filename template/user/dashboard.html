@@ -1,244 +1,429 @@
 {% extends "user/base.html" %}
-{% block title %}User Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<style>
+/* ════════ KPI CARDS ════════ */
+.kpi-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 16px;
+    padding: 1.3rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    position: relative; overflow: hidden;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+}
+.kpi-card:hover { box-shadow: 0 8px 24px rgba(30,45,64,.11); border-color: #8AB4C8; transform: translateY(-3px); }
 
-<div class="welcome-section mb-4">
-    <h3 class="mb-1">Welcome back, {{ user.fullname }}</h3>
-    <p class="text-muted mb-0">Here's what's happening with your events today.</p>
+.kpi-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+    transition: transform .22s;
+}
+.kpi-card:hover .kpi-icon { transform: scale(1.1) rotate(-5deg); }
+.kpi-icon-1 { background: #ddeaf3; color: #4A7A9B; }
+.kpi-icon-2 { background: #d6f0e4; color: #2d8a5e; }
+.kpi-icon-3 { background: #fef3dc; color: #c47c1a; }
+.kpi-icon-4 { background: #d6e8f2; color: #1E2D40; }
+
+.kpi-body { flex: 1; min-width: 0; }
+.kpi-label { font-size: .7rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .2rem; }
+.kpi-value { font-size: 1.85rem; font-weight: 800; color: #1E2D40; line-height: 1.1; }
+.kpi-sub   { font-size: .72rem; color: #8AB4C8; margin-top: .2rem; display: flex; align-items: center; gap: .3rem; }
+
+/* ════════ MINI STAT CARDS ════════ */
+.mini-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 16px;
+    padding: 1.3rem 1.4rem;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+    position: relative; overflow: hidden;
+}
+.mini-card:hover { box-shadow: 0 8px 22px rgba(30,45,64,.1); border-color: #8AB4C8; transform: translateY(-3px); }
+
+.mini-card-accent {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 16px 16px 0 0;
+}
+.accent-amber { background: linear-gradient(90deg,#c47c1a,#e9a84c); }
+.accent-green { background: linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.accent-blue  { background: linear-gradient(90deg,#4A7A9B,#8AB4C8); }
+
+.mini-top   { display: flex; align-items: center; justify-content: space-between; margin-bottom: .7rem; }
+.mini-icon  { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+.mi-amber   { background: #fef3dc; color: #c47c1a; }
+.mi-green   { background: #d6f0e4; color: #2d8a5e; }
+.mi-blue    { background: #ddeaf3; color: #4A7A9B; }
+.mini-title { font-size: .72rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; }
+.mini-badge { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .18rem .65rem; }
+.badge-amber { background: #fef3dc; color: #c47c1a; }
+.badge-green { background: #d6f0e4; color: #2d8a5e; }
+.badge-blue  { background: #ddeaf3; color: #4A7A9B; }
+
+.mini-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: .6rem; }
+.val-amber  { color: #c47c1a; }
+.val-green  { color: #2d8a5e; }
+.val-blue   { color: #4A7A9B; }
+
+a.mini-link, a.mini-link:visited {
+    font-size: .78rem; font-weight: 600; text-decoration: none;
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .75rem; border-radius: 8px; border: 1.5px solid;
+    transition: all .18s;
+}
+.ml-amber { color: #c47c1a; border-color: #c47c1a; }
+.ml-amber:hover { background: #c47c1a; color: #fff; }
+.ml-green { color: #2d8a5e; border-color: #2d8a5e; }
+.ml-green:hover { background: #2d8a5e; color: #fff; }
+.ml-blue  { color: #4A7A9B; border-color: #4A7A9B; }
+.ml-blue:hover  { background: #4A7A9B; color: #fff; }
+
+/* ════════ PANELS ════════ */
+.panel {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 14px;
+    overflow: hidden; height: 100%;
+    transition: box-shadow .22s;
+}
+.panel:hover { box-shadow: 0 6px 20px rgba(30,45,64,.08); }
+
+.panel-head {
+    padding: .9rem 1.3rem;
+    border-bottom: 1px solid #ccdde8;
+    background: #e4eff5;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.panel-head-left { display: flex; align-items: center; gap: .6rem; }
+.panel-head-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; background: #ddeaf3; color: #4A7A9B;
+}
+.panel-head h5 { font-size: .92rem; font-weight: 700; color: #1E2D40; margin: 0; }
+
+a.panel-btn, a.panel-btn:visited {
+    font-size: .73rem; font-weight: 600; color: #4A7A9B;
+    text-decoration: none; border: 1.5px solid #4A7A9B;
+    border-radius: 7px; padding: .22rem .65rem;
+    transition: background .18s, color .18s;
+}
+a.panel-btn:hover { background: #4A7A9B; color: #fff; }
+
+/* ════════ ACTIVITY ROWS ════════ */
+.act-row {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .7rem 1.2rem;
+    border-bottom: 1px solid #e4eff5;
+    transition: background .15s;
+}
+.act-row:last-child { border-bottom: none; }
+.act-row:hover { background: rgba(74,122,155,.05); }
+
+.act-avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; flex-shrink: 0;
+    background: #ddeaf3; color: #4A7A9B;
+}
+.act-info  { flex: 1; min-width: 0; }
+.act-title { font-size: .85rem; font-weight: 600; color: #1E2D40; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.act-sub   { font-size: .72rem; color: #4a6278; margin-top: .08rem; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.act-sub i { color: #8AB4C8; }
+.act-amount { font-size: .8rem; font-weight: 700; color: #2d8a5e; }
+
+.spill { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .2rem .65rem; white-space: nowrap; flex-shrink: 0; }
+.spill-pending   { background: #fef3dc; color: #c47c1a; }
+.spill-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.spill-completed { background: #ddeaf3; color: #4A7A9B; }
+.spill-rejected  { background: #fde8e6; color: #c0392b; }
+
+.panel-empty { text-align: center; padding: 2.5rem 1rem; }
+.panel-empty i { font-size: 2.2rem; color: #8AB4C8; display: block; margin-bottom: .6rem; }
+.panel-empty p { font-size: .82rem; color: #4a6278; margin: 0; }
+
+/* ════════ QUICK ACTIONS ════════ */
+.qa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px,1fr)); gap: .85rem; }
+a.qa-tile, a.qa-tile:visited {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 13px;
+    padding: 1.2rem 1rem 1rem;
+    text-align: center; text-decoration: none;
+    display: flex; flex-direction: column; align-items: center; gap: .45rem;
+    transition: box-shadow .2s, border-color .2s, transform .2s, background .2s;
+    position: relative; overflow: hidden;
+}
+a.qa-tile::before {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; border-radius: 0 0 13px 13px;
+    transition: height .2s;
+}
+a.qa-tile:hover::before { height: 4px; }
+.qt-1::before { background: linear-gradient(90deg,#4A7A9B,#8AB4C8); }
+.qt-2::before { background: linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.qt-3::before { background: linear-gradient(90deg,#c47c1a,#e9a84c); }
+.qt-4::before { background: linear-gradient(90deg,#1E2D40,#4A7A9B); }
+.qt-5::before { background: linear-gradient(90deg,#4A7A9B,#1E2D40); }
+
+a.qa-tile:hover {
+    box-shadow: 0 8px 22px rgba(30,45,64,.12);
+    border-color: #8AB4C8;
+    transform: translateY(-4px);
+    background: #e4eff5;
+    text-decoration: none;
+}
+.qa-icon {
+    width: 42px; height: 42px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; transition: transform .2s;
+}
+a.qa-tile:hover .qa-icon { transform: scale(1.12) rotate(-4deg); }
+.qi-1 { background: #ddeaf3; color: #4A7A9B; }
+.qi-2 { background: #d6f0e4; color: #2d8a5e; }
+.qi-3 { background: #fef3dc; color: #c47c1a; }
+.qi-4 { background: #d6e8f2; color: #1E2D40; }
+.qi-5 { background: #ede0f5; color: #7a4a9b; }
+.qa-label { font-size: .83rem; font-weight: 700; color: #1E2D40; }
+.qa-sub   { font-size: .7rem; color: #4a6278; }
+.qa-arrow { font-size: .7rem; color: #8AB4C8; transition: transform .2s; }
+a.qa-tile:hover .qa-arrow { transform: translateX(3px); color: #4A7A9B; }
+
+/* ════════ SECTION HEADER ════════ */
+.sec-hd  { font-size: 1rem; font-weight: 700; color: #1E2D40; }
+.sec-sub { font-size: .78rem; color: #4a6278; }
+.dash-divider { border: none; border-top: 1.5px solid #e4eff5; margin: .25rem 0 1rem; }
+</style>
+
+<!-- ══ KPI ROW ══ -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-1"><i class="bi bi-calendar-event"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Total Events</div>
+                <div class="kpi-value">{{ total_events|default:"0" }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-circle-fill" style="font-size:.45rem;color:#4A7A9B;"></i>
+                    All your events
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-2"><i class="bi bi-journal-check"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">My Bookings</div>
+                <div class="kpi-value">{{ total_bookings|default:"0" }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-circle-fill" style="font-size:.45rem;color:#2d8a5e;"></i>
+                    All time
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-3"><i class="bi bi-hourglass-split"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Pending Bookings</div>
+                <div class="kpi-value">{{ pending_bookings|default:"0" }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-arrow-up-short" style="color:#c47c1a;font-size:.9rem;"></i>
+                    Awaiting approval
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-4"><i class="bi bi-shop"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Active Vendors</div>
+                <div class="kpi-value">{{ active_vendors|default:"0" }}</div>
+                <div class="kpi-sub">
+                    <i class="bi bi-circle-fill" style="font-size:.45rem;color:#2d8a5e;"></i>
+                    Booked vendors
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Stats Cards Row -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3 col-sm-6">
-        <div class="card-box stats-card">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-2">TOTAL EVENTS</h6>
-                    <h2 class="mb-0">{{ total_events|default:"0" }}</h2>
+<!-- ══ MINI STATS ══ -->
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="mini-card">
+            <div class="mini-card-accent accent-blue"></div>
+            <div class="mini-top">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-icon mi-blue"><i class="bi bi-calendar-plus"></i></div>
+                    <span class="mini-title">Upcoming Events</span>
                 </div>
-                <div class="stats-icon bg-primary bg-opacity-10">
-                    <i class="bi bi-calendar-event fs-2 text-primary"></i>
-                </div>
+                <span class="mini-badge badge-blue">{{ upcoming_events }}</span>
             </div>
-            <div class="mt-3">
-                <a href="{% url 'user:user_events' %}" class="text-decoration-none small">
-                    View All Events <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
+            <div class="mini-value val-blue">{{ upcoming_events }}</div>
+            <a href="{% url 'user:user_events' %}" class="mini-link ml-blue">
+                <i class="bi bi-eye"></i> View All <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
     </div>
-
-    <div class="col-md-3 col-sm-6">
-        <div class="card-box stats-card">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-2">MY BOOKINGS</h6>
-                    <h2 class="mb-0">{{ total_bookings|default:"0" }}</h2>
+    <div class="col-md-4">
+        <div class="mini-card">
+            <div class="mini-card-accent accent-amber"></div>
+            <div class="mini-top">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-icon mi-amber"><i class="bi bi-hourglass-split"></i></div>
+                    <span class="mini-title">Pending Requests</span>
                 </div>
-                <div class="stats-icon bg-success bg-opacity-10">
-                    <i class="bi bi-journal-check fs-2 text-success"></i>
-                </div>
+                <span class="mini-badge badge-amber">{{ pending_requests }}</span>
             </div>
-            <div class="mt-3">
-                <a href="{% url 'user:user_bookings' %}" class="text-decoration-none small">
-                    View Bookings <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
+            <div class="mini-value val-amber">{{ pending_requests }}</div>
+            <a href="{% url 'user:user_events' %}?status=pending" class="mini-link ml-amber">
+                <i class="bi bi-eye"></i> View All <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
     </div>
-
-    <div class="col-md-3 col-sm-6">
-        <div class="card-box stats-card">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-2">PENDING BOOKINGS</h6>
-                    <h2 class="mb-0">{{ pending_bookings|default:"0" }}</h2>
+    <div class="col-md-4">
+        <div class="mini-card">
+            <div class="mini-card-accent accent-green"></div>
+            <div class="mini-top">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-icon mi-green"><i class="bi bi-check-circle"></i></div>
+                    <span class="mini-title">Confirmed Bookings</span>
                 </div>
-                <div class="stats-icon bg-warning bg-opacity-10">
-                    <i class="bi bi-hourglass-split fs-2 text-warning"></i>
-                </div>
+                <span class="mini-badge badge-green">Active</span>
             </div>
-            <div class="mt-3">
-                <a href="{% url 'user:user_bookings' %}?status=pending" class="text-decoration-none small">
-                    View Pending <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 col-sm-6">
-        <div class="card-box stats-card">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-2">ACTIVE VENDORS</h6>
-                    <h2 class="mb-0">{{ active_vendors|default:"0" }}</h2>
-                </div>
-                <div class="stats-icon bg-info bg-opacity-10">
-                    <i class="bi bi-shop fs-2 text-info"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <a href="{% url 'user:stores_list' %}" class="text-decoration-none small">
-                    Browse Vendors <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
+            <div class="mini-value val-green">{{ active_vendors }}</div>
+            <a href="{% url 'user:user_bookings' %}?status=confirmed" class="mini-link ml-green">
+                <i class="bi bi-eye"></i> View All <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
     </div>
 </div>
 
-<!-- Recent Events and Bookings Row -->
-<div class="row">
-    <!-- Recent Events -->
-    <div class="col-md-6 mb-4">
-        <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-week me-2 text-primary"></i>Recent Events
-                </h5>
-                <a href="{% url 'user:user_events' %}" class="btn btn-sm btn-outline-primary">View All</a>
+<!-- ══ ACTIVITY PANELS ══ -->
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <div class="panel-head-icon"><i class="bi bi-calendar-week"></i></div>
+                    <h5>Recent Events</h5>
+                </div>
+                <a href="{% url 'user:user_events' %}" class="panel-btn"><i class="bi bi-arrow-right me-1"></i>View All</a>
             </div>
-            
             {% if recent_events %}
                 {% for event in recent_events %}
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div>
-                        <h6 class="mb-1">{{ event.title }}</h6>
-                        <small class="text-muted">
-                            <i class="bi bi-calendar me-1"></i>{{ event.date|date:"M d, Y" }}
-                        </small>
+                <div class="act-row">
+                    <div class="act-avatar"><i class="bi bi-calendar3"></i></div>
+                    <div class="act-info">
+                        <div class="act-title">{{ event.title }}</div>
+                        <div class="act-sub">
+                            <i class="bi bi-calendar"></i> {{ event.date|date:"M d, Y" }}
+                            <span style="background:#ddeaf3;color:#4A7A9B;font-size:.68rem;font-weight:700;padding:.1rem .5rem;border-radius:20px;">{{ event.get_event_type_display }}</span>
+                        </div>
                     </div>
-                    <span class="badge {% if event.status == 'completed' %}bg-success{% elif event.status == 'pending' %}bg-warning{% else %}bg-info{% endif %}">
+                    <span class="spill
+                        {% if event.status == 'pending' %}spill-pending
+                        {% elif event.status == 'confirmed' %}spill-confirmed
+                        {% elif event.status == 'completed' %}spill-completed
+                        {% else %}spill-rejected{% endif %}">
                         {{ event.get_status_display }}
                     </span>
                 </div>
                 {% endfor %}
             {% else %}
-                <p class="text-muted text-center py-3">No recent events</p>
-                <div class="text-center">
-                    <a href="{% url 'user:event_create' %}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle me-2"></i>Create Event
-                    </a>
-                </div>
+            <div class="panel-empty">
+                <i class="bi bi-calendar-x"></i>
+                <p>No events yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Recent Bookings -->
-    <div class="col-md-6 mb-4">
-        <div class="card-box">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">
-                    <i class="bi bi-receipt me-2 text-success"></i>Recent Bookings
-                </h5>
-                <a href="{% url 'user:user_bookings' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    <div class="col-lg-6">
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-head-left">
+                    <div class="panel-head-icon" style="background:#d6f0e4;color:#2d8a5e;"><i class="bi bi-receipt"></i></div>
+                    <h5>Recent Bookings</h5>
+                </div>
+                <a href="{% url 'user:user_bookings' %}" class="panel-btn"><i class="bi bi-arrow-right me-1"></i>View All</a>
             </div>
-            
             {% if recent_bookings %}
                 {% for booking in recent_bookings %}
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div>
-                        <h6 class="mb-1">{{ booking.store.store_name }}</h6>
-                        <small class="text-muted">
-                            <i class="bi bi-calendar me-1"></i>{{ booking.booking_date|date:"M d, Y"|default:"Date TBD" }}
-                        </small>
-                    </div>
-                    <div class="text-end">
-                        <div class="mb-1">
-                            <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-info{% endif %}">
-                                {{ booking.get_status_display }}
-                            </span>
+                <div class="act-row">
+                    <div class="act-avatar" style="background:#d6f0e4;color:#2d8a5e;"><i class="bi bi-shop"></i></div>
+                    <div class="act-info">
+                        <div class="act-title">{{ booking.store.store_name }}</div>
+                        <div class="act-sub">
+                            <i class="bi bi-calendar"></i>
+                            {% if booking.booking_date %}{{ booking.booking_date|date:"M d, Y" }}{% else %}Date TBD{% endif %}
+                            <span class="act-amount"><i class="bi bi-currency-rupee"></i>{{ booking.amount }}</span>
                         </div>
-                        <small class="text-muted">₹{{ booking.amount }}</small>
                     </div>
+                    <span class="spill
+                        {% if booking.status == 'pending' %}spill-pending
+                        {% elif booking.status == 'confirmed' %}spill-confirmed
+                        {% elif booking.status == 'completed' %}spill-completed
+                        {% else %}spill-rejected{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
                 </div>
                 {% endfor %}
             {% else %}
-                <p class="text-muted text-center py-3">No recent bookings</p>
-                <div class="text-center">
-                    <a href="{% url 'user:stores_list' %}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-shop me-2"></i>Browse Vendors
-                    </a>
-                </div>
+            <div class="panel-empty">
+                <i class="bi bi-inbox"></i>
+                <p>No bookings yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Quick Actions Row -->
-<div class="row">
-    <div class="col-12">
-        <div class="card-box">
-            <h5 class="mb-3"><i class="bi bi-lightning-charge me-2 text-warning"></i>Quick Actions</h5>
-            <div class="row g-3">
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'user:event_create' %}" class="btn btn-outline-primary w-100 py-3">
-                        <i class="bi bi-plus-circle d-block fs-4 mb-2"></i>
-                        <span>Create Event</span>
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'user:stores_list' %}" class="btn btn-outline-success w-100 py-3">
-                        <i class="bi bi-shop d-block fs-4 mb-2"></i>
-                        <span>Find Vendors</span>
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'user:user_payments' %}" class="btn btn-outline-warning w-100 py-3">
-                        <i class="bi bi-credit-card d-block fs-4 mb-2"></i>
-                        <span>Payments</span>
-                    </a>
-                </div>
-            </div>
-        </div>
+<!-- ══ QUICK ACTIONS ══ -->
+<hr class="dash-divider">
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <div>
+        <div class="sec-hd"><i class="bi bi-lightning-charge me-2" style="color:#4A7A9B;"></i>Quick Actions</div>
+        <div class="sec-sub">Jump to any section instantly</div>
     </div>
 </div>
-
-<style>
-    .card-box {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        transition: all 0.3s;
-        height: 100%;
-    }
-    
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    
-    .stats-card .text-muted {
-        color: rgba(255,255,255,0.8) !important;
-    }
-    
-    .stats-card a {
-        color: white !important;
-    }
-    
-    .stats-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: white;
-    }
-    
-    .stats-icon i {
-        color: #667eea !important;
-    }
-    
-    .btn-outline-primary, .btn-outline-success, .btn-outline-info, .btn-outline-warning {
-        border-width: 2px;
-        font-weight: 500;
-    }
-    
-    .border-bottom:last-child {
-        border-bottom: none !important;
-    }
-</style>
+<div class="qa-grid">
+    <a href="{% url 'user:event_create' %}" class="qa-tile qt-1">
+        <div class="qa-icon qi-1"><i class="bi bi-plus-circle"></i></div>
+        <div class="qa-label">Create Event</div>
+        <div class="qa-sub">Plan a new event</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'user:stores_list' %}" class="qa-tile qt-2">
+        <div class="qa-icon qi-2"><i class="bi bi-shop"></i></div>
+        <div class="qa-label">Find Vendors</div>
+        <div class="qa-sub">Browse stores</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'user:user_bookings' %}" class="qa-tile qt-3">
+        <div class="qa-icon qi-3"><i class="bi bi-journal-check"></i></div>
+        <div class="qa-label">My Bookings</div>
+        <div class="qa-sub">View all bookings</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'user:user_payments' %}" class="qa-tile qt-4">
+        <div class="qa-icon qi-4"><i class="bi bi-credit-card"></i></div>
+        <div class="qa-label">Payments</div>
+        <div class="qa-sub">Payment history</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+    <a href="{% url 'user:user_chat' %}" class="qa-tile qt-5">
+        <div class="qa-icon qi-5"><i class="bi bi-chat-dots"></i></div>
+        <div class="qa-label">Messages</div>
+        <div class="qa-sub">Chat with vendors</div>
+        <div class="qa-arrow"><i class="bi bi-arrow-right"></i></div>
+    </a>
+</div>
 
 {% endblock %}

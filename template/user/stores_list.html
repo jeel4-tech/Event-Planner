@@ -1,70 +1,224 @@
 {% extends 'user/base.html' %}
 {% load static %}
-
 {% block title %}Browse Vendors{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+/* ── Page header ── */
+.page-title { font-size: 1.35rem; font-weight: 800; color: #1E2D40; margin-bottom: .2rem; }
+.page-sub   { font-size: .82rem; color: #4a6278; margin: 0; }
+
+/* ── Filter panel ── */
+.filter-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; padding: 1.1rem 1.3rem; margin-bottom: 1.5rem;
+}
+.filter-panel label {
+    font-size: .72rem; font-weight: 700; color: #4a6278;
+    text-transform: uppercase; letter-spacing: .4px; margin-bottom: .35rem; display: block;
+}
+.filter-panel .form-select,
+.filter-panel .form-control {
+    border: 1.5px solid #ccdde8; border-radius: 9px;
+    background: #f5f9fc; color: #1E2D40; font-size: .85rem;
+    padding: .45rem .85rem; outline: none;
+    transition: border-color .18s;
+}
+.filter-panel .form-select:focus,
+.filter-panel .form-control:focus { border-color: #4A7A9B; box-shadow: none; }
+.filter-panel .form-control::placeholder { color: #8AB4C8; }
+
+button.btn-search {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: linear-gradient(135deg,#1E2D40,#4A7A9B);
+    color: #fff; font-size: .85rem; font-weight: 600;
+    padding: .48rem 1.2rem; border-radius: 9px; border: none;
+    transition: opacity .18s, transform .18s; cursor: pointer;
+}
+button.btn-search:hover { opacity: .88; transform: translateY(-1px); }
+
+a.btn-clear {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B; background: transparent;
+    font-size: .85rem; font-weight: 600; padding: .46rem 1rem;
+    border-radius: 9px; text-decoration: none; transition: all .18s;
+}
+a.btn-clear:hover { background: #4A7A9B; color: #fff; }
+
+/* ── Result count pill ── */
+.result-pill {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #ddeaf3; color: #1E2D40; font-size: .75rem;
+    font-weight: 700; padding: .28rem .8rem; border-radius: 20px;
+    border: 1px solid #ccdde8;
+}
+
+/* ── Store cards ── */
+a.store-card-link { text-decoration: none; display: block; height: 100%; }
+.store-card {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 16px; overflow: hidden; height: 100%;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+    display: flex; flex-direction: column;
+}
+.store-card:hover {
+    box-shadow: 0 10px 28px rgba(30,45,64,.13);
+    border-color: #8AB4C8; transform: translateY(-4px);
+}
+
+/* image area */
+.store-img {
+    width: 100%; height: 190px; object-fit: cover;
+    display: block;
+}
+.store-img-placeholder {
+    width: 100%; height: 190px;
+    background: linear-gradient(135deg,#d6e8f2,#eef5f9);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: .4rem;
+}
+.store-img-placeholder i { font-size: 2.5rem; color: #8AB4C8; }
+.store-img-placeholder span { font-size: .72rem; color: #8AB4C8; font-weight: 600; }
+
+/* card body */
+.store-body { padding: 1rem 1.1rem; flex: 1; display: flex; flex-direction: column; gap: .35rem; }
+.store-name { font-size: 1rem; font-weight: 800; color: #1E2D40; }
+.store-meta { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.store-city { font-size: .75rem; color: #4a6278; display: flex; align-items: center; gap: .25rem; }
+.store-cat  {
+    font-size: .68rem; font-weight: 700; padding: .18rem .6rem;
+    border-radius: 20px; background: #ddeaf3; color: #1E2D40;
+    border: 1px solid #ccdde8;
+}
+.store-desc { font-size: .8rem; color: #4a6278; line-height: 1.55; flex: 1; }
+
+/* card footer */
+.store-footer {
+    padding: .7rem 1.1rem;
+    border-top: 1px solid #e4eff5;
+    display: flex; align-items: center; justify-content: space-between;
+    background: #e4eff5;
+}
+.store-price { font-size: .88rem; font-weight: 800; color: #2d8a5e; }
+.store-vendor { font-size: .75rem; color: #4a6278; display: flex; align-items: center; gap: .3rem; }
+.store-vendor i { color: #8AB4C8; }
+
+/* view btn on hover */
+.store-view-btn {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .75rem; font-weight: 700; color: #4A7A9B;
+    border: 1.5px solid #4A7A9B; border-radius: 7px;
+    padding: .22rem .65rem; transition: all .18s;
+    opacity: 0;
+}
+.store-card:hover .store-view-btn { opacity: 1; }
+.store-card:hover .store-view-btn:hover { background: #4A7A9B; color: #fff; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 4rem 1rem; }
+.empty-state i { font-size: 3rem; color: #8AB4C8; display: block; margin-bottom: .8rem; }
+.empty-state h6 { color: #1E2D40; font-weight: 700; margin-bottom: .4rem; }
+.empty-state p { color: #4a6278; font-size: .85rem; margin: 0; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
-        <h3 class="mb-1"><i class="bi bi-shop me-2"></i> Browse Vendors</h3>
-        <p class="text-muted mb-0">Find stores and services for your event</p>
+        <div class="page-title">
+            <i class="bi bi-shop-window me-2" style="color:#4A7A9B;"></i>Browse Vendors
+        </div>
+        <p class="page-sub">Find stores and services for your event</p>
     </div>
+    {% if stores %}
+    <span class="result-pill">
+        <i class="bi bi-grid"></i> {{ stores|length }} store{{ stores|length|pluralize }} found
+    </span>
+    {% endif %}
 </div>
 
-<!-- Filter & Search -->
-<div class="card-box mb-4">
-    <form method="get" class="row g-3">
-        <div class="col-md-4">
-            <label class="form-label">Category</label>
-            <select name="category" class="form-select">
-                <option value="">All categories</option>
-                {% for c in categories %}
-                <option value="{{ c.id }}" {% if category_id|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Search</label>
-            <input type="text" name="search" class="form-control" placeholder="Store name, city, description..." value="{{ search }}">
-        </div>
-        <div class="col-md-4 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> Search</button>
-            <a href="{% url 'user:stores_list' %}" class="btn btn-outline-secondary">Clear</a>
+<!-- Filter panel -->
+<div class="filter-panel">
+    <form method="get">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label>Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All categories</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {% if category_id|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label>Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Store name, city, description..." value="{{ search }}">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn-search w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <a href="{% url 'user:stores_list' %}" class="btn-clear">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
         </div>
     </form>
 </div>
 
+<!-- Store grid -->
 <div class="row g-4">
     {% for store in stores %}
     <div class="col-md-6 col-lg-4">
-        <a href="{% url 'user:store_detail' store.id %}" class="text-decoration-none text-dark">
-        <div class="card h-100 card-box">
-            {% if store.profile_image %}
-            <img src="{{ store.profile_image.url }}" class="card-img-top" alt="{{ store.store_name }}" style="height: 180px; object-fit: cover;" onerror="this.onerror=null;this.src='{% static "images/placeholder.svg" %}';">
-            {% else %}
-            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
-                <i class="bi bi-shop fs-1 text-muted"></i>
+        <a href="{% url 'user:store_detail' store.id %}" class="store-card-link">
+            <div class="store-card">
+                {% if store.profile_image_url %}
+                    <img src="{{ store.profile_image_url }}" class="store-img" alt="{{ store.store_name }}"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="store-img-placeholder" style="display:none;">
+                        <i class="bi bi-shop"></i>
+                        <span>No image</span>
+                    </div>
+                {% else %}
+                    <div class="store-img-placeholder">
+                        <i class="bi bi-shop"></i>
+                        <span>No image available</span>
+                    </div>
+                {% endif %}
+
+                <div class="store-body">
+                    <div class="store-name">{{ store.store_name }}</div>
+                    <div class="store-meta">
+                        <span class="store-city"><i class="bi bi-geo-alt"></i>{{ store.city }}</span>
+                        <span class="store-cat">{{ store.category.name }}</span>
+                    </div>
+                    {% if store.description %}
+                    <div class="store-desc">{{ store.description|truncatechars:90 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="store-footer">
+                    <div>
+                        <div class="store-price">From ₹{{ store.price_start }}</div>
+                        <div class="store-vendor">
+                            <i class="bi bi-person-circle"></i> {{ store.vendor.fullname }}
+                        </div>
+                    </div>
+                    <span class="store-view-btn">
+                        View <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
             </div>
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ store.store_name }}</h5>
-                <p class="card-text small text-muted">{{ store.city }} • {{ store.category.name }}</p>
-                <p class="card-text small">{{ store.description|truncatechars:100 }}</p>
-            </div>
-            <div class="card-footer bg-transparent border-0 pt-0 d-flex justify-content-between align-items-center">
-                <small class="text-primary fw-semibold">From ₹{{ store.price_start }}</small>
-                <small class="text-muted">By {{ store.vendor.fullname }}</small>
-            </div>
-        </div>
         </a>
     </div>
     {% empty %}
     <div class="col-12">
-        <div class="card-box text-center py-5">
-            <i class="bi bi-shop-window fs-1 text-muted"></i>
-            <p class="mt-3 mb-0 text-muted">No stores match your search. Try changing filters.</p>
+        <div class="empty-state">
+            <i class="bi bi-shop-window"></i>
+            <h6>No stores found</h6>
+            <p>Try adjusting your search or category filter.</p>
         </div>
     </div>
     {% endfor %}
 </div>
+
 {% endblock %}

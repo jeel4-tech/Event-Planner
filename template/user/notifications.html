@@ -1,63 +1,149 @@
 {% extends 'user/base.html' %}
+{% block title %}Notifications{% endblock %}
 
 {% block content %}
+<style>
+/* ── Header ── */
+.page-title { font-size:1.35rem; font-weight:800; color:#1E2D40; margin-bottom:.2rem; }
+.page-sub   { font-size:.82rem; color:#4a6278; margin:0; }
 
-<div class="container-fluid">
+/* ── Count pill ── */
+.notif-count {
+    display:inline-flex; align-items:center; gap:.4rem;
+    background:#ddeaf3; color:#1E2D40; font-size:.75rem;
+    font-weight:700; padding:.28rem .8rem; border-radius:20px;
+    border:1px solid #ccdde8;
+}
+.notif-count.has-unread { background:#fef3dc; color:#c47c1a; border-color:#f0d090; }
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-1">
-                <i class="bi bi-bell-fill me-2"></i> Notifications
-            </h3>
-            <p class="text-muted mb-0">
-                Stay updated with recent activities and alerts
-            </p>
+/* ── Panel ── */
+.notif-panel {
+    background:#eef5f9; border:1.5px solid #ccdde8;
+    border-radius:14px; overflow:hidden;
+}
+.panel-head {
+    background:#e4eff5; border-bottom:1.5px solid #ccdde8;
+    padding:.75rem 1.2rem; display:flex; align-items:center; justify-content:space-between;
+}
+.panel-head-left { display:flex; align-items:center; gap:.5rem; }
+.panel-head-left i    { color:#4A7A9B; font-size:.95rem; }
+.panel-head-left span { font-size:.82rem; font-weight:700; color:#1E2D40; }
+
+/* ── Notification rows ── */
+.notif-item {
+    display:flex; align-items:flex-start; gap:.9rem;
+    padding:.9rem 1.2rem; border-bottom:1px solid #e4eff5;
+    transition:background .15s;
+    position:relative;
+}
+.notif-item:last-child { border-bottom:none; }
+.notif-item:hover { background:rgba(74,122,155,.05); }
+.notif-item.unread { background:rgba(74,122,155,.04); }
+.notif-item.unread::before {
+    content:''; position:absolute; left:0; top:0; bottom:0;
+    width:3px; background:#4A7A9B; border-radius:0;
+}
+
+/* icon box */
+.notif-icon {
+    width:38px; height:38px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:.95rem;
+    margin-top:.1rem;
+}
+.ni-booking  { background:#d6f0e4; color:#2d8a5e; }
+.ni-message  { background:#ddeaf3; color:#4A7A9B; }
+.ni-payment  { background:#fef3dc; color:#c47c1a; }
+.ni-alert    { background:#fde8e6; color:#c0392b; }
+.ni-default  { background:#ddeaf3; color:#4A7A9B; }
+
+.notif-body { flex:1; min-width:0; }
+.notif-title {
+    font-size:.88rem; font-weight:700; color:#1E2D40;
+    margin-bottom:.18rem; display:flex; align-items:center; gap:.4rem;
+}
+.unread-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:#4A7A9B; flex-shrink:0; display:inline-block;
+}
+.notif-msg  { font-size:.8rem; color:#4a6278; line-height:1.5; }
+
+.notif-time {
+    font-size:.72rem; color:#8AB4C8; white-space:nowrap;
+    flex-shrink:0; margin-top:.15rem;
+    display:flex; align-items:center; gap:.3rem;
+}
+
+/* ── Empty state ── */
+.empty-state { text-align:center; padding:3.5rem 1rem; }
+.empty-state i { font-size:2.8rem; color:#8AB4C8; display:block; margin-bottom:.8rem; }
+.empty-state h6 { color:#1E2D40; font-weight:700; margin-bottom:.35rem; }
+.empty-state p  { color:#4a6278; font-size:.84rem; margin:0; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">
+            <i class="bi bi-bell-fill me-2" style="color:#4A7A9B;"></i>Notifications
+        </div>
+        <p class="page-sub">Stay updated with recent activities and alerts</p>
+    </div>
+    {% if notifications %}
+    <span class="notif-count {% if notifications %}has-unread{% endif %}">
+        <i class="bi bi-bell"></i> {{ notifications|length }} notification{{ notifications|length|pluralize }}
+    </span>
+    {% endif %}
+</div>
+
+<!-- Notification panel -->
+<div class="notif-panel">
+    <div class="panel-head">
+        <div class="panel-head-left">
+            <i class="bi bi-inbox"></i>
+            <span>Notification Center</span>
         </div>
     </div>
 
-    <!-- Notifications Card -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-light">
-            <h6 class="mb-0">
-                <i class="bi bi-inbox me-2"></i> Notification Center
-            </h6>
-        </div>
-
-        <div class="card-body p-0">
-            {% if notifications %}
-            <ul class="list-group list-group-flush">
-                {% for n in notifications %}
-                <li class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1">
-                                <i class="bi bi-dot text-primary me-1"></i>
-                                {{ n.title }}
-                            </h6>
-                            <p class="mb-1 text-muted">
-                                {{ n.message }}
-                            </p>
-                        </div>
-                        <small class="text-muted">
-                            {{ n.created_at|date:"d M Y, h:i A" }}
-                        </small>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <!-- Empty State -->
-            <div class="text-center p-5">
-                <i class="bi bi-bell-slash text-muted fs-1"></i>
-                <p class="mt-3 mb-0 text-muted">
-                    No notifications available
-                </p>
+    {% if notifications %}
+        {% for n in notifications %}
+        <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+            <!-- Icon based on title keywords -->
+            <div class="notif-icon
+                {% if 'booking' in n.title|lower or 'approved' in n.title|lower or 'confirmed' in n.title|lower %}ni-booking
+                {% elif 'message' in n.title|lower or 'chat' in n.title|lower %}ni-message
+                {% elif 'payment' in n.title|lower or 'paid' in n.title|lower %}ni-payment
+                {% elif 'cancel' in n.title|lower or 'reject' in n.title|lower or 'failed' in n.title|lower %}ni-alert
+                {% else %}ni-default{% endif %}">
+                <i class="bi
+                    {% if 'booking' in n.title|lower or 'approved' in n.title|lower or 'confirmed' in n.title|lower %}bi-journal-check
+                    {% elif 'message' in n.title|lower or 'chat' in n.title|lower %}bi-chat-dots-fill
+                    {% elif 'payment' in n.title|lower or 'paid' in n.title|lower %}bi-credit-card-fill
+                    {% elif 'cancel' in n.title|lower or 'reject' in n.title|lower or 'failed' in n.title|lower %}bi-x-circle-fill
+                    {% else %}bi-bell-fill{% endif %}">
+                </i>
             </div>
-            {% endif %}
-        </div>
-    </div>
 
+            <div class="notif-body">
+                <div class="notif-title">
+                    {% if not n.is_read %}<span class="unread-dot"></span>{% endif %}
+                    {{ n.title }}
+                </div>
+                <div class="notif-msg">{{ n.message }}</div>
+            </div>
+
+            <div class="notif-time">
+                <i class="bi bi-clock"></i>
+                {{ n.created_at|date:"d M Y, g:i A" }}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-bell-slash"></i>
+        <h6>All caught up!</h6>
+        <p>No notifications available right now.</p>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

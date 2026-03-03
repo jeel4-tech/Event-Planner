@@ -3,17 +3,154 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+/* ── Page header ── */
+.page-hdr h3 { font-size: 1.45rem; font-weight: 800; color: #1E2D40; margin-bottom: .15rem; }
+.page-hdr p  { color: #4a6278; font-size: .88rem; }
+
+/* ── Event card ── */
+.ev-photo-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform .22s, box-shadow .22s, border-color .22s;
+    height: 100%;
+    position: relative;
+}
+.ev-photo-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #4A7A9B, #8AB4C8);
+    border-radius: 14px 0 0 14px;
+}
+.ev-photo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(30,45,64,.13);
+    border-color: #8AB4C8;
+}
+.ev-card-body { padding: 1.25rem 1.4rem 1.1rem; }
+
+/* ── Status badge ── */
+.ev-badge { border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .22rem .75rem; display: inline-block; }
+.ev-badge-pending   { background: #fef3dc; color: #c47c1a; }
+.ev-badge-confirmed { background: #ddeaf3; color: #4A7A9B; }
+.ev-badge-completed { background: #d6f0e4; color: #2d8a5e; }
+.ev-badge-cancelled { background: #fde8e6; color: #c0392b; }
+
+/* ── Camera icon circle ── */
+.cam-circle {
+    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+    background: #ddeaf3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; color: #4A7A9B;
+}
+
+/* ── Meta rows ── */
+.ev-meta { display: flex; flex-direction: column; gap: .3rem; margin: .7rem 0; }
+.ev-meta-item { font-size: .82rem; color: #4a6278; display: flex; align-items: center; gap: .4rem; }
+.ev-meta-item i { color: #4A7A9B; width: 14px; flex-shrink: 0; }
+
+/* ── Card footer ── */
+.ev-card-footer {
+    border-top: 1px solid #ccdde8;
+    padding: .75rem 1.4rem;
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    background: #f5f9fc;
+}
+.photo-count-badge {
+    font-size: .78rem; color: #4a6278;
+    display: flex; align-items: center; gap: .35rem;
+}
+.photo-count-badge strong { color: #1E2D40; }
+
+/* ── Action buttons ── */
+.btn-view-photos {
+    font-size: .78rem; font-weight: 700; color: #4A7A9B;
+    border: 1.5px solid #4A7A9B; border-radius: 8px;
+    padding: .3rem .85rem; text-decoration: none;
+    transition: all .18s; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: .35rem;
+}
+.btn-view-photos:hover { background: #4A7A9B; color: #fff; }
+
+.btn-upload-quick {
+    font-size: .78rem; font-weight: 700; color: #fff;
+    background: #4A7A9B; border: 1.5px solid #4A7A9B; border-radius: 8px;
+    padding: .3rem .85rem; cursor: pointer;
+    transition: all .18s; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: .35rem;
+}
+.btn-upload-quick:hover { background: #1E2D40; border-color: #1E2D40; }
+
+/* ── Upload modal ── */
+.modal-upload .modal-content {
+    border-radius: 16px; border: 1.5px solid #ccdde8; overflow: hidden;
+}
+.modal-upload .modal-header {
+    background: linear-gradient(135deg, #1E2D40, #4A7A9B);
+    border-bottom: none; padding: 1rem 1.4rem;
+}
+.modal-upload .modal-header .modal-title { color: #fff; font-weight: 700; font-size: .95rem; }
+.modal-upload .modal-header .btn-close { filter: invert(1); opacity: .8; }
+.modal-upload .modal-body { padding: 1.4rem; background: #eef5f9; }
+.modal-upload .modal-footer { background: #eef5f9; border-top: 1px solid #ccdde8; padding: .85rem 1.4rem; }
+
+/* ── Drop zone ── */
+.drop-zone {
+    border: 2px dashed #8AB4C8; border-radius: 12px;
+    background: #f5f9fc; padding: 2rem 1rem;
+    text-align: center; cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+}
+.drop-zone:hover, .drop-zone.dragover { border-color: #4A7A9B; background: #ddeaf3; }
+.drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-zone-icon { font-size: 2.2rem; color: #8AB4C8; margin-bottom: .5rem; }
+.drop-zone-text { font-size: .85rem; color: #4a6278; }
+.drop-zone-text strong { color: #1E2D40; }
+
+/* ── Preview strip ── */
+#previewStrip { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .85rem; }
+#previewStrip img {
+    width: 72px; height: 72px; object-fit: cover;
+    border-radius: 8px; border: 2px solid #ccdde8;
+}
+#previewCount { font-size: .8rem; color: #4a6278; margin-top: .4rem; }
+
+/* ── Submit btn ── */
+.btn-do-upload {
+    background: linear-gradient(135deg, #1E2D40, #4A7A9B);
+    color: #fff; border: none; border-radius: 10px;
+    padding: .55rem 1.6rem; font-size: .9rem; font-weight: 700;
+    cursor: pointer; transition: opacity .2s;
+    display: inline-flex; align-items: center; gap: .5rem;
+}
+.btn-do-upload:hover { opacity: .88; }
+.btn-do-upload:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-state i { font-size: 3rem; color: #8AB4C8; }
+.empty-state h5 { color: #1E2D40; font-weight: 600; margin: .85rem 0 .35rem; }
+.empty-state p  { color: #4a6278; font-size: .88rem; }
+</style>
+
+<!-- Page header -->
+<div class="d-flex justify-content-between align-items-center mb-4 page-hdr">
     <div>
-        <h3 class="mb-1">Event Photos</h3>
-        <p class="text-muted mb-0">Click on an event to view and manage its photos</p>
+        <h3><i class="bi bi-camera me-2" style="color:#4A7A9B;"></i>Event Photos</h3>
+        <p class="mb-0">Upload photos directly from a card, or click "View Photos" to manage an event's gallery</p>
     </div>
 </div>
 
 {% if messages %}
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
@@ -24,69 +161,533 @@
 <div class="row g-4">
     {% for event in events %}
     <div class="col-md-6 col-lg-4">
-        <a href="{% url 'event_photos_detail' event.id %}" class="text-decoration-none">
-            <div class="card h-100 shadow-sm border-0 event-photo-card">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <h5 class="card-title mb-1 text-dark">{{ event.title }}</h5>
-                            <span class="badge bg-{% if event.status == 'pending' %}warning{% elif event.status == 'confirmed' %}success{% elif event.status == 'completed' %}primary{% else %}secondary{% endif %}">
-                                {{ event.get_status_display }}
-                            </span>
-                        </div>
-                        <div class="text-center">
-                            <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
-                                <i class="bi bi-camera text-success fs-4"></i>
-                            </div>
-                        </div>
+        <div class="ev-photo-card">
+            <div class="ev-card-body">
+                <!-- Title + status + camera icon -->
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <div style="font-size:1rem;font-weight:800;color:#1E2D40;margin-bottom:.3rem;">{{ event.title }}</div>
+                        {% if event.status == 'pending' %}
+                            <span class="ev-badge ev-badge-pending">Pending</span>
+                        {% elif event.status == 'confirmed' %}
+                            <span class="ev-badge ev-badge-confirmed">Confirmed</span>
+                        {% elif event.status == 'completed' %}
+                            <span class="ev-badge ev-badge-completed">Completed</span>
+                        {% else %}
+                            <span class="ev-badge ev-badge-cancelled">Cancelled</span>
+                        {% endif %}
                     </div>
-
-                    <p class="text-muted mb-1 small">
-                        <i class="bi bi-calendar me-1"></i>{{ event.date|date:"F d, Y" }}
-                    </p>
-                    <p class="text-muted mb-1 small">
-                        <i class="bi bi-clock me-1"></i>{{ event.date|date:"g:i A" }}
-                    </p>
-                    <p class="text-muted mb-3 small">
-                        <i class="bi bi-person me-1"></i>{{ event.owner.fullname }}
-                    </p>
-
-                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                        <span class="text-muted small">
-                            <i class="bi bi-images me-1"></i>
-                            {% if event.photo_count %}
-                                {{ event.photo_count }} photo{{ event.photo_count|pluralize }} uploaded
-                            {% else %}
-                                No photos yet
-                            {% endif %}
-                        </span>
-                        <span class="btn btn-sm btn-outline-success">
-                            View Photos <i class="bi bi-arrow-right ms-1"></i>
-                        </span>
+                    <div class="cam-circle">
+                        <i class="bi bi-camera"></i>
                     </div>
                 </div>
+
+                <!-- Meta -->
+                <div class="ev-meta">
+                    <div class="ev-meta-item"><i class="bi bi-calendar3"></i>{{ event.date|date:"F d, Y" }}</div>
+                    <div class="ev-meta-item"><i class="bi bi-clock"></i>{{ event.date|date:"g:i A" }}</div>
+                    <div class="ev-meta-item"><i class="bi bi-person"></i>{{ event.owner.fullname }}</div>
+                </div>
             </div>
-        </a>
+
+            <!-- Footer: photo count + action buttons -->
+            <div class="ev-card-footer">
+                <div class="photo-count-badge">
+                    <i class="bi bi-images" style="color:#4A7A9B;"></i>
+                    {% if event.photo_count %}
+                        <strong>{{ event.photo_count }}</strong> photo{{ event.photo_count|pluralize }}
+                    {% else %}
+                        No photos yet
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <!-- Quick upload button — opens modal -->
+                    <button class="btn-upload-quick"
+                            data-event-id="{{ event.id }}"
+                            data-event-title="{{ event.title }}"
+                            data-upload-url="{% url 'event_photos_detail' event.id %}"
+                            onclick="openUploadModal(this)">
+                        <i class="bi bi-cloud-upload"></i> Upload
+                    </button>
+                    <!-- View detail page -->
+                    <a href="{% url 'event_photos_detail' event.id %}" class="btn-view-photos">
+                        <i class="bi bi-images"></i> View
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
     {% endfor %}
 </div>
+
 {% else %}
-    <div class="card-box text-center py-5">
-        <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
-        <h5 class="text-muted">No events found</h5>
-        <p class="text-muted">Events will appear here once customers book your photography services.</p>
+<div class="card-box">
+    <div class="empty-state">
+        <i class="bi bi-calendar-x"></i>
+        <h5>No events found</h5>
+        <p>Events will appear here once customers book your photography services.</p>
     </div>
+</div>
 {% endif %}
 
+
+<!-- Cropper.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
 <style>
-.event-photo-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
+/* ── Crop modal ── */
+#cropModal .modal-content  { border-radius:16px; overflow:hidden; border:1.5px solid #ccdde8; }
+#cropModal .modal-header   { background:linear-gradient(135deg,#1E2D40,#4A7A9B); border-bottom:none; padding:1rem 1.4rem; }
+#cropModal .modal-title    { color:#fff; font-weight:700; font-size:.95rem; }
+#cropModal .modal-header .btn-close { filter:invert(1); opacity:.8; }
+#cropModal .modal-body     { background:#1a1a2e; padding:0; }
+#cropModal .modal-footer   { background:#eef5f9; border-top:1px solid #ccdde8; padding:.85rem 1.4rem; gap:.5rem; }
+
+#cropImgEl { display:block; max-width:100%; }
+
+/* Crop toolbar */
+.crop-tools { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
+.btn-crop-tool {
+    background:#eef5f9; color:#1E2D40; border:1.5px solid #ccdde8;
+    border-radius:8px; padding:.32rem .75rem; font-size:.78rem; font-weight:600;
+    cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:.3rem;
 }
-.event-photo-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+.btn-crop-tool:hover { background:#ddeaf3; border-color:#4A7A9B; }
+.btn-crop-tool.active { background:#4A7A9B; color:#fff; border-color:#4A7A9B; }
+
+.btn-crop-confirm {
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    color:#fff; border:none; border-radius:10px;
+    padding:.5rem 1.4rem; font-size:.88rem; font-weight:700;
+    cursor:pointer; transition:opacity .2s;
+    display:inline-flex; align-items:center; gap:.4rem;
 }
+.btn-crop-confirm:hover { opacity:.88; }
+.btn-skip-crop {
+    background:#e4eff5; color:#1E2D40; border:1.5px solid #ccdde8;
+    border-radius:10px; padding:.5rem 1.1rem; font-size:.88rem; font-weight:600;
+    cursor:pointer; transition:all .15s;
+}
+.btn-skip-crop:hover { background:#ccdde8; }
+
+/* Queue strip */
+#queueStrip { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.85rem; }
+.queue-item {
+    position:relative; width:72px; height:72px;
+    border-radius:8px; overflow:hidden;
+    border:2px solid #ccdde8;
+    cursor:pointer;
+}
+.queue-item img { width:100%; height:100%; object-fit:cover; display:block; }
+.queue-item .q-remove {
+    position:absolute; top:2px; right:2px;
+    background:rgba(192,57,43,.85); color:#fff; border:none;
+    border-radius:50%; width:18px; height:18px; font-size:.6rem;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    line-height:1;
+}
+.queue-item .q-edit {
+    position:absolute; bottom:2px; right:2px;
+    background:rgba(74,122,155,.85); color:#fff; border:none;
+    border-radius:4px; padding:1px 4px; font-size:.6rem;
+    cursor:pointer; display:flex; align-items:center; gap:2px;
+}
+#queueCount { font-size:.8rem; color:#4a6278; margin-top:.4rem; }
+
+/* Aspect ratio pills */
+.ar-pill {
+    background:#e4eff5; color:#1E2D40; border:1.5px solid #ccdde8;
+    border-radius:20px; padding:.22rem .75rem; font-size:.72rem; font-weight:700;
+    cursor:pointer; transition:all .15s;
+}
+.ar-pill:hover, .ar-pill.active { background:#4A7A9B; color:#fff; border-color:#4A7A9B; }
 </style>
+
+
+<!-- ── Step 1: Upload modal (select files) ── -->
+<div class="modal fade modal-upload" id="quickUploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-cloud-upload me-2"></i>
+                    Upload Photos — <span id="modalEventTitle"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:#eef5f9;padding:1.4rem;">
+
+                <!-- Drop zone -->
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" id="photoFileInput" accept="image/*" multiple>
+                    <div class="drop-zone-icon"><i class="bi bi-images"></i></div>
+                    <div class="drop-zone-text">
+                        <strong>Click to select</strong> or drag &amp; drop photos here<br>
+                        <span style="font-size:.78rem;">JPG, PNG, WEBP &bull; Multiple files — crop each before uploading</span>
+                    </div>
+                </div>
+
+                <!-- Queued (cropped) photos -->
+                <div id="queueStrip"></div>
+                <div id="queueCount"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-do-upload" id="uploadSubmitBtn" disabled onclick="submitCroppedPhotos()">
+                    <i class="bi bi-cloud-upload"></i>
+                    <span id="uploadBtnLabel">Upload Photos</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden upload form (populated by JS) -->
+<form method="POST" id="quickUploadForm" enctype="multipart/form-data" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="upload">
+    <div id="hiddenFileInputs"></div>
+</form>
+
+
+<!-- ── Step 2: Crop modal ── -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-crop me-2"></i>
+                    Crop Photo
+                    <span id="cropProgress" style="font-size:.75rem;opacity:.75;margin-left:.5rem;"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding:0;background:#111;min-height:320px;">
+                <img id="cropImgEl" src="" alt="Crop" style="display:block;max-width:100%;">
+            </div>
+            <div class="modal-footer" style="flex-direction:column;align-items:stretch;gap:.75rem;">
+
+                <!-- Aspect ratio pills -->
+                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+                    <span style="font-size:.75rem;color:#4a6278;font-weight:600;">Ratio:</span>
+                    <span class="ar-pill active" onclick="setAspect(NaN,this)">Free</span>
+                    <span class="ar-pill" onclick="setAspect(1,this)">1:1</span>
+                    <span class="ar-pill" onclick="setAspect(4/3,this)">4:3</span>
+                    <span class="ar-pill" onclick="setAspect(16/9,this)">16:9</span>
+                    <span class="ar-pill" onclick="setAspect(3/4,this)">3:4</span>
+                </div>
+
+                <!-- Rotation / flip tools -->
+                <div class="crop-tools">
+                    <button class="btn-crop-tool" onclick="cropper.rotate(-90)">
+                        <i class="bi bi-arrow-counterclockwise"></i> Rotate L
+                    </button>
+                    <button class="btn-crop-tool" onclick="cropper.rotate(90)">
+                        <i class="bi bi-arrow-clockwise"></i> Rotate R
+                    </button>
+                    <button class="btn-crop-tool" onclick="cropper.scaleX(-cropper.getData().scaleX||1)">
+                        <i class="bi bi-symmetry-vertical"></i> Flip H
+                    </button>
+                    <button class="btn-crop-tool" onclick="cropper.scaleY(-cropper.getData().scaleY||1)">
+                        <i class="bi bi-symmetry-horizontal"></i> Flip V
+                    </button>
+                    <button class="btn-crop-tool" onclick="cropper.reset()">
+                        <i class="bi bi-arrow-repeat"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Action buttons -->
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                        <!-- Delete this photo from queue -->
+                        <button class="btn-crop-tool" onclick="deletePendingPhoto()" style="background:#fde8e6;border-color:#e8a09a;color:#c0392b;">
+                            <i class="bi bi-trash3"></i> Delete
+                        </button>
+                        <button class="btn-skip-crop" onclick="skipCrop()">
+                            <i class="bi bi-skip-forward me-1"></i> Skip
+                        </button>
+                        <button class="btn-skip-crop" id="skipAllBtn" onclick="skipAllCrops()" style="display:none;background:#fff3cd;border-color:#f0c040;color:#7a5800;">
+                            <i class="bi bi-skip-end me-1"></i> Skip All
+                        </button>
+                    </div>
+                    <button class="btn-crop-confirm" onclick="confirmCrop()">
+                        <i class="bi bi-check-lg me-1"></i> Apply Crop
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+/* ═══════════════════════════════════════════════
+   State
+═══════════════════════════════════════════════ */
+let currentEventId = null;
+let pendingFiles   = [];   // raw File objects waiting to be cropped
+let croppedBlobs   = [];   // { blob, name } ready to upload
+let cropIndex      = 0;
+let cropper        = null;
+let cropModalInst  = null;
+let uploadModalInst = null;
+
+/* ═══════════════════════════════════════════════
+   Open upload modal
+═══════════════════════════════════════════════ */
+function openUploadModal(btn) {
+    currentEventId = btn.dataset.eventId;
+    document.getElementById('modalEventTitle').textContent = btn.dataset.eventTitle;
+    document.getElementById('quickUploadForm').action = btn.dataset.uploadUrl || `/vendor/upload-event-image/${currentEventId}/`;
+
+    // Reset
+    pendingFiles  = [];
+    croppedBlobs  = [];
+    document.getElementById('photoFileInput').value = '';
+    document.getElementById('queueStrip').innerHTML = '';
+    document.getElementById('queueCount').textContent = '';
+    document.getElementById('uploadSubmitBtn').disabled = true;
+    document.getElementById('uploadBtnLabel').textContent = 'Upload Photos';
+
+    uploadModalInst = new bootstrap.Modal(document.getElementById('quickUploadModal'));
+    uploadModalInst.show();
+}
+
+/* ═══════════════════════════════════════════════
+   File selection → start crop queue
+═══════════════════════════════════════════════ */
+document.getElementById('photoFileInput').addEventListener('change', function () {
+    if (!this.files.length) return;
+    pendingFiles = Array.from(this.files);
+    cropIndex    = 0;
+    this.value   = '';   // reset so same files can be re-selected
+    openNextCrop();
+});
+
+/* Drag-and-drop */
+const dz = document.getElementById('dropZone');
+['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('dragover'); }));
+['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => {
+    ev.preventDefault(); dz.classList.remove('dragover');
+    if (ev.type === 'drop' && ev.dataTransfer.files.length) {
+        pendingFiles = Array.from(ev.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        cropIndex = 0;
+        openNextCrop();
+    }
+}));
+
+/* ═══════════════════════════════════════════════
+   Crop queue
+═══════════════════════════════════════════════ */
+function openNextCrop() {
+    if (cropIndex >= pendingFiles.length) {
+        // All done — back to upload modal
+        updateQueue();
+        return;
+    }
+
+    const file   = pendingFiles[cropIndex];
+    const reader = new FileReader();
+    reader.onload = e => {
+        // Update crop modal image
+        const img = document.getElementById('cropImgEl');
+        img.src = e.target.result;
+
+        document.getElementById('cropProgress').textContent =
+            `(${cropIndex + 1} of ${pendingFiles.length})`;
+
+        // Show "Skip All" only when more than 1 file remains after current
+        const remaining = pendingFiles.length - cropIndex - 1;
+        document.getElementById('skipAllBtn').style.display = remaining > 0 ? '' : 'none';
+
+        // Destroy old cropper
+        if (cropper) { cropper.destroy(); cropper = null; }
+
+        // Show crop modal (hide upload modal temporarily)
+        cropModalInst = new bootstrap.Modal(document.getElementById('cropModal'));
+        cropModalInst.show();
+
+        // Init Cropper after modal is shown
+        document.getElementById('cropModal').addEventListener('shown.bs.modal', function handler() {
+            this.removeEventListener('shown.bs.modal', handler);
+            cropper = new Cropper(img, {
+                viewMode: 1,
+                autoCropArea: 0.9,
+                movable: true,
+                zoomable: true,
+                rotatable: true,
+                scalable: true,
+                responsive: true,
+            });
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function setAspect(ratio, el) {
+    document.querySelectorAll('.ar-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    if (cropper) cropper.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+}
+
+function confirmCrop() {
+    if (!cropper) return;
+    cropper.getCroppedCanvas({ maxWidth: 2048, maxHeight: 2048 }).toBlob(blob => {
+        const name = pendingFiles[cropIndex].name.replace(/\.[^.]+$/, '') + '_cropped.jpg';
+        croppedBlobs.push({ blob, name });
+        closeCropGoNext();
+    }, 'image/jpeg', 0.92);
+}
+
+function skipCrop() {
+    // Use original file as-is
+    croppedBlobs.push({ blob: pendingFiles[cropIndex], name: pendingFiles[cropIndex].name });
+    closeCropGoNext();
+}
+
+function deletePendingPhoto() {
+    // Remove current photo from pending list entirely, move to next
+    pendingFiles.splice(cropIndex, 1);
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropModalInst.hide();
+    document.getElementById('cropModal').addEventListener('hidden.bs.modal', function handler() {
+        this.removeEventListener('hidden.bs.modal', handler);
+        if (cropIndex < pendingFiles.length) {
+            openNextCrop();
+        } else {
+            updateQueue();
+        }
+    });
+}
+
+function skipAllCrops() {
+    // Add current + all remaining files as-is, then close
+    for (let i = cropIndex; i < pendingFiles.length; i++) {
+        croppedBlobs.push({ blob: pendingFiles[i], name: pendingFiles[i].name });
+    }
+    cropIndex = pendingFiles.length;  // jump past all
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropModalInst.hide();
+    document.getElementById('cropModal').addEventListener('hidden.bs.modal', function handler() {
+        this.removeEventListener('hidden.bs.modal', handler);
+        updateQueue();
+    });
+}
+
+function closeCropGoNext() {
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropModalInst.hide();
+    document.getElementById('cropModal').addEventListener('hidden.bs.modal', function handler() {
+        this.removeEventListener('hidden.bs.modal', handler);
+        cropIndex++;
+        if (cropIndex < pendingFiles.length) {
+            openNextCrop();
+        } else {
+            updateQueue();
+        }
+    });
+}
+
+/* ═══════════════════════════════════════════════
+   Queue display
+═══════════════════════════════════════════════ */
+function updateQueue() {
+    const strip = document.getElementById('queueStrip');
+    const count = document.getElementById('queueCount');
+    const btn   = document.getElementById('uploadSubmitBtn');
+    const label = document.getElementById('uploadBtnLabel');
+
+    strip.innerHTML = '';
+    croppedBlobs.forEach((item, i) => {
+        const url = URL.createObjectURL(item.blob);
+        const div = document.createElement('div');
+        div.className = 'queue-item';
+        div.innerHTML = `
+            <img src="${url}" alt="${item.name}">
+            <button class="q-remove" onclick="removeQueued(${i})" title="Remove">✕</button>
+            <button class="q-edit" onclick="reEditQueued(${i})" title="Re-crop">
+                <i class="bi bi-crop"></i>
+            </button>`;
+        strip.appendChild(div);
+    });
+
+    const n = croppedBlobs.length;
+    count.textContent = n > 0 ? `${n} photo${n > 1 ? 's' : ''} ready to upload` : '';
+    btn.disabled = n === 0;
+    label.textContent = n > 0 ? `Upload ${n} Photo${n > 1 ? 's' : ''}` : 'Upload Photos';
+}
+
+function removeQueued(i) {
+    croppedBlobs.splice(i, 1);
+    updateQueue();
+}
+
+function reEditQueued(i) {
+    // Put the blob back as a "pending file" at position 0 and re-crop
+    const item = croppedBlobs[i];
+    croppedBlobs.splice(i, 1);
+    const file = new File([item.blob], item.name, { type: 'image/jpeg' });
+    pendingFiles = [file];
+    cropIndex    = 0;
+    openNextCrop();
+}
+
+/* ═══════════════════════════════════════════════
+   Submit: convert blobs → hidden file inputs → submit form
+═══════════════════════════════════════════════ */
+function getCsrfToken() {
+    const el = document.querySelector('#quickUploadForm input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+}
+
+async function submitCroppedPhotos() {
+    if (!croppedBlobs.length) return;
+
+    const btn   = document.getElementById('uploadSubmitBtn');
+    const label = document.getElementById('uploadBtnLabel');
+    const form  = document.getElementById('quickUploadForm');
+    if (!form.action) {
+        alert('Upload target not set. Please close and re-open the upload modal.');
+        return;
+    }
+
+    btn.disabled = true;
+    label.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading…';
+
+    const fd = new FormData(form);
+    croppedBlobs.forEach((item) => {
+        fd.append('images', item.blob, item.name);
+    });
+
+    try {
+        const resp = await fetch(form.action, {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': getCsrfToken() }
+        });
+        if (resp.ok) {
+            if (resp.redirected) {
+                window.location.href = resp.url;
+            } else {
+                window.location.reload();
+            }
+        } else {
+            let msg = 'Upload failed. Please try again.';
+            if (resp.status === 403) msg = 'Session or security check failed. Please refresh the page and try again.';
+            else if (resp.status === 400) msg = 'Invalid request. Please check your photos.';
+            alert(msg);
+            btn.disabled = false;
+            label.textContent = croppedBlobs.length > 0 ? `Upload ${croppedBlobs.length} Photo${croppedBlobs.length > 1 ? 's' : ''}` : 'Upload Photos';
+        }
+    } catch (e) {
+        btn.disabled = false;
+        label.textContent = croppedBlobs.length > 0 ? `Upload ${croppedBlobs.length} Photo${croppedBlobs.length > 1 ? 's' : ''}` : 'Upload Photos';
+        alert('Upload failed: ' + (e.message || 'Network error. Please try again.'));
+    }
+}
+</script>
 
 {% endblock %}

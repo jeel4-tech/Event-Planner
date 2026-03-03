@@ -1,80 +1,262 @@
 {% extends "guest/base.html" %}
 {% block title %}Event Details{% endblock %}
 
+{% block styles %}
+<style>
+/* ── Alert ── */
+.alert-navy {
+    background: #ddeaf3; border: 1.5px solid #8AB4C8; color: #1E2D40;
+    border-radius: 11px; padding: .7rem 1rem; font-size: .85rem;
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    margin-bottom: 1.2rem;
+}
+.alert-navy-inner { display: flex; align-items: center; gap: .5rem; }
+.alert-navy button { background: none; border: none; color: #4a6278; cursor: pointer; font-size: 1rem; padding: 0; }
+.alert-navy button:hover { color: #1E2D40; }
+
+/* ── Info panel ── */
+.info-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; overflow: hidden; margin-bottom: 1.3rem;
+}
+.info-panel-head {
+    background: linear-gradient(135deg, #1E2D40, #4A7A9B);
+    padding: .65rem 1.2rem; display: flex; align-items: center; gap: .5rem;
+}
+.info-panel-head i    { color: #8AB4C8; font-size: .95rem; }
+.info-panel-head span { color: #fff; font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+.info-panel-body { padding: 1rem 1.3rem; }
+
+.info-row {
+    display: flex; align-items: flex-start; gap: .6rem;
+    padding: .6rem 0; border-bottom: 1px solid #e4eff5;
+}
+.info-row:last-child { border-bottom: none; }
+.info-key {
+    min-width: 130px; font-size: .72rem; font-weight: 700;
+    color: #4a6278; text-transform: uppercase; letter-spacing: .3px; padding-top: .05rem;
+}
+.info-val { font-size: .88rem; color: #1E2D40; font-weight: 500; }
+
+/* ── Type pill ── */
+.type-pill {
+    display: inline-block; background: #ddeaf3; color: #1E2D40;
+    font-size: .72rem; font-weight: 700; padding: .2rem .7rem;
+    border-radius: 20px; border: 1px solid #ccdde8;
+}
+
+/* ── Status pill ── */
+.status-pill {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .72rem; font-weight: 700; padding: .2rem .7rem; border-radius: 20px;
+}
+.sp-pending   { background: #fef3dc; color: #c47c1a; }
+.sp-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.sp-completed { background: #d6e8f2; color: #1E2D40; }
+.sp-cancelled { background: #fde8e6; color: #c0392b; }
+
+/* ── KPI cards ── */
+.kpi-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.3rem; }
+.kpi-card {
+    flex: 1; min-width: 130px;
+    background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px;
+    padding: 1rem 1.1rem; display: flex; align-items: center; gap: .85rem;
+    transition: box-shadow .2s, transform .2s;
+}
+.kpi-card:hover { box-shadow: 0 6px 20px rgba(30,45,64,.1); transform: translateY(-2px); }
+.kpi-icon {
+    width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+}
+.kpi-val { font-size: 1.4rem; font-weight: 800; color: #1E2D40; line-height: 1.1; }
+.kpi-lbl { font-size: .68rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; }
+
+/* ── Gallery panel ── */
+.gallery-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; overflow: hidden;
+}
+.gallery-head {
+    background: #e4eff5; border-bottom: 1.5px solid #ccdde8;
+    padding: .75rem 1.2rem; display: flex; align-items: center; justify-content: space-between;
+}
+.gallery-head-left { display: flex; align-items: center; gap: .5rem; }
+.gallery-head-left i    { color: #4A7A9B; }
+.gallery-head-left span { font-size: .88rem; font-weight: 700; color: #1E2D40; }
+.gallery-count {
+    background: #ddeaf3; color: #1E2D40; font-size: .7rem; font-weight: 700;
+    padding: .18rem .65rem; border-radius: 20px; border: 1px solid #ccdde8;
+}
+.gallery-body { padding: 1.2rem; }
+
+/* ── Photo cards ── */
+.photo-card {
+    background: #f5f9fc; border: 1.5px solid #ccdde8; border-radius: 12px;
+    overflow: hidden; transition: box-shadow .2s, transform .2s;
+}
+.photo-card:hover { box-shadow: 0 8px 24px rgba(30,45,64,.13); transform: translateY(-3px); }
+.photo-card img {
+    width: 100%; height: 200px; object-fit: cover; display: block;
+    transition: transform .3s;
+}
+.photo-card:hover img { transform: scale(1.04); }
+.photo-card-body { padding: .55rem .75rem; }
+.photo-desc { font-size: .75rem; color: #4a6278; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-state i { font-size: 2.5rem; color: #8AB4C8; display: block; margin-bottom: .7rem; }
+.empty-state p { color: #4a6278; font-size: .85rem; margin: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
 
+<!-- Messages -->
 {% if messages %}
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert-navy">
+        <div class="alert-navy-inner">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle-fill{% else %}info-circle{% endif %}"
+               style="color:{% if message.tags == 'success' %}#2d8a5e{% else %}#4A7A9B{% endif %};"></i>
+            {{ message }}
+        </div>
+        <button onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></button>
     </div>
     {% endfor %}
 {% endif %}
 
+<!-- KPI row -->
+<div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#ddeaf3;">
+            <i class="bi bi-calendar-event" style="color:#4A7A9B;"></i>
+        </div>
+        <div>
+            <div class="kpi-val">{{ event.get_event_type_display }}</div>
+            <div class="kpi-lbl">Event Type</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#fef3dc;">
+            <i class="bi bi-calendar-check" style="color:#c47c1a;"></i>
+        </div>
+        <div>
+            <div class="kpi-val">{{ event.date|date:"d M Y" }}</div>
+            <div class="kpi-lbl">Event Dates</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#d6f0e4;">
+            <i class="bi bi-images" style="color:#2d8a5e;"></i>
+        </div>
+        <div>
+            <div class="kpi-val">{{ gallery_images|length }}</div>
+            <div class="kpi-lbl">Photos</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#d6e8f2;">
+            <i class="bi bi-clock" style="color:#1E2D40;"></i>
+        </div>
+        <div>
+            <div class="kpi-val">{{ event.date|date:"g:i A" }}</div>
+            <div class="kpi-lbl">Time</div>
+        </div>
+    </div>
+</div>
 
-<!-- Event Information Card -->
-<div class="row g-4 mb-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <h5 class="card-title mb-4">
-                    <i class="bi bi-calendar-event me-2"></i>Event Information
-                </h5>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-4">
-                        <strong class="text-muted">Date & Time:</strong>
-                    </div>
-                    <div class="col-sm-8">
-                        <i class="bi bi-calendar me-2"></i>{{ event.date|date:"F d, Y" }}<br>
-                        <i class="bi bi-clock me-2"></i>{{ event.date|date:"g:i A" }}
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-4">
-                        <strong class="text-muted">Event Type:</strong>
-                    </div>
-                    <div class="col-sm-8">
-                        {{ event.get_event_type_display }}
-                    </div>
-                </div>
-                
-               
+<!-- Event Information -->
+<div class="info-panel">
+    <div class="info-panel-head">
+        <i class="bi bi-calendar-event"></i>
+        <span>Event Information</span>
+    </div>
+    <div class="info-panel-body">
+        <div class="info-row">
+            <div class="info-key">Event Name</div>
+            <div class="info-val" style="font-weight:700;">{{ event.title }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Date & Time</div>
+            <div class="info-val">
+                <i class="bi bi-calendar me-1" style="color:#8AB4C8;"></i>{{ event.date|date:"F d, Y" }}
+                &nbsp;&nbsp;
+                <i class="bi bi-clock me-1" style="color:#8AB4C8;"></i>{{ event.date|date:"g:i A" }}
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Event Type</div>
+            <div class="info-val"><span class="type-pill">{{ event.get_event_type_display }}</span></div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Status</div>
+            <div class="info-val">
+                {% if event.status == 'pending' %}
+                    <span class="status-pill sp-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                {% elif event.status == 'confirmed' %}
+                    <span class="status-pill sp-confirmed"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
+                {% elif event.status == 'completed' %}
+                    <span class="status-pill sp-completed"><i class="bi bi-check-all"></i>Completed</span>
+                {% elif event.status == 'cancelled' %}
+                    <span class="status-pill sp-cancelled"><i class="bi bi-x-circle-fill"></i>Cancelled</span>
+                {% else %}
+                    <span class="status-pill" style="background:#ddeaf3;color:#4A7A9B;">{{ event.status }}</span>
+                {% endif %}
             </div>
         </div>
     </div>
-    
+</div>
 
-<!-- Gallery Section -->
-<div id="event-photos" class="card shadow-sm border-0">
-    <div class="card-body p-4">
-        <h5 class="card-title mb-4">
-            <i class="bi bi-images me-2"></i>Event Photos & Gallery
-        </h5>
+<!-- Find My Photos CTA -->
+<div style="background:linear-gradient(135deg,#1E2D40,#4A7A9B);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1.3rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div>
+        <div style="color:#8AB4C8;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem;">
+            <i class="bi bi-stars me-1"></i>AI Face Recognition
+        </div>
+        <div style="color:#fff;font-size:1rem;font-weight:700;">Find photos of yourself instantly</div>
+        <div style="color:#8AB4C8;font-size:.82rem;margin-top:.15rem;">Upload a selfie and our AI will scan all event photos to find you.</div>
+    </div>
+    <a href="{% url 'guest_face_search' %}"
+       style="background:#fff;color:#1E2D40;border-radius:10px;padding:.55rem 1.3rem;font-size:.88rem;font-weight:700;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:.4rem;transition:opacity .2s;"
+       onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <i class="bi bi-person-bounding-box"></i> Find My Photos
+    </a>
+</div>
+
+<!-- Gallery -->
+<div class="gallery-panel" id="event-photos">
+    <div class="gallery-head">
+        <div class="gallery-head-left">
+            <i class="bi bi-images"></i>
+            <span>Event Photos &amp; Gallery</span>
+        </div>
+        {% if gallery_images %}
+        <span class="gallery-count">{{ gallery_images|length }} photo{{ gallery_images|length|pluralize }}</span>
+        {% endif %}
+    </div>
+    <div class="gallery-body">
         {% if gallery_images %}
         <div class="row g-3">
             {% for image in gallery_images %}
-            <div class="col-md-4 col-lg-3">
-                <div class="card border-0 shadow-sm">
-                    <a href="{{ image.image.url }}" target="_blank" class="text-decoration-none">
-                        <img src="{{ image.image.url }}" class="card-img-top" alt="Event Photo" style="height: 250px; object-fit: cover; border-radius: 8px; cursor: pointer;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                    </a>
-                    {% if image.description %}
-                    <div class="card-body p-2">
-                        <p class="card-text small text-muted mb-0">{{ image.description|truncatewords:15 }}</p>
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="{{ image.image.url }}" target="_blank" class="text-decoration-none">
+                    <div class="photo-card">
+                        <img src="{{ image.image.url }}" alt="Event Photo">
+                        {% if image.description %}
+                        <div class="photo-card-body">
+                            <div class="photo-desc">{{ image.description|truncatewords:12 }}</div>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                </div>
+                </a>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-images fs-1 text-muted"></i>
-            <p class="text-muted mt-3 mb-0">No photos available yet. Check back later!</p>
+        <div class="empty-state">
+            <i class="bi bi-images"></i>
+            <p>No photos available yet. Check back later!</p>
         </div>
         {% endif %}
     </div>

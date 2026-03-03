@@ -1,782 +1,770 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ APP_NAME }} - Event Planning Platform</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <title>{{ APP_NAME }} — Smart Event Planning Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
     <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #e0e7ff;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --border: #e2e8f0;
+            --navy:   #1E2D40;
+            --steel:  #4A7A9B;
+            --sky:    #8AB4C8;
+            --bg:     #050d1a;
+            --border: rgba(74,122,155,.25);
+            --glass:  rgba(10,22,40,.7);
         }
 
-        [data-bs-theme="dark"] {
-            --primary: #818cf8;
-            --primary-dark: #6366f1;
-            --primary-light: #312e81;
-            --light: #0f172a;
-            --dark: #f1f5f9;
-            --gray: #94a3b8;
-            --border: #334155;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'Inter', sans-serif;
-            color: var(--dark);
-            background-color: var(--light);
+            background: var(--bg);
+            color: #fff;
             overflow-x: hidden;
         }
 
-        h1, h2, h3, h4, h5, .display-1, .display-2, .display-3 {
-            font-weight: 800 !important;
-            letter-spacing: -0.02em;
+        /* ══ Background ══ */
+        .bg-canvas {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 20%, rgba(74,122,155,.22) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 85% 75%, rgba(30,45,64,.5) 0%, transparent 60%),
+                #050d1a;
+        }
+        .grid-overlay {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(74,122,155,.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74,122,155,.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0;
+            animation: orbFloat linear infinite;
+        }
+        .orb-1 { width:600px; height:600px; background:rgba(74,122,155,.12); top:-150px; left:-150px; animation-duration:22s; }
+        .orb-2 { width:500px; height:500px; background:rgba(30,45,64,.35); bottom:-100px; right:-100px; animation-duration:28s; animation-delay:-10s; }
+        @keyframes orbFloat {
+            0%,100% { transform: translate(0,0); }
+            50%      { transform: translate(40px,-40px); }
         }
 
-        .fw-semibold {
-            font-weight: 600 !important;
-        }
-
-        /* Custom Shadows */
-        .shadow-soft {
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        .shadow-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .shadow-hover:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
-        }
-
-        /* Gradient Text */
-        .gradient-text {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Custom Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: none;
-            padding: 0.875rem 2rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-outline-primary {
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
-        }
-
-        /* Modern Navbar */
+        /* ══ Navbar ══ */
         .navbar {
-            backdrop-filter: blur(10px);
-            background: rgba(var(--light), 0.9);
-            padding: 1.25rem 0;
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 1.1rem 0;
+            background: rgba(5,13,26,.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(74,122,155,.12);
+            transition: padding .3s;
         }
-
-        .navbar-scrolled {
-            padding: 0.75rem 0;
-            background: rgba(var(--light), 0.95);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-        }
-
+        .navbar.scrolled { padding: .7rem 0; }
         .navbar-brand {
-            font-weight: 800;
-            font-size: 1.75rem;
-            color: var(--primary) !important;
-        }
-
-        /* Hero Section */
-        .hero-section {
-            padding: 8rem 0 6rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -30%;
-            width: 80%;
-            height: 150%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-            z-index: -1;
-        }
-
-        .display-1 {
-            font-size: 3.5rem;
-            line-height: 1.1;
-        }
-
-        /* Feature Cards */
-        .feature-card {
-            background: var(--light);
-            border-radius: 1.5rem;
-            padding: 2.5rem 2rem;
-            border: 1px solid var(--border);
-            height: 100%;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .feature-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .feature-icon i {
-            font-size: 1.75rem;
-            color: white;
-        }
-
-        /* Stats Section */
-        .stats-section {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 6rem 0;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        /* How It Works */
-        .step-card {
-            background: var(--light);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            border: 1px solid var(--border);
-            text-align: center;
-            height: 100%;
-            position: relative;
-        }
-
-        .step-number {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.25rem;
-            margin: 0 auto 1.5rem;
-        }
-
-        /* Testimonial Cards */
-        .testimonial-card {
-            background: var(--light);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            border: 1px solid var(--border);
-            position: relative;
-        }
-
-        .testimonial-card::before {
-            content: '"';
-            position: absolute;
-            top: -20px;
-            left: 2rem;
-            font-size: 4rem;
-            color: var(--primary);
-            opacity: 0.1;
-            font-family: serif;
-        }
-        .logo {
-                width: 100px;
-            }
-
-        /* CTA Section */
-        .cta-section {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 6rem 0;
-            border-radius: 2rem;
-        }
-
-        [data-bs-theme="dark"] .cta-section {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        }
-
-        /* Footer */
-        .footer {
-            background-color: var(--dark);
-            color: white;
-            padding: 5rem 0 2rem;
-        }
-
-        [data-bs-theme="dark"] .footer {
-            background-color: #020617;
-        }
-
-        .footer-links a {
-            color: #cbd5e1;
+            display: flex; align-items: center; gap: .5rem;
             text-decoration: none;
-            display: block;
-            margin-bottom: 0.5rem;
-            transition: color 0.3s ease;
+        }
+        .navbar-brand img {
+            height: 42px; width: auto;
+            filter: drop-shadow(0 0 10px rgba(74,122,155,.4));
+        }
+        .nav-link {
+            color: rgba(255,255,255,.6) !important; font-size: .88rem; font-weight: 500;
+            padding: .4rem .8rem !important; border-radius: 7px; transition: all .18s;
+        }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: rgba(74,122,155,.15); }
+        .btn-nav-login {
+            border: 1.5px solid rgba(74,122,155,.5); color: rgba(255,255,255,.8);
+            background: transparent; border-radius: 8px; padding: .4rem 1.1rem;
+            font-size: .88rem; font-weight: 600; text-decoration: none; transition: all .18s;
+        }
+        .btn-nav-login:hover { border-color: var(--sky); color: #fff; background: rgba(74,122,155,.15); }
+        .btn-nav-start {
+            background: linear-gradient(135deg, var(--steel), var(--navy));
+            border: 1px solid rgba(138,180,200,.2);
+            color: #fff; border-radius: 8px; padding: .42rem 1.2rem;
+            font-size: .88rem; font-weight: 700; text-decoration: none;
+            box-shadow: 0 0 20px rgba(74,122,155,.25); transition: all .2s;
+        }
+        .btn-nav-start:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(74,122,155,.4); color: #fff; }
+
+        /* ══ Section wrapper ══ */
+        section { position: relative; z-index: 1; }
+
+        /* ══ HERO ══ */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center;
+            padding: 7rem 0 3rem;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: rgba(74,122,155,.15); border: 1px solid rgba(74,122,155,.3);
+            border-radius: 20px; padding: .35rem 1rem; font-size: .78rem;
+            color: var(--sky); font-weight: 600; margin-bottom: 1.5rem;
+            animation: badgePulse 3s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(74,122,155,0); }
+            50%      { box-shadow: 0 0 0 6px rgba(74,122,155,.1); }
+        }
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.6rem, 5vw, 4rem);
+            font-weight: 800; line-height: 1.1; margin-bottom: 1.4rem;
+            color: #fff;
+        }
+        .hero-title .grad {
+            background: linear-gradient(135deg, var(--sky) 0%, #fff 60%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-desc { font-size: 1rem; color: rgba(255,255,255,.55); line-height: 1.75; margin-bottom: 2.2rem; max-width: 480px; }
+        .hero-btns { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 3rem; }
+        .btn-hero-primary {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: linear-gradient(135deg, var(--steel), var(--navy));
+            color: #fff; border: none; border-radius: 10px;
+            padding: .78rem 1.8rem; font-size: .95rem; font-weight: 700;
+            text-decoration: none; transition: all .2s;
+            box-shadow: 0 4px 24px rgba(74,122,155,.35);
+        }
+        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(74,122,155,.5); color: #fff; }
+        .btn-hero-outline {
+            display: inline-flex; align-items: center; gap: .5rem;
+            border: 1.5px solid rgba(74,122,155,.4); color: rgba(255,255,255,.75);
+            background: transparent; border-radius: 10px;
+            padding: .76rem 1.6rem; font-size: .95rem; font-weight: 600;
+            text-decoration: none; transition: all .2s;
+        }
+        .btn-hero-outline:hover { border-color: var(--sky); color: #fff; background: rgba(74,122,155,.1); }
+
+        /* Hero trust row */
+        .trust-row { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .trust-item { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: rgba(255,255,255,.4); }
+        .trust-item i { color: var(--steel); }
+
+        /* Hero visual card */
+        .hero-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px; padding: 2rem;
+            box-shadow: 0 24px 80px rgba(0,0,0,.4), 0 0 60px rgba(74,122,155,.08);
+            position: relative; overflow: hidden;
+            animation: heroCardFloat 5s ease-in-out infinite;
+        }
+        @keyframes heroCardFloat {
+            0%,100% { transform: translateY(0px); }
+            50%      { transform: translateY(-10px); }
+        }
+        .hero-card::before {
+            content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(138,180,200,.5), transparent);
+        }
+        .hero-card-icon {
+            width: 80px; height: 80px; border-radius: 20px; margin: 0 auto 1.2rem;
+            background: linear-gradient(135deg, rgba(74,122,155,.4), rgba(30,45,64,.8));
+            border: 1px solid rgba(138,180,200,.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: var(--sky);
+            box-shadow: 0 0 40px rgba(74,122,155,.25);
+            animation: iconGlow 3s ease-in-out infinite;
+        }
+        @keyframes iconGlow {
+            0%,100% { box-shadow: 0 0 30px rgba(74,122,155,.25); }
+            50%      { box-shadow: 0 0 50px rgba(74,122,155,.45); }
+        }
+        .hero-card h4 { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; color:#fff; text-align:center; margin-bottom:.4rem; }
+        .hero-card p  { font-size:.82rem; color:rgba(255,255,255,.45); text-align:center; margin:0; }
+
+        /* Mini stat pills on hero card */
+        .hero-stats { display:flex; gap:.7rem; flex-wrap:wrap; margin-top:1.5rem; justify-content:center; }
+        .hero-stat-pill {
+            background: rgba(74,122,155,.15); border: 1px solid rgba(74,122,155,.25);
+            border-radius: 10px; padding: .5rem .9rem; text-align:center;
+        }
+        .hero-stat-pill .n { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:800; color:var(--sky); }
+        .hero-stat-pill .l { font-size:.65rem; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.4px; }
+
+        /* ══ STATS BAND ══ */
+        .stats-band {
+            background: linear-gradient(135deg, var(--navy) 0%, rgba(74,122,155,.4) 100%);
+            border-top: 1px solid rgba(74,122,155,.2); border-bottom: 1px solid rgba(74,122,155,.2);
+            padding: 3.5rem 0;
+        }
+        .stat-item { text-align:center; }
+        .stat-num { font-family:'Syne',sans-serif; font-size:2.4rem; font-weight:800; color:#fff; line-height:1; }
+        .stat-lbl { font-size:.82rem; color:rgba(255,255,255,.5); margin-top:.3rem; }
+
+        /* ══ SECTION HEADER ══ */
+        .sec-header { text-align:center; margin-bottom:3.5rem; }
+        .sec-badge {
+            display:inline-block; background:rgba(74,122,155,.15);
+            border:1px solid rgba(74,122,155,.3); border-radius:20px;
+            padding:.28rem .9rem; font-size:.72rem; color:var(--sky);
+            font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:.9rem;
+        }
+        .sec-title {
+            font-family:'Syne',sans-serif; font-size:clamp(1.8rem,3.5vw,2.6rem);
+            font-weight:800; color:#fff; margin-bottom:.7rem; line-height:1.15;
+        }
+        .sec-sub { font-size:.95rem; color:rgba(255,255,255,.45); max-width:520px; margin:0 auto; }
+
+        /* ══ FEATURES ══ */
+        .features-section { padding: 6rem 0; }
+        .feature-card {
+            background: var(--glass); backdrop-filter:blur(16px);
+            border: 1px solid var(--border); border-radius: 18px;
+            padding: 1.8rem; height:100%;
+            transition: border-color .25s, transform .25s, box-shadow .25s;
+            position: relative; overflow: hidden;
+        }
+        .feature-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:2px;
+            background: linear-gradient(90deg, transparent, var(--steel), transparent);
+            transform: scaleX(0); transform-origin:left; transition: transform .3s;
+        }
+        .feature-card:hover::before { transform: scaleX(1); }
+        .feature-card:hover { border-color: rgba(74,122,155,.5); transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+        .feature-icon {
+            width:56px; height:56px; border-radius:14px; margin-bottom:1.2rem;
+            background: linear-gradient(135deg, rgba(74,122,155,.4), rgba(30,45,64,.8));
+            border: 1px solid rgba(74,122,155,.3);
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.3rem; color:var(--sky);
+            box-shadow: 0 0 20px rgba(74,122,155,.2);
+            transition: transform .3s, box-shadow .3s;
+        }
+        .feature-card:hover .feature-icon {
+            transform: scale(1.12) rotate(-4deg);
+            box-shadow: 0 0 30px rgba(74,122,155,.45);
+        }
+        .feature-card h5 { font-size:.98rem; font-weight:700; color:#fff; margin-bottom:.6rem; }
+        .feature-card p  { font-size:.83rem; color:rgba(255,255,255,.45); line-height:1.65; margin:0; }
+
+        /* ══ HOW IT WORKS ══ */
+        .hiw-section { padding: 6rem 0; }
+        .hiw-card {
+            background: var(--glass); backdrop-filter:blur(16px);
+            border: 1px solid var(--border); border-radius: 18px;
+            padding: 2rem 1.5rem; text-align:center; height:100%;
+            transition: border-color .25s, transform .25s;
+        }
+        .hiw-card:hover { border-color: rgba(74,122,155,.5); transform: translateY(-5px); }
+        .step-num {
+            width:52px; height:52px; border-radius:50%; margin:0 auto 1.2rem;
+            background: linear-gradient(135deg, var(--steel), var(--navy));
+            border: 1px solid rgba(138,180,200,.25);
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; color:#fff;
+            box-shadow: 0 0 24px rgba(74,122,155,.3);
+            transition: transform .3s, box-shadow .3s;
+        }
+        .hiw-card:hover .step-num {
+            transform: scale(1.15);
+            box-shadow: 0 0 40px rgba(74,122,155,.55);
+        }
+        .hiw-card h5 { font-size:.98rem; font-weight:700; color:#fff; margin-bottom:.6rem; }
+        .hiw-card p  { font-size:.83rem; color:rgba(255,255,255,.45); margin:0; line-height:1.65; }
+
+        /* Connector line */
+        .hiw-connector {
+            display:flex; align-items:center; justify-content:center;
+            padding-top:1.5rem;
+        }
+        .hiw-connector::after {
+            content:''; width:60px; height:1px;
+            background: linear-gradient(90deg, transparent, rgba(74,122,155,.5), transparent);
         }
 
-        .footer-links a:hover {
-            color: white;
+        /* ══ TESTIMONIALS ══ */
+        .testi-section { padding: 6rem 0; }
+        .testi-card {
+            background: var(--glass); backdrop-filter:blur(16px);
+            border: 1px solid var(--border); border-radius: 18px;
+            padding: 1.8rem; height:100%;
+            transition: border-color .25s, transform .25s;
+            position: relative;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .display-1 {
-                font-size: 2.5rem;
-            }
-            
-            .display-2 {
-                font-size: 2rem;
-            }
-            
-            .hero-section {
-                padding: 6rem 0 4rem;
-            }
+        .testi-card:hover { border-color: rgba(74,122,155,.5); transform: translateY(-4px); }
+        .testi-quote {
+            font-size:2.5rem; color:rgba(74,122,155,.3); font-family:serif;
+            line-height:1; margin-bottom:.5rem;
         }
-
-        /* Animation Classes */
-        .fade-in {
-            animation: fadeIn 1s ease-out;
+        .testi-text { font-size:.88rem; color:rgba(255,255,255,.6); line-height:1.7; margin-bottom:1.2rem; }
+        .testi-avatar {
+            width:42px; height:42px; border-radius:50%;
+            background: linear-gradient(135deg, var(--steel), var(--navy));
+            border: 1px solid rgba(138,180,200,.25);
+            display:flex; align-items:center; justify-content:center;
+            font-size:.95rem; font-weight:800; color:#fff; flex-shrink:0;
         }
+        .testi-name  { font-size:.88rem; font-weight:700; color:#fff; }
+        .testi-role  { font-size:.75rem; color:rgba(255,255,255,.4); }
+        .testi-stars { color:#c47c1a; font-size:.8rem; margin-bottom:.8rem; }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            
+        /* ══ CTA ══ */
+        .cta-section { padding: 6rem 0; }
+        .cta-box {
+            background: var(--glass); backdrop-filter:blur(20px);
+            border: 1px solid var(--border); border-radius: 24px;
+            padding: 4rem 2rem; text-align:center;
+            position:relative; overflow:hidden;
+            box-shadow: 0 0 80px rgba(74,122,155,.08);
+        }
+        .cta-box::before {
+            content:''; position:absolute; top:0; left:25%; right:25%; height:1px;
+            background: linear-gradient(90deg, transparent, rgba(138,180,200,.5), transparent);
+        }
+        .cta-box h2 { font-family:'Syne',sans-serif; font-size:clamp(1.6rem,3vw,2.4rem); font-weight:800; color:#fff; margin-bottom:.8rem; }
+        .cta-box p  { font-size:.95rem; color:rgba(255,255,255,.45); margin-bottom:2rem; }
+
+        /* ══ FOOTER ══ */
+        .footer {
+            background: rgba(5,13,26,.95); border-top: 1px solid rgba(74,122,155,.15);
+            padding: 4rem 0 2rem;
+        }
+        .footer-brand { display:flex; align-items:center; gap:.5rem; margin-bottom:.8rem; }
+        .footer-brand img { height:44px; width:auto; filter:drop-shadow(0 0 10px rgba(74,122,155,.35)); }
+        .footer-desc { font-size:.83rem; color:rgba(255,255,255,.35); line-height:1.65; margin-bottom:1.2rem; }
+        .footer-social a {
+            width:34px; height:34px; border-radius:8px;
+            border: 1px solid rgba(74,122,155,.3); color:rgba(255,255,255,.5);
+            display:inline-flex; align-items:center; justify-content:center;
+            font-size:.9rem; text-decoration:none; transition:all .18s; margin-right:.4rem;
+        }
+        .footer-social a:hover { border-color:var(--sky); color:#fff; background:rgba(74,122,155,.2); }
+        .footer-heading { font-size:.78rem; font-weight:700; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.5px; margin-bottom:1rem; }
+        .footer-link { display:block; font-size:.83rem; color:rgba(255,255,255,.35); text-decoration:none; margin-bottom:.45rem; transition:color .18s; }
+        .footer-link:hover { color:#fff; }
+        .footer-contact { font-size:.83rem; color:rgba(255,255,255,.35); margin-bottom:.45rem; display:flex; align-items:center; gap:.5rem; }
+        .footer-contact i { color:var(--steel); }
+        .footer-divider { border-color:rgba(74,122,155,.12); margin:2rem 0 1.5rem; }
+        .footer-copy { font-size:.78rem; color:rgba(255,255,255,.25); }
+        .footer-copy a { color:rgba(255,255,255,.35); text-decoration:none; }
+        .footer-copy a:hover { color:#fff; }
+
+        /* ══ Hero entrance animations ══ */
+        @keyframes heroFadeUp {
+            from { opacity:0; transform:translateY(30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .hero-badge  { animation: heroFadeUp .6s cubic-bezier(.22,1,.36,1) .1s both; }
+        .hero-title  { animation: heroFadeUp .6s cubic-bezier(.22,1,.36,1) .22s both; }
+        .hero-desc   { animation: heroFadeUp .6s cubic-bezier(.22,1,.36,1) .34s both; }
+        .hero-btns   { animation: heroFadeUp .6s cubic-bezier(.22,1,.36,1) .46s both; }
+        .trust-row   { animation: heroFadeUp .6s cubic-bezier(.22,1,.36,1) .58s both; }
+
+        /* ══ Scroll reveal ══ */
+        .reveal { opacity:0; transform:translateY(24px); transition:opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1); }
+        .reveal.visible { opacity:1; transform:translateY(0); }
+        /* stagger children */
+        .reveal-stagger > * { opacity:0; transform:translateY(20px); transition:opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1); }
+        .reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:.05s; }
+        .reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:.15s; }
+        .reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:.25s; }
+        .reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:translateY(0); transition-delay:.35s; }
+        .reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:translateY(0); transition-delay:.45s; }
+        .reveal-stagger.visible > *:nth-child(6) { opacity:1; transform:translateY(0); transition-delay:.55s; }
+
+        /* ══ Responsive ══ */
+        @media(max-width:768px) {
+            .hero { padding: 6rem 0 4rem; }
+            .hero-title { font-size:2.2rem; }
+            .stats-band .stat-num { font-size:1.8rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNavbar">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center logo" href="#">
-                {% if APP_LOGO_IMAGE %}
-                    {% if 'static' in APP_LOGO_IMAGE %}
-                        <img src="{{ APP_LOGO_IMAGE }}" alt="{{ APP_NAME }} logo" style="height:48px; width:auto; margin-left:8px;">
-                    {% else %}
-                        <img src="{% static APP_LOGO_IMAGE %}" alt="{{ APP_NAME }} logo" style="height:48px; width:auto; margin-left:8px;">
-                    {% endif %}
-                {% else %}
-                    <span>{{ APP_NAME }}</span>
-                {% endif %}
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold active" href="#home">Home</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="{% url 'user:services_list' %}">Services</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="#how-it-works">How It Works</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="#testimonials">Testimonials</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold" href="#contact">Contact</a>
-                    </li>
-                </ul>
-                
-                <div class="d-flex gap-2">
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary rounded-pill px-4">Login</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary rounded-pill px-4">Get Started</a>
-                </div>
+
+<!-- Background -->
+<div class="bg-canvas"></div>
+<div class="grid-overlay"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar" id="mainNavbar">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/planify_logo.png' %}" alt="Planify.Ai">
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+                style="color:rgba(255,255,255,.6);">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navContent">
+            <ul class="navbar-nav mx-auto gap-1">
+                <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'user:services_list' %}">Services</a></li>
+                <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+                <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+            <div class="d-flex gap-2 mt-3 mt-lg-0">
+                <a href="{% url 'login' %}" class="btn-nav-login">Login</a>
+                <a href="{% url 'register' %}" class="btn-nav-start">Get Started</a>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- Hero Section -->
-    <section class="hero-section" id="home">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1 class="display-1 mb-4 fade-in">
-                        Simplify Your <span class="gradient-text">Event Planning</span>
-                    </h1>
-                    
-                    <p class="lead text-gray mb-5 fade-in">
-                        {{ APP_NAME }} provides powerful tools to manage guest lists, coordinate with vendors, 
-                        and execute flawless events. Focus on creating memorable experiences while we handle the details.
-                    </p>
-                    
-                    <div class="d-flex flex-wrap gap-3 mb-5 fade-in">
-                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg rounded-pill px-5">
-                            Get Started <i class="bi bi-arrow-right ms-2"></i>
-                        </a>
-                        <a href="#features" class="btn btn-outline-primary btn-lg rounded-pill px-5">
-                            Explore Features
-                        </a>
-                        <a href="{% url 'user:services_list' %}" class="btn btn-outline-primary btn-lg rounded-pill px-5">
-                            Explore Services
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-6">
-                    <div class="position-relative mt-5 mt-lg-0 fade-in">
-                        <!-- Hero Illustration -->
-                        <div class="position-relative">
-                            <div class="bg-primary-light rounded-4 p-5 shadow-soft">
-                                <div class="text-center">
-                                    <i class="bi bi-calendar-heart text-primary" style="font-size: 8rem;"></i>
-                                    <h4 class="mt-4 fw-semibold">All-in-One Event Management</h4>
-                                    <p class="text-gray mt-2 mb-0">From planning to execution</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats Section -->
-    <section class="stats-section">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stat-number">1,250+</div>
-                    <div class="stat-label">Events Planned</div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stat-number">450+</div>
-                    <div class="stat-label">Verified Vendors</div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stat-number">98%</div>
-                    <div class="stat-label">Client Satisfaction</div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Support Available</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="py-5 my-5" id="features">
-        <div class="container">
-            <div class="row justify-content-center mb-5">
-                <div class="col-lg-8 text-center">
-                    <h2 class="display-2 mb-4">Powerful Event Management Tools</h2>
-                    <p class="lead text-gray">Everything you need to plan and execute successful events</p>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card shadow-hover">
-                        <div class="feature-icon">
-                            <i class="bi bi-people-fill"></i>
-                        </div>
-                        <h4 class="fw-semibold mb-3">Guest Management</h4>
-                        <p class="text-gray mb-0">Track RSVPs, manage seating arrangements, and communicate with guests seamlessly.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card shadow-hover">
-                        <div class="feature-icon">
-                            <i class="bi bi-shop"></i>
-                        </div>
-                        <h4 class="fw-semibold mb-3">Vendor Coordination</h4>
-                        <p class="text-gray mb-0">Connect with verified vendors for catering, photography, and entertainment services.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card shadow-hover">
-                        <div class="feature-icon">
-                            <i class="bi bi-calendar-check"></i>
-                        </div>
-                        <h4 class="fw-semibold mb-3">Event Timeline</h4>
-                        <p class="text-gray mb-0">Create detailed schedules with automatic reminders and real-time updates.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card shadow-hover">
-                        <div class="feature-icon">
-                            <i class="bi bi-credit-card"></i>
-                        </div>
-                        <h4 class="fw-semibold mb-3">Budget Tracking</h4>
-                        <p class="text-gray mb-0">Monitor expenses and manage budgets with detailed financial insights.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card shadow-hover">
-                        <div class="feature-icon">
-                            <i class="bi bi-phone"></i>
-                        </div>
-                        <h4 class="fw-semibold mb-3">Mobile Access</h4>
-                        <p class="text-gray mb-0">Manage your events on the go with our intuitive mobile applications.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card shadow-hover">
-                        <div class="feature-icon">
-                            <i class="bi bi-shield-check"></i>
-                        </div>
-                        <h4 class="fw-semibold mb-3">Secure Platform</h4>
-                        <p class="text-gray mb-0">Enterprise-grade security with reliable performance for all your events.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section class="py-5 my-5 bg-light" id="how-it-works">
-        <div class="container">
-            <div class="row justify-content-center mb-5">
-                <div class="col-lg-8 text-center">
-                    <h2 class="display-2 mb-4">How It Works</h2>
-                    <p class="lead text-gray">Get started in three simple steps</p>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="step-card shadow-hover">
-                        <div class="step-number">1</div>
-                        <h4 class="fw-semibold mb-3">Create Your Event</h4>
-                        <p class="text-gray mb-0">Set up your event details, choose date and time, and define your requirements.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="step-card shadow-hover">
-                        <div class="step-number">2</div>
-                        <h4 class="fw-semibold mb-3">Manage Details</h4>
-                        <p class="text-gray mb-0">Add guests, coordinate with vendors, and track your budget all in one place.</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="step-card shadow-hover">
-                        <div class="step-number">3</div>
-                        <h4 class="fw-semibold mb-3">Execute & Follow Up</h4>
-                        <p class="text-gray mb-0">Run your event smoothly and gather feedback for continuous improvement.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="py-5 my-5" id="testimonials">
-        <div class="container">
-            <div class="row justify-content-center mb-5">
-                <div class="col-lg-8 text-center">
-                    <h2 class="display-2 mb-4">What Our Users Say</h2>
-                    <p class="lead text-gray">Join thousands of satisfied event planners</p>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="testimonial-card shadow-soft">
-                        <p class="mb-4">"{{ APP_NAME }} has revolutionized how we manage our corporate events. The platform is intuitive and saves us countless hours."</p>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="rounded-circle bg-primary-light" style="width: 50px; height: 50px;"></div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-0">Michael Chen</h6>
-                                <small class="text-gray">Event Director</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="testimonial-card shadow-soft">
-                        <p class="mb-4">"The guest management features are exceptional. Our wedding clients love the seamless RSVP experience."</p>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="rounded-circle bg-primary-light" style="width: 50px; height: 50px;"></div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-0">Sarah Johnson</h6>
-                                <small class="text-gray">Wedding Planner</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="testimonial-card shadow-soft">
-                        <p class="mb-4">"As a small event business, this platform gave us the tools to compete with larger agencies. Highly recommended!"</p>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="rounded-circle bg-primary-light" style="width: 50px; height: 50px;"></div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-0">Emma Rodriguez</h6>
-                                <small class="text-gray">Event Coordinator</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section my-5" id="contact">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h2 class="display-2 mb-4">Ready to Transform Your Event Planning?</h2>
-                    <p class="lead text-gray mb-5">Join our community of professional event planners today</p>
-                    
-                    <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
-                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg rounded-pill px-5">
-                            Create Free Account <i class="bi bi-arrow-right ms-2"></i>
-                        </a>
-                        <a href="#features" class="btn btn-outline-primary btn-lg rounded-pill px-5">
-                            Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row g-5">
-                <div class="col-lg-4">
-                    <a class="navbar-brand d-flex align-items-center mb-4" href="#">
-                        <i class="bi bi-calendar2-heart-fill me-2"></i>
-                        <span>{{ APP_NAME }}</span>
+<!-- ══ HERO ══ -->
+<section class="hero" id="home">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="hero-badge"><i class="bi bi-stars"></i> AI-Powered Event Platform</div>
+                <h1 class="hero-title">
+                    Simplify Your<br><span class="grad">Event Planning</span>
+                </h1>
+                <p class="hero-desc">
+                    {{ APP_NAME }} provides powerful tools to manage guest lists, coordinate with vendors,
+                    and execute flawless events. Focus on creating memorable experiences while we handle the details.
+                </p>
+                <div class="hero-btns">
+                    <a href="{% url 'register' %}" class="btn-hero-primary">
+                        Get Started <i class="bi bi-arrow-right"></i>
                     </a>
-                    <p class="mb-4" style="color: #cbd5e1;">
-                        Professional event planning tools for creating memorable experiences. Simplify your workflow and focus on what matters most.
-                    </p>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="btn btn-outline-light rounded-circle p-2">
-                            <i class="bi bi-twitter"></i>
-                        </a>
-                        <a href="#" class="btn btn-outline-light rounded-circle p-2">
-                            <i class="bi bi-facebook"></i>
-                        </a>
-                        <a href="#" class="btn btn-outline-light rounded-circle p-2">
-                            <i class="bi bi-instagram"></i>
-                        </a>
-                        <a href="#" class="btn btn-outline-light rounded-circle p-2">
-                            <i class="bi bi-linkedin"></i>
-                        </a>
-                    </div>
+                    <a href="#features" class="btn-hero-outline">
+                        <i class="bi bi-play-circle"></i> Explore Features
+                    </a>
+                    <a href="{% url 'user:services_list' %}" class="btn-hero-outline">
+                        <i class="bi bi-shop"></i> Browse Services
+                    </a>
                 </div>
-                
-                <div class="col-lg-2 col-md-4">
-                    <h5 class="text-white mb-4">Product</h5>
-                    <div class="footer-links">
-                        <a href="#features">Features</a>
-                        <a href="#how-it-works">How It Works</a>
-                        <a href="#testimonials">Testimonials</a>
-                        <a href="{% url 'login' %}">Login</a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-4">
-                    <h5 class="text-white mb-4">Company</h5>
-                    <div class="footer-links">
-                        <a href="#">About Us</a>
-                        <a href="#">Blog</a>
-                        <a href="#">Careers</a>
-                        <a href="#">Contact</a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-4">
-                    <h5 class="text-white mb-4">Contact</h5>
-                    <div class="footer-links">
-                        <p style="color: #cbd5e1;">
-                            <i class="bi bi-envelope me-2"></i> hello@{{ APP_NAME|lower  }}.com
-                        </p>
-                        <p style="color: #cbd5e1;">
-                            <i class="bi bi-telephone me-2"></i> (555) 123-4567
-                        </p>
-                        <p style="color: #cbd5e1;">
-                            <i class="bi bi-geo-alt me-2"></i> 123 Event Street
-                        </p>
-                    </div>
+                <div class="trust-row">
+                    <div class="trust-item"><i class="bi bi-shield-check"></i> Secure Platform</div>
+                    <div class="trust-item"><i class="bi bi-lightning-charge"></i> Fast Setup</div>
+                    <div class="trust-item"><i class="bi bi-headset"></i> 24/7 Support</div>
                 </div>
             </div>
-            
-            <hr class="my-5" style="border-color: rgba(255,255,255,0.1);">
-            
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="mb-0" style="color: #94a3b8;">
-                        &copy; 2023 {{ APP_NAME }}. All rights reserved.
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="#" class="text-decoration-none me-3" style="color: #94a3b8;">Privacy Policy</a>
-                    <a href="#" class="text-decoration-none" style="color: #94a3b8;">Terms of Service</a>
+            <div class="col-lg-6">
+                <div class="hero-card reveal">
+                    <div class="hero-card-icon">
+                        <i class="bi bi-calendar-heart"></i>
+                    </div>
+                    <h4>All-in-One Event Management</h4>
+                    <p>From planning to flawless execution</p>
+                    <div class="hero-stats">
+                        <div class="hero-stat-pill">
+                            <div class="n">1,250+</div>
+                            <div class="l">Events</div>
+                        </div>
+                        <div class="hero-stat-pill">
+                            <div class="n">450+</div>
+                            <div class="l">Vendors</div>
+                        </div>
+                        <div class="hero-stat-pill">
+                            <div class="n">98%</div>
+                            <div class="l">Satisfaction</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('mainNavbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('navbar-scrolled');
-            } else {
-                navbar.classList.remove('navbar-scrolled');
+<!-- ══ STATS BAND ══ -->
+<div class="stats-band reveal">
+    <div class="container">
+        <div class="row g-4 text-center reveal-stagger">
+            <div class="col-6 col-md-3">
+                <div class="stat-num">1,250+</div>
+                <div class="stat-lbl">Events Planned</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-num">450+</div>
+                <div class="stat-lbl">Verified Vendors</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-num">98%</div>
+                <div class="stat-lbl">Client Satisfaction</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-num">24/7</div>
+                <div class="stat-lbl">Support Available</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section class="features-section" id="features">
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-badge">Features</div>
+            <h2 class="sec-title">Powerful Event Management Tools</h2>
+            <p class="sec-sub">Everything you need to plan and execute successful events</p>
+        </div>
+        <div class="row g-4 reveal-stagger">
+            {% for feat in features_list %}
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi {{ feat.icon }}"></i></div>
+                    <h5>{{ feat.title }}</h5>
+                    <p>{{ feat.desc }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-6 col-lg-4"><div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
+                <h5>Guest Management</h5>
+                <p>Track RSVPs, manage seating arrangements, and communicate with guests seamlessly.</p>
+            </div></div>
+            <div class="col-md-6 col-lg-4"><div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-shop"></i></div>
+                <h5>Vendor Coordination</h5>
+                <p>Connect with verified vendors for catering, photography, and entertainment services.</p>
+            </div></div>
+            <div class="col-md-6 col-lg-4"><div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-calendar-check"></i></div>
+                <h5>Event Timeline</h5>
+                <p>Create detailed schedules with automatic reminders and real-time updates.</p>
+            </div></div>
+            <div class="col-md-6 col-lg-4"><div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-credit-card"></i></div>
+                <h5>Budget Tracking</h5>
+                <p>Monitor expenses and manage budgets with detailed financial insights.</p>
+            </div></div>
+            <div class="col-md-6 col-lg-4"><div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-chat-dots"></i></div>
+                <h5>Real-time Chat</h5>
+                <p>Communicate directly with vendors and guests through built-in messaging.</p>
+            </div></div>
+            <div class="col-md-6 col-lg-4"><div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                <h5>Secure Platform</h5>
+                <p>Enterprise-grade security with reliable performance for all your events.</p>
+            </div></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="hiw-section" id="how-it-works">
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-badge">Process</div>
+            <h2 class="sec-title">How It Works</h2>
+            <p class="sec-sub">Get started in three simple steps</p>
+        </div>
+        <div class="row g-4 reveal-stagger">
+            <div class="col-md-4">
+                <div class="hiw-card">
+                    <div class="step-num">1</div>
+                    <h5>Create Your Event</h5>
+                    <p>Set up your event details, choose date and time, and define your requirements.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hiw-card">
+                    <div class="step-num">2</div>
+                    <h5>Manage Details</h5>
+                    <p>Add guests, coordinate with vendors, and track your budget all in one place.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hiw-card">
+                    <div class="step-num">3</div>
+                    <h5>Execute & Follow Up</h5>
+                    <p>Run your event smoothly and gather feedback for continuous improvement.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section class="testi-section" id="testimonials">
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-badge">Testimonials</div>
+            <h2 class="sec-title">What Our Users Say</h2>
+            <p class="sec-sub">Join thousands of satisfied event planners</p>
+        </div>
+        <div class="row g-4 reveal-stagger">
+            <div class="col-md-4">
+                <div class="testi-card">
+                    <div class="testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                    <p class="testi-text">"{{ APP_NAME }} has revolutionized how we manage our corporate events. The platform is intuitive and saves us countless hours."</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="testi-avatar">M</div>
+                        <div>
+                            <div class="testi-name">Michael Chen</div>
+                            <div class="testi-role">Event Director</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testi-card">
+                    <div class="testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                    <p class="testi-text">"The guest management features are exceptional. Our wedding clients love the seamless RSVP experience."</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="testi-avatar">S</div>
+                        <div>
+                            <div class="testi-name">Sarah Johnson</div>
+                            <div class="testi-role">Wedding Planner</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testi-card">
+                    <div class="testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
+                    <p class="testi-text">"As a small event business, this platform gave us the tools to compete with larger agencies. Highly recommended!"</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="testi-avatar">E</div>
+                        <div>
+                            <div class="testi-name">Emma Rodriguez</div>
+                            <div class="testi-role">Event Coordinator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta-section" id="contact">
+    <div class="container">
+        <div class="cta-box reveal">
+            <div class="sec-badge" style="margin-bottom:1.2rem;">Ready to Start?</div>
+            <h2>Transform Your Event Planning Today</h2>
+            <p>Join our community of professional event planners</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{% url 'register' %}" class="btn-hero-primary">
+                    Create Free Account <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="#features" class="btn-hero-outline">Learn More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <div class="footer-brand">
+                    <img src="{% static 'images/planify_logo.png' %}" alt="Planify.Ai">
+                </div>
+                <p class="footer-desc">Professional event planning tools for creating memorable experiences. Simplify your workflow and focus on what matters most.</p>
+                <div class="footer-social">
+                    <a href="#"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <div class="footer-heading">Product</div>
+                <a href="#features" class="footer-link">Features</a>
+                <a href="#how-it-works" class="footer-link">How It Works</a>
+                <a href="#testimonials" class="footer-link">Testimonials</a>
+                <a href="{% url 'login' %}" class="footer-link">Login</a>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <div class="footer-heading">Company</div>
+                <a href="#" class="footer-link">About Us</a>
+                <a href="#" class="footer-link">Blog</a>
+                <a href="#" class="footer-link">Careers</a>
+                <a href="#contact" class="footer-link">Contact</a>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <div class="footer-heading">Contact</div>
+                <div class="footer-contact"><i class="bi bi-envelope"></i> hello@planify.ai</div>
+                <div class="footer-contact"><i class="bi bi-telephone"></i> (555) 123-4567</div>
+                <div class="footer-contact"><i class="bi bi-geo-alt"></i> 123 Event Street</div>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <p class="footer-copy mb-0">&copy; 2026 {{ APP_NAME }}. All rights reserved.</p>
+            <div class="footer-copy">
+                <a href="#" class="me-3">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Navbar scroll
+    window.addEventListener('scroll', function () {
+        document.getElementById('mainNavbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            const id = this.getAttribute('href');
+            if (id === '#') return;
+            const el = document.querySelector(id);
+            if (el) { e.preventDefault(); window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' }); }
+        });
+    });
+
+    // Scroll reveal — trigger early so no blank gaps
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
             }
         });
-
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+    }, { threshold: 0.05, rootMargin: '0px 0px 60px 0px' });
+    document.querySelectorAll('.reveal, .reveal-stagger').forEach(function (el) {
+        observer.observe(el);
+    });
+    // Immediately reveal anything already in viewport on load
+    setTimeout(function() {
+        document.querySelectorAll('.reveal, .reveal-stagger').forEach(function(el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight + 100) {
+                el.classList.add('visible');
+            }
         });
+    }, 100);
 
-        // Add animation on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('fade-in');
-                }
-            });
-        }, observerOptions);
-
-        // Observe elements for animation
-        document.querySelectorAll('.feature-card, .step-card, .testimonial-card').forEach(el => {
-            observer.observe(el);
+    // Counter animation for stats band numbers
+    function animateCounter(el) {
+        const text = el.textContent.trim();
+        const num = parseFloat(text.replace(/[^0-9.]/g, ''));
+        if (isNaN(num)) return;
+        const suffix = text.replace(/[0-9.]/g, '');
+        const duration = 1800;
+        const start = performance.now();
+        function step(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(eased * num * 10) / 10;
+            el.textContent = (Number.isInteger(num) ? Math.round(current) : current.toFixed(1)) + suffix;
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+    const counterObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.querySelectorAll('.stat-num').forEach(animateCounter);
+                counterObserver.unobserve(entry.target);
+            }
         });
-    </script>
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.stats-band').forEach(function(el) { counterObserver.observe(el); });
+</script>
 </body>
 </html>

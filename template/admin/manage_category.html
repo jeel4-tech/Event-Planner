@@ -1,49 +1,131 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}Manage Categories{% endblock %}
 
 {% block content %}
-<div class="event-card">
-    <h4 class="mb-3">Manage Categories</h4>
-    <a href="{% url 'add_category' %}" class="btn btn-primary mb-3">
-        <i class="bi bi-plus-lg me-1"></i> Add New Category
-    </a>
-    
+<style>
+/* ── Page header ── */
+.page-title { font-size: 1.35rem; font-weight: 800; color: #1E2D40; margin-bottom: .2rem; }
+.page-sub   { font-size: .82rem; color: #4a6278; }
 
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for category in categories %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ category.name }}</td>
-                <td>
-                    <span class="badge bg-secondary">
-                        {{ category.name }}
-                    </span>
-                </td>
-                <td class="text-center">
-                    <a href="{% url 'admin_view_category' category.id %}" class="btn btn-sm btn-info">View</a>
-                    <form method="post" action="{% url 'admin_delete_category' category.id %}" style="display:inline" onsubmit="return confirm('Are you sure?')">
-                        {% csrf_token %}
-                        <button class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">
-                    No categories found
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+/* ── Add button ── */
+a.btn-add-cat {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: linear-gradient(135deg,#1E2D40,#4A7A9B);
+    color: #fff; font-size: .85rem; font-weight: 600;
+    padding: .48rem 1.1rem; border-radius: 9px;
+    text-decoration: none; border: none;
+    transition: opacity .18s, transform .18s;
+}
+a.btn-add-cat:hover { opacity: .88; transform: translateY(-1px); color: #fff; }
+
+/* ── Table panel ── */
+.table-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; overflow: hidden;
+}
+.table thead th {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #4a6278;
+    background: #d6e8f2 !important; border-bottom: 2px solid #ccdde8 !important;
+    padding: .72rem 1.1rem;
+}
+.table td {
+    vertical-align: middle; font-size: .87rem; color: #1E2D40;
+    border-color: #e4eff5 !important; padding: .82rem 1.1rem;
+}
+.table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+
+/* ── Row number ── */
+.row-num { font-weight: 700; color: #8AB4C8; font-size: .82rem; }
+
+/* ── Category badge ── */
+.cat-badge {
+    display: inline-block; background: #ddeaf3; color: #1E2D40;
+    font-size: .73rem; font-weight: 700; padding: .22rem .75rem;
+    border-radius: 20px; border: 1px solid #ccdde8; letter-spacing: .2px;
+}
+
+/* ── Action buttons ── */
+a.btn-view-cat {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: #4A7A9B; color: #fff; font-size: .78rem; font-weight: 600;
+    padding: .28rem .75rem; border-radius: 7px; text-decoration: none;
+    transition: background .16s;
+}
+a.btn-view-cat:hover { background: #1E2D40; color: #fff; }
+
+button.btn-del-cat {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: transparent; color: #c0392b; font-size: .78rem; font-weight: 600;
+    padding: .28rem .75rem; border-radius: 7px;
+    border: 1.5px solid #c0392b; cursor: pointer;
+    transition: background .16s, color .16s;
+}
+button.btn-del-cat:hover { background: #c0392b; color: #fff; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-state i { font-size: 2.4rem; color: #8AB4C8; display: block; margin-bottom: .7rem; }
+.empty-state p { color: #4a6278; font-size: .88rem; margin: 0; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <div class="page-title">
+            <i class="bi bi-tags me-2" style="color:#4A7A9B;"></i>Manage Categories
+        </div>
+        <div class="page-sub">All event categories on the platform</div>
+    </div>
+    <a href="{% url 'add_category' %}" class="btn-add-cat">
+        <i class="bi bi-plus-lg"></i> Add New Category
+    </a>
+</div>
+
+<!-- Table -->
+<div class="table-panel">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width:60px;">#</th>
+                    <th>Name</th>
+                    <th>Tag</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td><span class="row-num">{{ forloop.counter }}</span></td>
+                    <td style="font-weight:700;">{{ category.name }}</td>
+                    <td><span class="cat-badge">{{ category.name }}</span></td>
+                    <td class="text-center">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'admin_view_category' category.id %}" class="btn-view-cat">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <form method="post" action="{% url 'admin_delete_category' category.id %}" class="d-inline" onsubmit="return confirm('Delete this category?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-del-cat">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="bi bi-tags"></i>
+                            <p>No categories found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

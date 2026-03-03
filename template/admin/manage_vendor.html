@@ -1,257 +1,234 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}Manage Vendors{% endblock %}
 
 {% block content %}
-
-<!-- Page Header -->
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-1">Manage Vendors</h4>
-        <p class="text-muted small mb-0">
-            <i class="bi bi-shop me-1"></i>Total Vendors: {{ vendors|length }}
-        </p>
-    </div>
-    <div class="d-flex gap-2">
-        <div class="input-group" style="width: 250px;">
-            <span class="input-group-text bg-white border-end-0">
-                <i class="bi bi-search text-muted"></i>
-            </span>
-            <input type="text" class="form-control border-start-0" placeholder="Search vendors..." id="searchInput">
-        </div>
-        <button class="btn btn-primary" onclick="exportTable()">
-            <i class="bi bi-download me-1"></i>Export
-        </button>
-    </div>
-</div>
-
-<!-- Filter Tabs -->
-<ul class="nav nav-pills mb-3" id="vendorTabs">
-    <li class="nav-item">
-        <button class="nav-link active" onclick="filterVendors('all')">
-            All <span class="badge bg-secondary ms-1">{{ vendors|length }}</span>
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" onclick="filterVendors('pending')">
-            Pending Approval
-            <span class="badge bg-warning text-dark ms-1" id="pendingCount"></span>
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" onclick="filterVendors('active')">
-            Active <span class="badge bg-success ms-1" id="activeCount"></span>
-        </button>
-    </li>
-</ul>
-
-<!-- Vendors Table Card -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-1">Vendor List</h5>
-            <p class="text-muted small mb-0">Manage and view all registered vendors</p>
-        </div>
-        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-            <i class="bi bi-shop me-1"></i>{{ vendors|length }} Total
-        </span>
-    </div>
-    
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="vendorsTable">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4" width="80">#ID</th>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if vendors %}
-                        {% for vendor in vendors %}
-                            <tr data-status="{% if vendor.is_active %}active{% else %}pending{% endif %}">
-                                <td class="ps-4">
-                                    <span class="fw-medium text-primary">{{ forloop.counter }}</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-circle bg-success bg-opacity-10 me-3">
-                                            <span class="text-success fw-bold">{{ vendor.fullname|first|upper }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="fw-semibold d-block">{{ vendor.fullname }}</span>
-                                            <small class="text-muted">{{ vendor.email }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar me-1"></i>{{ vendor.created_at|date:"d M Y" }}
-                                    </small>
-                                </td>
-                                <td>
-                                    {% if vendor.is_active %}
-                                        <span class="badge bg-success px-3 py-2">
-                                            <i class="bi bi-check-circle me-1"></i>Active
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark px-3 py-2">
-                                            <i class="bi bi-clock me-1"></i>Pending
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-end pe-4">
-                                    <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                        <a href="{% url 'admin_view_vendor' vendor.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
-                                            <i class="bi bi-eye me-1"></i>View
-                                        </a>
-                                        {% if not vendor.is_active %}
-                                        <form method="post" action="{% url 'activate_vendor' vendor.id %}" style="display:inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="approve">
-                                            <button type="submit" class="btn btn-sm btn-success" title="Approve Vendor"
-                                                    onclick="return confirm('Approve {{ vendor.fullname }} as a vendor?')">
-                                                <i class="bi bi-check-circle me-1"></i>Approve
-                                            </button>
-                                        </form>
-                                        {% else %}
-                                        <form method="post" action="{% url 'activate_vendor' vendor.id %}" style="display:inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="deactivate">
-                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate Vendor"
-                                                    onclick="return confirm('Deactivate {{ vendor.fullname }}?')">
-                                                <i class="bi bi-pause-circle me-1"></i>Deactivate
-                                            </button>
-                                        </form>
-                                        {% endif %}
-                                        <form method="post" action="{% url 'admin_delete_user' vendor.id %}" style="display:inline"
-                                              onsubmit="return confirm('Delete {{ vendor.fullname }}?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Vendor">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="bi bi-shop display-1 text-muted mb-3"></i>
-                                    <h6 class="text-muted">No Vendors Found</h6>
-                                    <p class="text-muted small">There are no vendors in the system yet.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Add Bootstrap Icons if not already included -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
 <style>
-    .avatar-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        font-weight: 600;
-    }
-    
-    .card {
-        border-radius: 15px;
-        overflow: hidden;
-    }
-    
-    .table thead th {
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #64748b;
-        border-bottom-width: 1px;
-    }
-    
-    .table td {
-        vertical-align: middle;
-        padding: 1rem 0.5rem;
-    }
-    
-    .btn-group .btn {
-        padding: 0.4rem 0.8rem;
-    }
-    
-    .btn-group .btn:first-child {
-        border-radius: 8px 0 0 8px;
-    }
-    
-    .btn-group .btn:last-child {
-        border-radius: 0 8px 8px 0;
-    }
-    
-    .empty-state {
-        padding: 3rem;
-    }
-    
-    /* Hover effect on rows */
-    tbody tr:hover {
-        background-color: #f8fafc;
-        transition: background-color 0.2s ease;
-    }
-    
-    /* Search input styling */
-    .input-group-text {
-        background: white;
-        border-radius: 10px 0 0 10px;
-    }
-    
-    .form-control {
-        border-radius: 0 10px 10px 0;
-    }
-    
-    .form-control:focus {
-        box-shadow: none;
-        border-color: #dee2e6;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-        
-        .btn-group .btn {
-            border-radius: 8px !important;
-        }
-        
-        .avatar-circle {
-            width: 35px;
-            height: 35px;
-            font-size: 0.9rem;
-        }
-        
-        .table td {
-            padding: 0.75rem 0.5rem;
-        }
-    }
+/* ── Filter tabs ── */
+.filter-tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+button.ftab {
+    border-radius: 8px; font-size: .82rem; font-weight: 600;
+    padding: .38rem 1rem; cursor: pointer; transition: all .18s;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B; background: transparent;
+}
+button.ftab.active, button.ftab:hover { background: #4A7A9B; color: #fff; }
+.ftab-badge {
+    display: inline-block; border-radius: 20px; font-size: .65rem;
+    font-weight: 700; padding: .1rem .5rem; margin-left: .3rem;
+    background: rgba(255,255,255,.25);
+}
+button.ftab:not(.active) .ftab-badge { background: #ddeaf3; color: #4A7A9B; }
+
+/* ── Table panel ── */
+.table-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; overflow: hidden;
+}
+.table-panel-head {
+    background: #e4eff5; border-bottom: 1px solid #ccdde8;
+    padding: .9rem 1.3rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.table-panel-head h5 { font-size: .95rem; font-weight: 700; color: #1E2D40; margin: 0; }
+.table-panel-head p  { font-size: .75rem; color: #4a6278; margin: .1rem 0 0; }
+.total-pill {
+    background: #ddeaf3; color: #4A7A9B;
+    border-radius: 20px; font-size: .72rem; font-weight: 700;
+    padding: .25rem .85rem; display: inline-flex; align-items: center; gap: .3rem;
+    white-space: nowrap;
+}
+
+/* ── Table ── */
+.table thead th {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #4a6278;
+    background: #d6e8f2 !important; border-bottom: 2px solid #ccdde8 !important;
+    padding: .75rem 1rem;
+}
+.table td { vertical-align: middle; font-size: .88rem; color: #1E2D40; border-color: #e4eff5 !important; padding: .8rem 1rem; }
+.table tbody tr { transition: background .15s; }
+.table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+
+/* ── Avatar ── */
+.vendor-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #ddeaf3; color: #4A7A9B;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; font-weight: 700; flex-shrink: 0;
+}
+
+/* ── Row number ── */
+.row-num { font-weight: 700; color: #4A7A9B; font-size: .85rem; }
+
+/* ── Status badges ── */
+.s-active  { background: #d6f0e4; color: #2d8a5e; border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .22rem .8rem; display: inline-flex; align-items: center; gap: .3rem; }
+.s-pending { background: #fef3dc; color: #c47c1a; border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .22rem .8rem; display: inline-flex; align-items: center; gap: .3rem; }
+
+/* ── Action buttons ── */
+.btn-act { border-radius: 7px; font-size: .78rem; font-weight: 600; padding: .3rem .72rem; border: 1.5px solid; cursor: pointer; transition: all .18s; display: inline-flex; align-items: center; gap: .3rem; text-decoration: none; }
+.btn-view-v    { border-color: #8AB4C8; color: #4A7A9B; background: transparent; }
+.btn-view-v:hover   { background: #4A7A9B; color: #fff; border-color: #4A7A9B; }
+.btn-approve   { border-color: #2d8a5e; color: #2d8a5e; background: transparent; }
+.btn-approve:hover  { background: #2d8a5e; color: #fff; }
+.btn-deactivate{ border-color: #c47c1a; color: #c47c1a; background: transparent; }
+.btn-deactivate:hover{ background: #c47c1a; color: #fff; }
+.btn-delete    { border-color: #c0392b; color: #c0392b; background: transparent; }
+.btn-delete:hover   { background: #c0392b; color: #fff; }
+
+/* ── Search bar ── */
+.search-wrap { position: relative; width: 240px; }
+.search-wrap i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: #8AB4C8; font-size: .9rem; pointer-events: none; }
+.search-wrap input {
+    width: 100%; padding: .42rem .9rem .42rem 2.2rem;
+    border: 1.5px solid #ccdde8; border-radius: 9px;
+    background: #f5f9fc; color: #1E2D40; font-size: .85rem;
+    outline: none; transition: border-color .18s;
+}
+.search-wrap input:focus { border-color: #4A7A9B; }
+.search-wrap input::placeholder { color: #8AB4C8; }
+
+/* ── Export button ── */
+button.btn-export {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: 9px; padding: .42rem 1rem;
+    background: linear-gradient(135deg, #4A7A9B, #1E2D40);
+    color: #fff; border: none; font-size: .83rem; font-weight: 600;
+    cursor: pointer; transition: all .18s;
+}
+button.btn-export:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(30,45,64,.22); }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-state i { font-size: 2.5rem; color: #8AB4C8; display: block; margin-bottom: .75rem; }
+.empty-state p { color: #4a6278; font-size: .88rem; margin: 0; }
 </style>
 
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:#1E2D40;margin-bottom:.2rem;">Manage Vendors</h4>
+        <p style="font-size:.82rem;color:#4a6278;margin:0;">
+            <i class="bi bi-shop me-1" style="color:#4A7A9B;"></i>Total Vendors: {{ vendors|length }}
+        </p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search vendors..." id="searchInput">
+        </div>
+        <button class="btn-export" onclick="exportTable()">
+            <i class="bi bi-download"></i> Export
+        </button>
+    </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="filter-tabs">
+    <button class="ftab active" onclick="filterVendors('all', this)">
+        All <span class="ftab-badge" id="allCount">{{ vendors|length }}</span>
+    </button>
+    <button class="ftab" onclick="filterVendors('pending', this)">
+        Pending Approval <span class="ftab-badge" id="pendingCount">0</span>
+    </button>
+    <button class="ftab" onclick="filterVendors('active', this)">
+        Active <span class="ftab-badge" id="activeCount">0</span>
+    </button>
+</div>
+
+<!-- Table panel -->
+<div class="table-panel">
+    <div class="table-panel-head">
+        <div>
+            <h5><i class="bi bi-shop me-2" style="color:#4A7A9B;"></i>Vendor List</h5>
+            <p>Manage and view all registered vendors</p>
+        </div>
+        <span class="total-pill"><i class="bi bi-shop"></i>{{ vendors|length }} Total</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="vendorsTable">
+            <thead>
+                <tr>
+                    <th class="ps-3" width="60">#ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th class="text-end pe-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if vendors %}
+                    {% for vendor in vendors %}
+                    <tr data-status="{% if vendor.is_active %}active{% else %}pending{% endif %}">
+                        <td class="ps-3"><span class="row-num">{{ forloop.counter }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="vendor-avatar">{{ vendor.fullname|first|upper }}</div>
+                                <div>
+                                    <div style="font-weight:700;color:#1E2D40;font-size:.88rem;">{{ vendor.fullname }}</div>
+                                    <div style="font-size:.75rem;color:#4a6278;">{{ vendor.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-size:.82rem;color:#4a6278;">
+                                <i class="bi bi-calendar me-1" style="color:#8AB4C8;"></i>{{ vendor.created_at|date:"d M Y" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if vendor.is_active %}
+                                <span class="s-active"><i class="bi bi-check-circle-fill"></i>Active</span>
+                            {% else %}
+                                <span class="s-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <div class="d-flex justify-content-end gap-1 flex-nowrap align-items-center">
+                                <a href="{% url 'admin_view_vendor' vendor.id %}" class="btn-act btn-view-v">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if not vendor.is_active %}
+                                <form method="post" action="{% url 'activate_vendor' vendor.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn-act btn-approve" onclick="return confirm('Approve {{ vendor.fullname }} as a vendor?')">
+                                        <i class="bi bi-check-circle"></i> Approve
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'activate_vendor' vendor.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="deactivate">
+                                    <button type="submit" class="btn-act btn-deactivate" onclick="return confirm('Deactivate {{ vendor.fullname }}?')">
+                                        <i class="bi bi-pause-circle"></i> Deactivate
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'admin_delete_user' vendor.id %}" class="d-inline"
+                                      onsubmit="return confirm('Delete {{ vendor.fullname }}?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-act btn-delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="bi bi-shop"></i>
+                                <p>No vendors found in the system yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script>
-// Count badges on load
 (function(){
     var rows = document.querySelectorAll('#vendorsTable tbody tr[data-status]');
     var pending = 0, active = 0;
@@ -263,58 +240,40 @@
     document.getElementById('activeCount').textContent = active;
 })();
 
-// Tab filter
 var currentFilter = 'all';
-function filterVendors(filter) {
+function filterVendors(filter, el) {
     currentFilter = filter;
-    document.querySelectorAll('#vendorTabs .nav-link').forEach(function(btn){ btn.classList.remove('active'); });
-    event.target.classList.add('active');
-    var rows = document.querySelectorAll('#vendorsTable tbody tr[data-status]');
-    rows.forEach(function(row){
-        if(filter === 'all') row.style.display = '';
-        else row.style.display = (row.dataset.status === filter) ? '' : 'none';
+    document.querySelectorAll('.ftab').forEach(function(b){ b.classList.remove('active'); });
+    el.classList.add('active');
+    document.querySelectorAll('#vendorsTable tbody tr[data-status]').forEach(function(row){
+        row.style.display = (filter === 'all' || row.dataset.status === filter) ? '' : 'none';
     });
 }
 
-// Search functionality
 document.getElementById('searchInput').addEventListener('keyup', function() {
-    let searchText = this.value.toLowerCase();
-    let tableRows = document.querySelectorAll('#vendorsTable tbody tr');
-    
-    tableRows.forEach(row => {
-        let text = row.textContent.toLowerCase();
-        let matchesSearch = text.includes(searchText);
-        let matchesFilter = currentFilter === 'all' || row.dataset.status === currentFilter;
-        row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('#vendorsTable tbody tr').forEach(function(row){
+        var match = row.textContent.toLowerCase().includes(q);
+        var filterOk = currentFilter === 'all' || row.dataset.status === currentFilter;
+        row.style.display = (match && filterOk) ? '' : 'none';
     });
 });
 
-// Export table to CSV
 function exportTable() {
-    let csv = [];
-    let rows = document.querySelectorAll('#vendorsTable tr');
-    
-    for (let row of rows) {
-        let rowData = [];
-        let cols = row.querySelectorAll('td, th');
-        
-        for (let col of cols) {
-            // Skip avatar column and action buttons in export
-            if (!col.querySelector('.avatar-circle') && !col.querySelector('.btn-group')) {
-                rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
-            }
-        }
-        csv.push(rowData.join(','));
-    }
-    
-    let csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
-    let downloadLink = document.createElement('a');
-    downloadLink.download = 'vendors_list.csv';
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = 'none';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    var csv = [];
+    document.querySelectorAll('#vendorsTable tr').forEach(function(row){
+        var rowData = [];
+        row.querySelectorAll('td, th').forEach(function(col){
+            if(!col.querySelector('.vendor-avatar') && !col.querySelector('.btn-act'))
+                rowData.push('"' + col.innerText.replace(/"/g,'""') + '"');
+        });
+        if(rowData.length) csv.push(rowData.join(','));
+    });
+    var blob = new Blob([csv.join('\n')], {type:'text/csv'});
+    var a = document.createElement('a');
+    a.download = 'vendors_list.csv';
+    a.href = URL.createObjectURL(blob);
+    a.click();
 }
 </script>
 {% endblock %}

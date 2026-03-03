@@ -4,11 +4,10 @@
     <div class="sidebar bg-white min-vh-100 border-end shadow-sm">
         
         <!-- Brand Section -->
-        <div class="brand-section p-4 border-bottom bg-gradient-light">
-            <h4 class="text-primary fw-bold mb-1">
-                <i class="bi bi-calendar-event me-2"></i>{{ APP_NAME }}
-            </h4>
-            <p class="text-muted small mb-0">
+        <div class="brand-section p-4 border-bottom bg-gradient-light" style="text-align:center;">
+            <img src="{% static 'images/planify_logo.png' %}" alt="Planify.Ai"
+                 style="height:48px; width:auto; filter:drop-shadow(0 0 12px rgba(74,122,155,.45));">
+            <p class="text-muted small mb-0 mt-2">
                 <i class="bi bi-shield-check me-1"></i>Admin Dashboard
             </p>
         </div>
@@ -111,186 +110,77 @@
 
 <style>
     .sidebar {
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 #f1f5f9;
-        display: flex;
-        flex-direction: column;
+        position: sticky; top: 0; height: 100vh;
+        overflow-y: auto; scrollbar-width: thin;
+        scrollbar-color: #ccdde8 #f5f8fb;
+        display: flex; flex-direction: column;
     }
-    
-    .sidebar::-webkit-scrollbar {
-        width: 5px;
+    .sidebar::-webkit-scrollbar { width: 5px; }
+    .sidebar::-webkit-scrollbar-track { background: #f5f8fb; }
+    .sidebar::-webkit-scrollbar-thumb { background: #ccdde8; border-radius: 10px; }
+    .sidebar::-webkit-scrollbar-thumb:hover { background: #8AB4C8; }
+
+    .brand-section {
+        background: linear-gradient(160deg, #8AB4C8 0%, #4A7A9B 55%, #1E2D40 100%) !important;
+        padding: 1.25rem 1rem;
     }
-    
-    .sidebar::-webkit-scrollbar-track {
-        background: #f1f5f9;
-    }
-    
-    .sidebar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-    
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    
-    .bg-gradient-light {
-        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-    }
-    
-    .nav-title {
-        padding-left: 0.75rem;
-        letter-spacing: 0.3px;
-        color: #64748b;
-    }
-    
+    .brand-section h4, .brand-section p { color: #fff !important; }
+
+    .bg-gradient-light { background: #f5f8fb; }
+
+    .nav-title { padding-left: 0.75rem; letter-spacing: 0.3px; color: #4a6278; }
+
     .nav-link-custom {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.25rem;
-        color: #475569;
-        text-decoration: none;
-        border-radius: 12px;
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
-        position: relative;
-        overflow: hidden;
+        display: flex; align-items: center;
+        padding: 0.75rem 1rem; margin-bottom: 0.25rem;
+        color: #1E2D40; text-decoration: none;
+        border-radius: 12px; transition: all 0.2s ease;
+        font-size: 0.95rem; position: relative; overflow: hidden;
     }
-    
-    .nav-link-custom i {
-        font-size: 1.2rem;
-        width: 1.75rem;
-        color: #64748b;
-        transition: all 0.2s ease;
-    }
-    
-    .nav-link-custom:hover {
-        background-color: #f1f5f9;
-        color: #0f172a;
-        transform: translateX(3px);
-    }
-    
-    .nav-link-custom:hover i {
-        color: #3b82f6;
-    }
-    
+    .nav-link-custom i { font-size: 1.2rem; width: 1.75rem; color: #4a6278; transition: all 0.2s ease; }
+    .nav-link-custom:hover { background-color: #eaf2f7; color: #1E2D40; transform: translateX(3px); }
+    .nav-link-custom:hover i { color: #4A7A9B; }
     .nav-link-custom.active {
-        background: linear-gradient(135deg, #e8f0fe 0%, #ffffff 100%);
-        color: #2563eb;
-        font-weight: 500;
-        border-left: 4px solid #3b82f6;
-        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+        background: linear-gradient(135deg, #ddeaf3 0%, #ffffff 100%);
+        color: #4A7A9B; font-weight: 500;
+        border-left: 4px solid #4A7A9B;
+        box-shadow: 0 2px 4px rgba(74, 122, 155, 0.12);
     }
-    
-    .nav-link-custom.active i {
-        color: #3b82f6;
-    }
-    
-    .active-indicator {
-        position: absolute;
-        right: 1rem;
-        width: 8px;
-        height: 8px;
-        background-color: #3b82f6;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-        }
-        70% {
-            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-        }
-    }
-    
-    .nav-group {
-        margin-bottom: 1rem;
-    }
-    
-    .logout-section {
-        background-color: #f8fafc;
-    }
-    
-    .logout-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.75rem;
-        background-color: #fee2e2;
-        color: #dc2626;
-        text-decoration: none;
-        border-radius: 12px;
-        transition: all 0.2s ease;
-        font-weight: 500;
-    }
-    
-    .logout-btn:hover {
-        background-color: #dc2626;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
-    }
-    
-    .logout-btn i {
-        font-size: 1.2rem;
-    }
-    
-    .admin-info {
-        opacity: 0.7;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar {
-            position: relative;
-            height: auto;
-            min-height: auto;
-        }
-        
-        .nav-link-custom {
-            padding: 0.6rem 0.8rem;
-        }
-        
-        .brand-section {
-            padding: 1rem;
-        }
-    }
-    
-    /* Optional: Add subtle animation on page load */
-    .nav-link-custom {
-        animation: slideIn 0.3s ease-out;
-    }
-    
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    
-    /* Active page indicator */
+    .nav-link-custom.active i { color: #4A7A9B; }
     .nav-link-custom.active::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+        width: 4px; background: linear-gradient(135deg, #8AB4C8 0%, #4A7A9B 100%);
         border-radius: 0 4px 4px 0;
+    }
+
+    .active-indicator {
+        position: absolute; right: 1rem; width: 8px; height: 8px;
+        background-color: #4A7A9B; border-radius: 50%; animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(74, 122, 155, 0.4); }
+        70%  { box-shadow: 0 0 0 6px rgba(74, 122, 155, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(74, 122, 155, 0); }
+    }
+
+    .nav-group { margin-bottom: 1rem; }
+    .logout-section { background-color: #f5f8fb; }
+    .logout-btn {
+        display: flex; align-items: center; justify-content: center;
+        padding: 0.75rem; background-color: #fde8e6; color: #c0392b;
+        text-decoration: none; border-radius: 12px;
+        transition: all 0.2s ease; font-weight: 500;
+    }
+    .logout-btn:hover { background-color: #c0392b; color: #fff; transform: translateY(-1px); }
+    .logout-btn i { font-size: 1.2rem; }
+    .admin-info { opacity: 0.7; }
+
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .nav-link-custom { animation: slideIn 0.3s ease-out; }
+
+    @media (max-width: 768px) {
+        .sidebar { position: relative; height: auto; min-height: auto; }
+        .nav-link-custom { padding: 0.6rem 0.8rem; }
+        .brand-section { padding: 1rem; }
     }
 </style>

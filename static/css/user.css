@@ -1,31 +1,32 @@
-/* User Dashboard - Same design as Vendor */
+/* Navy & Steel-Blue Theme — User Dashboard */
 :root {
-    --primary: #6366f1;
-    --primary-light: #e0e7ff;
-    --primary-dark: #4f46e5;
-    --success: #10b981;
-    --success-light: #d1fae5;
-    --warning: #f59e0b;
-    --warning-light: #fef3c7;
-    --danger: #ef4444;
-    --danger-light: #fee2e2;
-    --info: #06b6d4;
-    --info-light: #cffafe;
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-light: #94a3b8;
-    --border: #e2e8f0;
-    --border-light: #f1f5f9;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --radius: 12px;
-    --radius-sm: 8px;
-    --radius-lg: 16px;
+    --primary:        #4A7A9B;
+    --primary-light:  #ddeaf3;
+    --primary-dark:   #1E2D40;
+    --primary-mid:    #8AB4C8;
+    --success:        #2d8a5e;
+    --success-light:  #d6f0e4;
+    --warning:        #c47c1a;
+    --warning-light:  #fef3dc;
+    --danger:         #c0392b;
+    --danger-light:   #fde8e6;
+    --info:           #2471a3;
+    --info-light:     #d6eaf8;
+    --bg-primary:     #eef5f9;
+    --bg-secondary:   #e4eff5;
+    --bg-tertiary:    #d6e8f2;
+    --text-primary:   #1E2D40;
+    --text-secondary: #4a6278;
+    --text-light:     #8AB4C8;
+    --border:         #ccdde8;
+    --border-light:   #e4eff5;
+    --shadow-sm:      0 1px 2px rgba(30, 45, 64, 0.05);
+    --shadow:         0 1px 3px rgba(30, 45, 64, 0.10), 0 1px 2px rgba(30, 45, 64, 0.06);
+    --shadow-md:      0 4px 16px rgba(30, 45, 64, 0.10);
+    --shadow-lg:      0 10px 30px rgba(30, 45, 64, 0.13);
+    --radius:         12px;
+    --radius-sm:      8px;
+    --radius-lg:      16px;
 }
 
 body {
@@ -48,7 +49,7 @@ body {
 .admin-brand {
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-light);
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(160deg, #8AB4C8 0%, #4A7A9B 55%, #1E2D40 100%);
     color: white;
     margin: 0;
 }
@@ -105,6 +106,13 @@ body {
     padding: 1.5rem;
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
+    transition: all 0.22s ease;
+}
+.card-box:hover {
+    background: rgba(74, 122, 155, 0.06);
+    border-color: rgba(74, 122, 155, 0.25) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
 }
 
 .stat-card {
@@ -114,6 +122,13 @@ body {
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
     height: 100%;
+    transition: all 0.22s ease;
+}
+.stat-card:hover {
+    background: rgba(74, 122, 155, 0.06);
+    border-color: rgba(74, 122, 155, 0.25) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
 }
 
 .stat-card-icon {
@@ -142,3 +157,20 @@ body {
 
 .fade-in { animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Bootstrap utility overrides — navy palette */
+.bg-primary                     { background-color: var(--primary) !important; }
+.bg-primary.bg-opacity-10       { background-color: var(--primary-light) !important; }
+.bg-light                       { background-color: var(--bg-secondary) !important; }
+.bg-white                       { background-color: var(--bg-primary) !important; }
+.text-primary                   { color: var(--primary) !important; }
+.text-muted                     { color: var(--text-secondary) !important; }
+.btn-primary                    { background-color: var(--primary) !important; border-color: var(--primary) !important; }
+.btn-primary:hover               { background-color: var(--primary-dark) !important; border-color: var(--primary-dark) !important; }
+.btn-outline-primary             { color: var(--primary) !important; border-color: var(--primary) !important; }
+.btn-outline-primary:hover       { background-color: var(--primary) !important; color: #fff !important; }
+.table thead th                  { background-color: var(--bg-tertiary); color: var(--text-secondary); border-color: var(--border) !important; }
+.table td, .table th             { border-color: var(--border-light) !important; }
+.table-hover tbody tr:hover      { background-color: var(--bg-tertiary) !important; }
+.page-item.active .page-link     { background-color: var(--primary) !important; border-color: var(--primary) !important; }
+.page-link                       { color: var(--primary) !important; border-color: var(--border) !important; }

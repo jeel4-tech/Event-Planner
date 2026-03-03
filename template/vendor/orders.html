@@ -2,18 +2,67 @@
 {% block title %}Orders & Bookings{% endblock %}
 
 {% block content %}
+<style>
+    /* ── Filter bar ── */
+    .filter-btn {
+        border-radius: 8px !important;
+        font-size: .82rem; font-weight: 600;
+        padding: .4rem .95rem;
+        border: 1.5px solid #4A7A9B !important;
+        color: #4A7A9B !important;
+        background: transparent !important;
+        transition: all .2s;
+    }
+    .filter-btn.active,
+    .filter-btn:hover {
+        background: #4A7A9B !important;
+        color: #fff !important;
+        border-color: #4A7A9B !important;
+    }
+
+    /* ── Action buttons ── */
+    .btn-act { border-radius: 7px !important; font-size: .8rem; font-weight: 600; padding: .35rem .75rem; border: none; transition: all .2s; }
+    .btn-act-chat    { background: #4a6278; color: #fff; }
+    .btn-act-chat:hover   { background: #1E2D40; color: #fff; }
+    .btn-act-extra   { background: #4A7A9B; color: #fff; }
+    .btn-act-extra:hover  { background: #1E2D40; color: #fff; transform: translateY(-1px); }
+    .btn-act-view    { background: #8AB4C8; color: #1E2D40; }
+    .btn-act-view:hover   { background: #4A7A9B; color: #fff; transform: translateY(-1px); }
+    .btn-act-approve { background: #2d8a5e; color: #fff; }
+    .btn-act-approve:hover{ background: #1e6644; color: #fff; }
+    .btn-act-reject  { background: #c0392b; color: #fff; }
+    .btn-act-reject:hover { background: #922b21; color: #fff; }
+    .btn-act-complete{ background: #1E2D40; color: #fff; }
+    .btn-act-complete:hover{ background: #4A7A9B; color: #fff; }
+    .btn-act.disabled, .btn-act:disabled { background: #d6e8f2; color: #8AB4C8; cursor: not-allowed; }
+
+    /* ── Status badges ── */
+    .status-badge { border-radius: 20px; font-size: .75rem; font-weight: 700; padding: .3rem .85rem; letter-spacing: .3px; }
+    .status-pending   { background: #fef3dc; color: #c47c1a; }
+    .status-confirmed { background: #d6f0e4; color: #2d8a5e; }
+    .status-in_progress { background: #ddeaf3; color: #4A7A9B; }
+    .status-completed { background: #1E2D40; color: #8AB4C8; }
+    .status-rejected  { background: #fde8e6; color: #c0392b; }
+
+    /* ── Table tweaks ── */
+    .table thead th { font-size: .75rem; letter-spacing: .5px; text-transform: uppercase; color: #4a6278; background: #d6e8f2; border-bottom: 2px solid #ccdde8 !important; }
+    .table tbody tr:hover { background: rgba(74,122,155,.06) !important; }
+    .table td { vertical-align: middle; font-size: .9rem; color: #1E2D40; }
+    .table td:last-child { white-space: nowrap; }
+    .notes-row td { background: #eef5f9 !important; font-size: .82rem; color: #4a6278; }
+</style>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="mb-1">Orders & Bookings</h3>
         <p class="text-muted mb-0">Manage all your customer bookings</p>
     </div>
-    <div class="btn-group" role="group">
-        <a href="{% url 'vendor_orders' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">All</a>
-        <a href="{% url 'vendor_orders' %}?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
-        <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn btn-outline-success {% if status_filter == 'confirmed' %}active{% endif %}">Approved</a>
-        <a href="{% url 'vendor_orders' %}?status=in_progress" class="btn btn-outline-info {% if status_filter == 'in_progress' %}active{% endif %}">In Progress</a>
-        <a href="{% url 'vendor_orders' %}?status=completed" class="btn btn-outline-primary {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'vendor_orders' %}" class="btn filter-btn {% if not status_filter %}active{% endif %}">All</a>
+        <a href="{% url 'vendor_orders' %}?status=pending" class="btn filter-btn {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+        <a href="{% url 'vendor_orders' %}?status=confirmed" class="btn filter-btn {% if status_filter == 'confirmed' %}active{% endif %}">Approved</a>
+        <a href="{% url 'vendor_orders' %}?status=in_progress" class="btn filter-btn {% if status_filter == 'in_progress' %}active{% endif %}">In Progress</a>
+        <a href="{% url 'vendor_orders' %}?status=completed" class="btn filter-btn {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
     </div>
 </div>
 
@@ -65,9 +114,9 @@
                     </td>
                     <td>
                         {% if booking.extras_total and booking.extras_total|floatformat:2 != '0.00' %}
-                        <strong class="text-success">₹{{ booking.total_amount }}</strong>
+                        <strong style="color:#2d8a5e;">₹{{ booking.total_amount }}</strong>
                         {% else %}
-                        <strong class="text-success">₹{{ booking.amount }}</strong>
+                        <strong style="color:#2d8a5e;">₹{{ booking.amount }}</strong>
                         {% endif %}
                     </td>
                     <td>
@@ -78,50 +127,50 @@
                         {% endif %}
                     </td>
                     <td>
-                        <span class="badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'confirmed' %}success{% elif booking.status == 'in_progress' %}info{% elif booking.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                        <span class="status-badge status-{{ booking.status }}">
                             {{ booking.get_status_display }}
                         </span>
                     </td>
                     <td>
-                        <div class="btn-group btn-group-sm">
+                        <div class="d-flex gap-1 align-items-center flex-nowrap">
                             {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}
-                            <a href="{% url 'vendor_chat_with_booking' booking.id %}" class="btn btn-secondary btn-sm me-1" title="Chat with Customer">
+                            <a href="{% url 'vendor_chat_with_booking' booking.id %}" class="btn btn-act btn-act-chat" title="Chat with Customer">
                                 <i class="bi bi-chat-dots"></i>
                             </a>
                             {% else %}
-                            <button type="button" class="btn btn-secondary btn-sm me-1 disabled" title="Chat available after approval" disabled>
+                            <button type="button" class="btn btn-act disabled" title="Chat available after approval" disabled>
                                 <i class="bi bi-chat-dots"></i>
                             </button>
                             {% endif %}
-                            <a href="{% url 'vendor_add_extra' booking.id %}" class="btn btn-warning btn-sm me-1" title="Add Extra">
+                            <a href="{% url 'vendor_add_extra' booking.id %}" class="btn btn-act btn-act-extra" title="Add Extra">
                                 <i class="bi bi-plus-circle"></i> Add Extra
                             </a>
-                                <a href="{% url 'vendor_booking_detail' booking.id %}" class="btn btn-info btn-sm me-1" title="View details">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
+                            <a href="{% url 'vendor_booking_detail' booking.id %}" class="btn btn-act btn-act-view" title="View details">
+                                <i class="bi bi-eye"></i> View
+                            </a>
                             {% if booking.status == 'pending' %}
-                            <form method="POST" style="display: inline;">
+                            <form method="POST" class="d-inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="booking_id" value="{{ booking.id }}">
                                 <input type="hidden" name="action" value="approve">
-                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this booking?')" title="Approve Booking">
+                                <button type="submit" class="btn btn-act btn-act-approve" onclick="return confirm('Approve this booking?')" title="Approve Booking">
                                     <i class="bi bi-check-circle"></i> Approve
                                 </button>
                             </form>
-                            <form method="POST" style="display: inline;">
+                            <form method="POST" class="d-inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="booking_id" value="{{ booking.id }}">
                                 <input type="hidden" name="action" value="reject">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject this booking?')" title="Reject Booking">
+                                <button type="submit" class="btn btn-act btn-act-reject" onclick="return confirm('Reject this booking?')" title="Reject Booking">
                                     <i class="bi bi-x-circle"></i> Reject
                                 </button>
                             </form>
                             {% elif booking.status == 'confirmed' or booking.status == 'in_progress' %}
-                            <form method="POST" style="display: inline;">
+                            <form method="POST" class="d-inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="booking_id" value="{{ booking.id }}">
                                 <input type="hidden" name="action" value="complete">
-                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Mark this booking as completed?')">
+                                <button type="submit" class="btn btn-act btn-act-complete" onclick="return confirm('Mark this booking as completed?')">
                                     <i class="bi bi-check-circle"></i>
                                 </button>
                             </form>
@@ -130,8 +179,8 @@
                     </td>
                 </tr>
                 {% if booking.notes %}
-                <tr>
-                    <td colspan="9" class="text-muted small bg-light">
+                <tr class="notes-row">
+                    <td colspan="9">
                         <i class="bi bi-info-circle me-1"></i> <strong>Notes:</strong> {{ booking.notes }}
                     </td>
                 </tr>

@@ -242,11 +242,35 @@ def settings_view(request):
 
 @check_admin_session
 def analytics_view(request):
-    # lightweight analytics placeholder
+    total_events   = Event.objects.count()
+    total_reviews  = Review.objects.count()
+    total_vendors  = User.objects.filter(role__name__iexact='vendor').count()
+    total_users    = User.objects.filter(role__name__iexact='user').count()
+    total_bookings = Booking.objects.count()
+    total_revenue  = Booking.objects.filter(status='confirmed').aggregate(s=Sum('amount'))['s'] or 0
+    pending_bookings   = Booking.objects.filter(status='pending').count()
+    confirmed_bookings = Booking.objects.filter(status='confirmed').count()
+    completed_bookings = Booking.objects.filter(status='completed').count()
+    cancelled_bookings = Booking.objects.filter(status='cancelled').count()
+    pending_events   = Event.objects.filter(status='pending').count()
+    confirmed_events = Event.objects.filter(status='confirmed').count()
+    completed_events = Event.objects.filter(status='completed').count()
+    cancelled_events = Event.objects.filter(status='cancelled').count()
     data = {
-        'total_events': Event.objects.count(),
-        'total_reviews': Review.objects.count(),
-        'total_vendors': User.objects.filter(role__name__iexact='vendor').count(),
+        'total_events': total_events,
+        'total_reviews': total_reviews,
+        'total_vendors': total_vendors,
+        'total_users': total_users,
+        'total_bookings': total_bookings,
+        'total_revenue': total_revenue,
+        'pending_bookings': pending_bookings,
+        'confirmed_bookings': confirmed_bookings,
+        'completed_bookings': completed_bookings,
+        'cancelled_bookings': cancelled_bookings,
+        'pending_events': pending_events,
+        'confirmed_events': confirmed_events,
+        'completed_events': completed_events,
+        'cancelled_events': cancelled_events,
     }
     return render(request, 'admin/analytics.html', {
         'data': data

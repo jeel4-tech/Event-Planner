@@ -10,6 +10,7 @@ from .views import (
 )
 from .views import upload_event_image, event_photos_detail, toggle_store_status
 from .views import store_detail, stores_list
+from .views import guest_face_search
 
 urlpatterns = [
     path('', vendor_dashboard, name='vendor_dashboard'),
@@ -39,5 +40,4 @@ urlpatterns = [
     path('settings/', vendor_settings, name='vendor_settings'),
     path('profile/', vendor_profile, name='vendor_profile'),
     path('change-password/', change_password, name='change_password'),
-    
 ]

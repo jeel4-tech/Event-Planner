@@ -1,292 +1,342 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<style>
+/* ── KPI Cards ── */
+.kpi-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 14px;
+    padding: 1.2rem 1.3rem;
+    display: flex; align-items: center; gap: 1rem;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+    height: 100%;
+}
+.kpi-card:hover { box-shadow: 0 8px 24px rgba(30,45,64,.11); border-color: #8AB4C8; transform: translateY(-3px); }
+
+.kpi-icon {
+    width: 48px; height: 48px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+    transition: transform .22s;
+}
+.kpi-card:hover .kpi-icon { transform: scale(1.1) rotate(-5deg); }
+.ki-1 { background: #ddeaf3; color: #4A7A9B; }
+.ki-2 { background: #d6f0e4; color: #2d8a5e; }
+.ki-3 { background: #fef3dc; color: #c47c1a; }
+.ki-4 { background: #d6e8f2; color: #1E2D40; }
+
+.kpi-label { font-size: .7rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .2rem; }
+.kpi-value { font-size: 1.8rem; font-weight: 800; color: #1E2D40; line-height: 1.1; }
+.kpi-sub   { font-size: .72rem; color: #8AB4C8; margin-top: .25rem; display: flex; align-items: center; gap: .3rem; }
+
+/* ── Secondary Cards ── */
+.sec-card {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 14px;
+    padding: 1.2rem 1.3rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+}
+.sec-card:hover { box-shadow: 0 8px 24px rgba(30,45,64,.11); border-color: #8AB4C8; transform: translateY(-3px); }
+.sec-icon {
+    width: 52px; height: 52px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0;
+    transition: transform .22s;
+}
+.sec-card:hover .sec-icon { transform: scale(1.1); }
+.si-1 { background: #d6f0e4; color: #2d8a5e; }
+.si-2 { background: #ddeaf3; color: #4A7A9B; }
+.si-3 { background: #d6e8f2; color: #1E2D40; }
+.sec-label { font-size: .72rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; margin-bottom: .3rem; }
+.sec-value { font-size: 1.75rem; font-weight: 800; color: #1E2D40; line-height: 1; margin-bottom: .2rem; }
+.sec-sub   { font-size: .75rem; display: flex; align-items: center; gap: .3rem; }
+.sub-green { color: #2d8a5e; }
+.sub-blue  { color: #4A7A9B; }
+.sub-muted { color: #4a6278; }
+
+/* ── Stat badges ── */
+.stat-pill { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .2rem .65rem; display: inline-flex; align-items: center; gap: .3rem; }
+.pill-up    { background: #d6f0e4; color: #2d8a5e; }
+.pill-amber { background: #fef3dc; color: #c47c1a; }
+.pill-blue  { background: #ddeaf3; color: #4A7A9B; }
+.pill-navy  { background: #d6e8f2; color: #1E2D40; }
+
+/* ── Header buttons ── */
+a.btn-export, a.btn-export:visited {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: 9px; padding: .42rem 1rem;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B;
+    background: transparent; font-size: .83rem; font-weight: 600;
+    text-decoration: none; transition: all .18s;
+}
+a.btn-export:hover { background: #4A7A9B; color: #fff; }
+
+a.btn-new, a.btn-new:visited {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: 9px; padding: .42rem 1rem;
+    background: linear-gradient(135deg, #4A7A9B, #1E2D40);
+    color: #fff; border: none; font-size: .83rem; font-weight: 600;
+    text-decoration: none; transition: all .18s;
+}
+a.btn-new:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(30,45,64,.22); color: #fff; }
+
+/* ── Table panel ── */
+.table-panel {
+    background: #eef5f9;
+    border: 1.5px solid #ccdde8;
+    border-radius: 14px;
+    overflow: hidden;
+}
+.table-panel-head {
+    background: #e4eff5;
+    border-bottom: 1px solid #ccdde8;
+    padding: .9rem 1.3rem;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.table-panel-head h5 { font-size: .95rem; font-weight: 700; color: #1E2D40; margin: 0; }
+.table-panel-head p  { font-size: .75rem; color: #4a6278; margin: .1rem 0 0; }
+
+a.view-all-link, a.view-all-link:visited {
+    font-size: .78rem; font-weight: 600; color: #4A7A9B;
+    text-decoration: none; display: inline-flex; align-items: center; gap: .3rem;
+    border: 1.5px solid #4A7A9B; border-radius: 7px; padding: .22rem .7rem;
+    transition: all .18s;
+}
+a.view-all-link:hover { background: #4A7A9B; color: #fff; }
+
+.table thead th {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #4a6278;
+    background: #d6e8f2 !important; border-bottom: 2px solid #ccdde8 !important;
+    padding: .75rem 1rem;
+}
+.table td { vertical-align: middle; font-size: .88rem; color: #1E2D40; border-color: #e4eff5 !important; padding: .75rem 1rem; }
+.table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+
+/* ── Event type badge ── */
+.type-badge { background: #ddeaf3; color: #4A7A9B; border-radius: 8px; font-size: .72rem; font-weight: 600; padding: .25rem .7rem; }
+
+/* ── Status badges ── */
+.s-pill { border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .22rem .75rem; }
+.s-completed { background: #d6f0e4; color: #2d8a5e; }
+.s-upcoming  { background: #ddeaf3; color: #4A7A9B; }
+.s-pending   { background: #fef3dc; color: #c47c1a; }
+.s-cancelled { background: #fde8e6; color: #c0392b; }
+.s-other     { background: #e4eff5; color: #4a6278; }
+
+/* ── View button ── */
+a.btn-view, a.btn-view:visited {
+    display: inline-flex; align-items: center; gap: .3rem;
+    border-radius: 7px; padding: .28rem .7rem;
+    border: 1.5px solid #8AB4C8; color: #4A7A9B;
+    background: transparent; font-size: .78rem; font-weight: 600;
+    text-decoration: none; transition: all .18s;
+}
+a.btn-view:hover { background: #4A7A9B; color: #fff; border-color: #4A7A9B; }
+
+/* ── Event icon box ── */
+.ev-icon-box {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; flex-shrink: 0;
+    background: #ddeaf3; color: #4A7A9B;
+}
+</style>
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-1">Dashboard Overview</h4>
-        <p class="text-muted small mb-0">Welcome back, {{ admin.fullname|default:'Admin' }}</p>
+        <h4 class="mb-1" style="font-weight:700;color:#1E2D40;">Dashboard Overview</h4>
+        <p class="mb-0" style="font-size:.85rem;color:#4a6278;">Welcome back, {{ admin.fullname|default:'Admin' }}</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'admin_events_export' %}" class="btn btn-sm btn-outline-secondary">
-            <i class="fas fa-download me-1"></i>Export
+        <a href="{% url 'admin_events_export' %}" class="btn-export">
+            <i class="fas fa-download"></i> Export
         </a>
-        <a href="{% url 'admin_create_event' %}" class="btn btn-sm btn-primary">
-            <i class="fas fa-plus-circle me-1"></i>New Event
+        <a href="{% url 'admin_create_event' %}" class="btn-new">
+            <i class="fas fa-plus-circle"></i> New Event
         </a>
     </div>
 </div>
 
-<!-- Stats Cards - Using Your Database Values -->
-<div class="row g-4 mb-4">
+<!-- KPI Row -->
+<div class="row g-3 mb-3">
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-calendar-check text-primary fa-lg"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Total Events</h6>
-                        <h3 class="mb-0 fw-bold">{{ total_events|default:'0' }}</h3>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-success bg-opacity-10 text-success me-2">
-                        <i class="fas fa-arrow-up me-1"></i>{{ new_events_count|default:'0' }}
-                    </span>
-                    <span class="text-muted small">from last week</span>
+        <div class="kpi-card">
+            <div class="kpi-icon ki-1"><i class="fas fa-calendar-check"></i></div>
+            <div>
+                <div class="kpi-label">Total Events</div>
+                <div class="kpi-value">{{ total_events|default:'0' }}</div>
+                <div class="kpi-sub">
+                    <span class="stat-pill pill-up"><i class="fas fa-arrow-up"></i>{{ new_events_count|default:'0' }}</span>
+                    from last week
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-store text-success fa-lg"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Active Vendors</h6>
-                        <h3 class="mb-0 fw-bold">{{ active_vendors|default:'0' }}</h3>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-success bg-opacity-10 text-success me-2">
-                        <i class="fas fa-arrow-up me-1"></i>{{ new_vendors|default:'0' }}
-                    </span>
-                    <span class="text-muted small">from last week</span>
+        <div class="kpi-card">
+            <div class="kpi-icon ki-2"><i class="fas fa-store"></i></div>
+            <div>
+                <div class="kpi-label">Active Vendors</div>
+                <div class="kpi-value">{{ active_vendors|default:'0' }}</div>
+                <div class="kpi-sub">
+                    <span class="stat-pill pill-up"><i class="fas fa-arrow-up"></i>{{ new_vendors|default:'0' }}</span>
+                    from last week
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-clock text-warning fa-lg"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Pending Requests</h6>
-                        <h3 class="mb-0 fw-bold">{{ pending_requests|default:'0' }}</h3>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-warning bg-opacity-10 text-warning me-2">
-                        <i class="fas fa-exclamation-circle me-1"></i>Action
-                    </span>
-                    <span class="text-muted small">Need approval</span>
+        <div class="kpi-card">
+            <div class="kpi-icon ki-3"><i class="fas fa-clock"></i></div>
+            <div>
+                <div class="kpi-label">Pending Requests</div>
+                <div class="kpi-value">{{ pending_requests|default:'0' }}</div>
+                <div class="kpi-sub">
+                    <span class="stat-pill pill-amber"><i class="fas fa-exclamation-circle"></i>Action</span>
+                    Need approval
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 bg-info bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-calendar-alt text-info fa-lg"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Upcoming Events</h6>
-                        <h3 class="mb-0 fw-bold">{{ upcoming_events|default:'0' }}</h3>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-info bg-opacity-10 text-info me-2">
-                        <i class="fas fa-calendar me-1"></i>Next 7
-                    </span>
-                    <span class="text-muted small">days</span>
+        <div class="kpi-card">
+            <div class="kpi-icon ki-4"><i class="fas fa-calendar-alt"></i></div>
+            <div>
+                <div class="kpi-label">Upcoming Events</div>
+                <div class="kpi-value">{{ upcoming_events|default:'0' }}</div>
+                <div class="kpi-sub">
+                    <span class="stat-pill pill-navy"><i class="fas fa-calendar"></i>Next 7</span>
+                    days
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Additional Stats Row -->
-<div class="row g-4 mb-4">
+<!-- Secondary Stats -->
+<div class="row g-3 mb-3">
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">Total Revenue</h6>
-                        <h3 class="fw-bold mb-0">₹{{ total_revenue|default:'0' }}</h3>
-                        <small class="text-success">+{{ revenue_growth|default:'0' }}% from last month</small>
-                    </div>
-                    <div class="bg-success bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-rupee-sign text-success fa-2x"></i>
-                    </div>
+        <div class="sec-card">
+            <div>
+                <div class="sec-label">Total Revenue</div>
+                <div class="sec-value">₹{{ total_revenue|default:'0' }}</div>
+                <div class="sec-sub sub-green">
+                    <i class="fas fa-arrow-up"></i> +{{ revenue_growth|default:'0' }}% from last month
                 </div>
             </div>
+            <div class="sec-icon si-1"><i class="fas fa-rupee-sign"></i></div>
         </div>
     </div>
-    
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">Total Bookings</h6>
-                        <h3 class="fw-bold mb-0">{{ total_bookings|default:'0' }}</h3>
-                        <small class="text-success">+{{ new_bookings|default:'0' }} this week</small>
-                    </div>
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-shopping-cart text-primary fa-2x"></i>
-                    </div>
+        <div class="sec-card">
+            <div>
+                <div class="sec-label">Total Bookings</div>
+                <div class="sec-value">{{ total_bookings|default:'0' }}</div>
+                <div class="sec-sub sub-blue">
+                    <i class="fas fa-arrow-up"></i> +{{ new_bookings|default:'0' }} this week
                 </div>
             </div>
+            <div class="sec-icon si-2"><i class="fas fa-shopping-cart"></i></div>
         </div>
     </div>
-    
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">Categories</h6>
-                        <h3 class="fw-bold mb-0">{{ categories_count|default:'0' }}</h3>
-                        <small class="text-muted">Active categories</small>
-                    </div>
-                    <div class="bg-info bg-opacity-10 p-3 rounded-3">
-                        <i class="fas fa-tags text-info fa-2x"></i>
-                    </div>
+        <div class="sec-card">
+            <div>
+                <div class="sec-label">Categories</div>
+                <div class="sec-value">{{ categories_count|default:'0' }}</div>
+                <div class="sec-sub sub-muted">
+                    <i class="fas fa-tags"></i> Active categories
                 </div>
             </div>
+            <div class="sec-icon si-3"><i class="fas fa-tags"></i></div>
         </div>
     </div>
 </div>
 
-<!-- Recent Events Table - From Database -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+<!-- Recent Events Table -->
+<div class="table-panel">
+    <div class="table-panel-head">
         <div>
-            <h5 class="mb-1">Recent Events</h5>
-            <p class="text-muted small mb-0">Latest events on your platform</p>
+            <h5><i class="fas fa-calendar-week me-2" style="color:#4A7A9B;"></i>Recent Events</h5>
+            <p>Latest events on your platform</p>
         </div>
-        <a href="{% url 'admin_manage_events' %}" class="btn btn-sm btn-link text-primary text-decoration-none">
-            View All <i class="fas fa-arrow-right ms-1"></i>
+        <a href="{% url 'admin_manage_events' %}" class="view-all-link">
+            View All <i class="fas fa-arrow-right"></i>
         </a>
     </div>
-    
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Event</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Guests</th>
+                    <th class="text-end pe-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if recent_events %}
+                    {% for event in recent_events %}
                     <tr>
-                        <th class="ps-4">Event</th>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Guests</th>
-                        <th class="text-end pe-4">Action</th>
+                        <td class="ps-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="ev-icon-box">
+                                    <i class="fas fa-{% if event.category.name == 'Wedding' %}heart{% elif event.category.name == 'Corporate' %}briefcase{% elif event.category.name == 'Birthday' %}birthday-cake{% else %}calendar{% endif %}"></i>
+                                </div>
+                                <span style="font-weight:600;">{{ event.title }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:500;">{{ event.date|date:"M d, Y" }}</div>
+                            <small style="color:#4a6278;">{{ event.date|date:"h:i A" }}</small>
+                        </td>
+                        <td><span class="type-badge">{{ event.category.name|default:'Event' }}</span></td>
+                        <td>
+                            {% if event.status == 'completed' %}
+                                <span class="s-pill s-completed"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                            {% elif event.status == 'upcoming' %}
+                                <span class="s-pill s-upcoming"><i class="fas fa-calendar me-1"></i>Upcoming</span>
+                            {% elif event.status == 'pending' %}
+                                <span class="s-pill s-pending"><i class="fas fa-hourglass-half me-1"></i>Pending</span>
+                            {% elif event.status == 'cancelled' %}
+                                <span class="s-pill s-cancelled"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
+                            {% else %}
+                                <span class="s-pill s-other">{{ event.status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="color:#4a6278;font-size:.85rem;">
+                                <i class="fas fa-user me-1" style="color:#8AB4C8;"></i>{{ event.guest_count|default:'0' }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'admin_view_event' event.id %}" class="btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% if recent_events %}
-                        {% for event in recent_events %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="event-icon bg-{% cycle 'primary' 'success' 'warning' 'info' %} bg-opacity-10 p-2 rounded-3 me-3">
-                                        <i class="fas fa-{% if event.category.name == 'Wedding' %}heart{% elif event.category.name == 'Corporate' %}briefcase{% elif event.category.name == 'Birthday' %}birthday-cake{% else %}calendar{% endif %} text-{% cycle 'primary' 'success' 'warning' 'info' %}"></i>
-                                    </div>
-                                    <span class="fw-medium">{{ event.title }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div>{{ event.date|date:"M d, Y" }}</div>
-                                <small class="text-muted">{{ event.date|date:"h:i A" }}</small>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark px-3 py-2">{{ event.category.name|default:'Event' }}</span>
-                            </td>
-                            <td>
-                                {% if event.status == 'completed' %}
-                                    <span class="badge bg-success px-3 py-2">Completed</span>
-                                {% elif event.status == 'upcoming' %}
-                                    <span class="badge bg-primary px-3 py-2">Upcoming</span>
-                                {% elif event.status == 'pending' %}
-                                    <span class="badge bg-warning px-3 py-2">Pending</span>
-                                {% elif event.status == 'cancelled' %}
-                                    <span class="badge bg-danger px-3 py-2">Cancelled</span>
-                                {% else %}
-                                    <span class="badge bg-secondary px-3 py-2">{{ event.status|title }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-user text-muted me-1"></i>
-                                    <span>{{ event.guest_count|default:'0' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-end pe-4">
-                                <a href="{% url 'admin_view_event' event.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye me-1"></i>View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                No events found in database
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-2x mb-2" style="color:#8AB4C8;display:block;"></i>
+                            <span style="color:#4a6278;font-size:.88rem;">No events found</span>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Add Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-<style>
-.event-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.card {
-    border-radius: 12px;
-    transition: transform 0.2s ease;
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
-}
-.badge {
-    font-weight: 500;
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-}
-.table thead th {
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #6c757d;
-}
-@media (max-width: 768px) {
-    h3 { font-size: 1.75rem; }
-}
-@media (max-width: 576px) {
-    .table td, .table th {
-        font-size: 0.85rem;
-        padding: 0.75rem 0.5rem;
-    }
-}
-</style>
 {% endblock %}

@@ -2,104 +2,202 @@
 {% block title %}Events{% endblock %}
 
 {% block content %}
+<style>
+    /* ── Page header ── */
+    .page-header h3 { font-size: 1.5rem; font-weight: 700; color: #1E2D40; margin-bottom: .2rem; }
+    .page-header p  { color: #4a6278; font-size: .92rem; }
+
+    /* ── Filter buttons ── */
+    a.filter-btn, a.filter-btn:visited {
+        display: inline-block;
+        border-radius: 8px;
+        font-size: .82rem; font-weight: 600;
+        padding: .38rem 1rem;
+        border: 1.5px solid #4A7A9B;
+        color: #4A7A9B;
+        background: transparent;
+        text-decoration: none;
+        transition: all .2s;
+        line-height: 1.5;
+    }
+    a.filter-btn.active, a.filter-btn:hover {
+        background: #4A7A9B;
+        color: #fff;
+        border-color: #4A7A9B;
+        text-decoration: none;
+    }
+
+    /* ── Event cards ── */
+    .ev-card {
+        background: #eef5f9;
+        border: 1.5px solid #ccdde8;
+        border-radius: 14px;
+        padding: 1.4rem 1.5rem 1.2rem;
+        height: 100%;
+        transition: all .22s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .ev-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, #4A7A9B, #8AB4C8);
+        border-radius: 14px 0 0 14px;
+    }
+    .ev-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(30,45,64,.12);
+        border-color: #8AB4C8;
+        background: rgba(74,122,155,.06);
+    }
+    .ev-card-title { font-size: 1.05rem; font-weight: 700; color: #1E2D40; }
+
+    /* ── Meta rows ── */
+    .ev-meta { display: flex; flex-direction: column; gap: .35rem; margin: .75rem 0; }
+    .ev-meta-item { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: #4a6278; }
+    .ev-meta-item i { color: #4A7A9B; font-size: .95rem; width: 16px; flex-shrink: 0; }
+    .ev-meta-item strong { color: #1E2D40; }
+
+    .ev-divider { border: none; border-top: 1px solid #ccdde8; margin: .85rem 0; }
+
+    /* ── Status badges ── */
+    span.ev-badge { border-radius: 20px; font-size: .72rem; font-weight: 700; padding: .28rem .85rem; letter-spacing: .3px; display: inline-block; }
+    span.ev-badge-pending   { background: #fef3dc !important; color: #c47c1a !important; }
+    span.ev-badge-confirmed { background: #ddeaf3 !important; color: #4A7A9B !important; }
+    span.ev-badge-completed { background: #d6f0e4 !important; color: #2d8a5e !important; }
+    span.ev-badge-cancelled { background: #fde8e6 !important; color: #c0392b !important; }
+
+    /* ── Guest access box ── */
+    .guest-box {
+        background: #ddeaf3;
+        border: 1px solid #8AB4C8;
+        border-radius: 10px;
+        padding: .75rem 1rem;
+        font-size: .82rem;
+        color: #1E2D40;
+        margin-bottom: .75rem;
+    }
+    .guest-box i { color: #4A7A9B; }
+
+    /* ── Credential buttons ── */
+    a.cred-btn, a.cred-btn:visited {
+        display: block; width: 100%; text-align: center;
+        border-radius: 8px; padding: .42rem .75rem;
+        font-size: .82rem; font-weight: 600;
+        text-decoration: none; transition: all .2s;
+        margin-bottom: .4rem;
+    }
+    a.cred-btn-solid {
+        background: #4A7A9B; color: #fff; border: 1.5px solid #4A7A9B;
+    }
+    a.cred-btn-solid:hover { background: #1E2D40; border-color: #1E2D40; color: #fff; }
+    a.cred-btn-outline {
+        background: transparent; color: #4A7A9B; border: 1.5px solid #4A7A9B;
+    }
+    a.cred-btn-outline:hover { background: #4A7A9B; color: #fff; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 4rem 2rem; }
+    .empty-state i { font-size: 3.5rem; color: #8AB4C8; }
+    .empty-state h5 { color: #1E2D40; font-weight: 600; margin: 1rem 0 .4rem; }
+    .empty-state p  { color: #4a6278; font-size: .92rem; }
+</style>
 
 {% if messages %}
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-        {{ message }}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+        <i class="bi bi-info-circle me-2"></i>{{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% endfor %}
 {% endif %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
-        <h3 class="mb-1">My Events</h3>
-        <p class="text-muted mb-0">View all events you're associated with</p>
+        <h3><i class="bi bi-calendar-week me-2" style="color:#4A7A9B;"></i>My Events</h3>
+        <p class="mb-0">View all events you're associated with</p>
     </div>
-    <div class="btn-group" role="group">
-        <a href="{% url 'vendor_events' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">All</a>
-        <a href="{% url 'vendor_events' %}?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
-        <a href="{% url 'vendor_events' %}?status=confirmed" class="btn btn-outline-success {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
-        <a href="{% url 'vendor_events' %}?status=completed" class="btn btn-outline-primary {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'vendor_events' %}" class="filter-btn {% if not status_filter %}active{% endif %}">All</a>
+        <a href="{% url 'vendor_events' %}?status=pending"   class="filter-btn {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+        <a href="{% url 'vendor_events' %}?status=confirmed" class="filter-btn {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
+        <a href="{% url 'vendor_events' %}?status=completed" class="filter-btn {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
     </div>
 </div>
 
+<!-- Cards grid -->
 <div class="row g-4">
     {% if events %}
         {% for event in events %}
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="card-title mb-0">{{ event.title }}</h5>
-                        <span class="badge bg-{% if event.status == 'pending' %}warning{% elif event.status == 'confirmed' %}success{% elif event.status == 'completed' %}primary{% else %}secondary{% endif %}">
-                            {{ event.get_status_display }}
-                        </span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <p class="text-muted mb-2">
-                            <i class="bi bi-calendar me-2"></i>{{ event.date|date:"F d, Y" }}<br>
-                            <i class="bi bi-clock me-2"></i>{{ event.date|date:"g:i A" }}
-                        </p>
-                        
-                        <p class="mb-2">
-                            <strong>Type:</strong> {{ event.get_event_type_display }}<br>
-                            <strong>Guests:</strong> {{ event.guests }}
-                        </p>
-                        
-                        <p class="mb-2">
-                            <i class="bi bi-person me-1"></i><strong>Customer:</strong> {{ event.owner.fullname }}
-                        </p>
-                    </div>
-                    
-                    {% with event.bookings.all|first as booking %}
-                    {% if booking %}
-                    <div class="border-top pt-3 mt-3">
-                        <small class="text-muted">
-                            <i class="bi bi-shop me-1"></i><strong>Store:</strong> {{ booking.store.store_name }}<br>
-                            <i class="bi bi-currency-rupee me-1"></i><strong>Amount:</strong> ₹{{ booking.amount }}
-                        </small>
-                    </div>
-                    {% endif %}
-                    {% endwith %}
-                    
-                    {% if event.is_photographer_booking %}
-                    <div class="border-top pt-3 mt-3">
-                        {% if event.has_guest_access %}
-                            <div class="alert alert-info mb-2 py-2">
-                                <small>
-                                    <i class="bi bi-key me-1"></i><strong>Guest ID:</strong> {{ event.guest_access_obj.guest_id }}<br>
-                                    <small class="text-muted">Credentials already generated</small>
-                                </small>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'view_guest_credentials' event.id %}" class="btn btn-sm btn-primary w-100">
-                                    <i class="bi bi-eye me-1"></i>View Credentials
-                                </a>
-                                <a href="{% url 'generate_guest_credentials' event.id %}" class="btn btn-sm btn-outline-primary w-100">
-                                    <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
-                                </a>
-                            </div>
-                        {% else %}
-                            <a href="{% url 'generate_guest_credentials' event.id %}" class="btn btn-sm btn-primary w-100">
-                                <i class="bi bi-key me-1"></i>Generate Guest Credentials
-                            </a>
-                        {% endif %}
-                    </div>
+            <div class="ev-card">
+                <!-- Title + status -->
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="ev-card-title">{{ event.title }}</div>
+                    {% if event.status == 'pending' %}
+                        <span class="ev-badge ev-badge-pending">Pending</span>
+                    {% elif event.status == 'confirmed' %}
+                        <span class="ev-badge ev-badge-confirmed">Confirmed</span>
+                    {% elif event.status == 'completed' %}
+                        <span class="ev-badge ev-badge-completed">Completed</span>
+                    {% else %}
+                        <span class="ev-badge ev-badge-cancelled">Cancelled</span>
                     {% endif %}
                 </div>
+
+                <!-- Meta -->
+                <div class="ev-meta">
+                    <div class="ev-meta-item"><i class="bi bi-calendar3"></i> {{ event.date|date:"F d, Y" }}</div>
+                    <div class="ev-meta-item"><i class="bi bi-clock"></i> {{ event.date|date:"g:i A" }}</div>
+                    <div class="ev-meta-item"><i class="bi bi-tag"></i> {{ event.get_event_type_display }}</div>
+                    <div class="ev-meta-item"><i class="bi bi-people"></i> {{ event.guests }} Guests</div>
+                    <div class="ev-meta-item"><i class="bi bi-person"></i> <strong>Customer:</strong>&nbsp;{{ event.owner.fullname }}</div>
+                </div>
+
+                {% with event.bookings.all|first as booking %}
+                {% if booking %}
+                <hr class="ev-divider">
+                <div class="ev-meta">
+                    <div class="ev-meta-item"><i class="bi bi-shop"></i> <strong>Store:</strong>&nbsp;{{ booking.store.store_name }}</div>
+                    <div class="ev-meta-item"><i class="bi bi-currency-rupee"></i> <strong>Amount:</strong>&nbsp;<span style="color:#2d8a5e;font-weight:700;">₹{{ booking.amount }}</span></div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                {% if event.is_photographer_booking %}
+                <hr class="ev-divider">
+                {% if event.has_guest_access %}
+                    <div class="guest-box">
+                        <i class="bi bi-key me-1"></i>
+                        <strong>Guest ID:</strong> {{ event.guest_access_obj.guest_id }}<br>
+                        <span style="color:#4a6278;">Credentials already generated</span>
+                    </div>
+                    <a href="{% url 'view_guest_credentials' event.id %}" class="cred-btn cred-btn-solid">
+                        <i class="bi bi-eye me-1"></i> View Credentials
+                    </a>
+                    <a href="{% url 'generate_guest_credentials' event.id %}" class="cred-btn cred-btn-outline">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Regenerate
+                    </a>
+                {% else %}
+                    <a href="{% url 'generate_guest_credentials' event.id %}" class="cred-btn cred-btn-solid">
+                        <i class="bi bi-key me-1"></i> Generate Guest Credentials
+                    </a>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
         {% endfor %}
     {% else %}
         <div class="col-12">
-            <div class="card-box text-center py-5">
-                <i class="bi bi-calendar-x fs-1 text-muted"></i>
-                <h5 class="text-muted mt-3">No events found</h5>
-                <p class="text-muted">Events will appear here once customers book your services.</p>
+            <div class="card-box">
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x"></i>
+                    <h5>No events found</h5>
+                    <p>Events will appear here once customers book your services.</p>
+                </div>
             </div>
         </div>
     {% endif %}

@@ -217,9 +217,31 @@ class GalleryImage(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     guest_access = models.ForeignKey('user.EventGuestAccess', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_photos')
     uploaded_by_guest = models.BooleanField(default=False)
+    # ArcFace embedding stored as JSON-serialised list of floats (512-dim)
+    face_embedding = models.JSONField(null=True, blank=True)
+    embedding_status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('done', 'Done'), ('no_face', 'No Face'), ('error', 'Error')],
+        default='pending',
+    )
 
     class Meta:
         ordering = ['-uploaded_at']
 
     def __str__(self):
         return f"Gallery Image {self.id}"
+
+
+class GuestSelfie(models.Model):
+    """Temporary selfie uploaded by a guest for face-search within an event."""
+    event = models.ForeignKey('user.Event', on_delete=models.CASCADE, related_name='guest_selfies')
+    guest_access = models.ForeignKey('user.EventGuestAccess', on_delete=models.CASCADE, related_name='selfies')
+    image = models.ImageField(upload_to='guest_selfies/')
+    face_embedding = models.JSONField(null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"GuestSelfie {self.id} — event {self.event_id}"

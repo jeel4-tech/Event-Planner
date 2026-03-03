@@ -1,0 +1,1053 @@
+{% extends "guest/base.html" %}
+{% block title %}Find My Photos{% endblock %}
+
+{% block styles %}
+<style>
+/* ── Page ── */
+.page-back { font-size:.82rem; color:#4a6278; text-decoration:none; display:inline-flex; align-items:center; gap:.35rem; margin-bottom:.6rem; }
+.page-back:hover { color:#1E2D40; }
+
+/* ── Method picker ── */
+.method-picker { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+.method-card {
+    flex:1; min-width:200px;
+    background:#eef5f9; border:2px solid #ccdde8; border-radius:16px;
+    padding:1.6rem 1.2rem; text-align:center; cursor:pointer;
+    transition:all .22s; position:relative; user-select:none;
+}
+.method-card:hover { border-color:#4A7A9B; background:#ddeaf3; transform:translateY(-2px); box-shadow:0 6px 20px rgba(30,45,64,.1); }
+.method-card.active { border-color:#4A7A9B; background:#ddeaf3; box-shadow:0 6px 20px rgba(30,45,64,.12); }
+.method-card.active::after {
+    content:'\F26E'; font-family:'bootstrap-icons';
+    position:absolute; top:.6rem; right:.75rem;
+    font-size:1rem; color:#4A7A9B; font-weight:700;
+}
+.method-icon {
+    width:60px; height:60px; border-radius:50%; margin:0 auto .85rem;
+    display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+    transition:background .22s;
+}
+.method-card:hover .method-icon,
+.method-card.active .method-icon { background:#c5dce8 !important; }
+.method-title { font-size:.95rem; font-weight:800; color:#1E2D40; margin-bottom:.3rem; }
+.method-desc  { font-size:.78rem; color:#4a6278; line-height:1.4; }
+
+/* ── Input panels ── */
+.input-panel { display:none; }
+.input-panel.active { display:block; }
+
+/* ── Camera panel ── */
+.camera-wrap {
+    background:#eef5f9; border:1.5px solid #ccdde8; border-radius:14px; overflow:hidden; margin-bottom:1.2rem;
+}
+.camera-head {
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    padding:.7rem 1.2rem; display:flex; align-items:center; gap:.5rem;
+}
+.camera-head i    { color:#8AB4C8; }
+.camera-head span { color:#fff; font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+.camera-body { padding:1.3rem 1.4rem; }
+
+#videoEl {
+    width:100%; max-width:420px; border-radius:12px; display:block; margin:0 auto;
+    border:3px solid #4A7A9B; background:#000;
+}
+#canvasEl { display:none; }
+#cameraPreviewImg {
+    width:140px; height:140px; object-fit:cover; border-radius:50%;
+    border:3px solid #4A7A9B; display:none; margin:1rem auto 0;
+}
+
+.btn-cam {
+    border:none; border-radius:10px; padding:.55rem 1.4rem;
+    font-size:.88rem; font-weight:700; cursor:pointer; transition:all .2s;
+    display:inline-flex; align-items:center; gap:.4rem;
+}
+.btn-cam-snap  { background:#4A7A9B; color:#fff; }
+.btn-cam-snap:hover  { background:#1E2D40; }
+.btn-cam-retry { background:#e4eff5; color:#1E2D40; border:1.5px solid #ccdde8; }
+.btn-cam-retry:hover { background:#ccdde8; }
+
+/* ── Upload panel drop-zone ── */
+.drop-zone {
+    border:2px dashed #8AB4C8; border-radius:12px;
+    background:#f5f9fc; padding:2.5rem 1rem;
+    text-align:center; cursor:pointer;
+    transition:border-color .2s, background .2s; position:relative;
+}
+.drop-zone:hover, .drop-zone.dragover { border-color:#4A7A9B; background:#ddeaf3; }
+.drop-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.drop-zone-icon { font-size:2.5rem; color:#8AB4C8; margin-bottom:.6rem; }
+.drop-zone-text { font-size:.9rem; color:#4a6278; }
+.drop-zone-text strong { color:#1E2D40; }
+#uploadPreview {
+    width:140px; height:140px; object-fit:cover;
+    border-radius:50%; border:3px solid #4A7A9B;
+    display:none; margin:1rem auto 0;
+}
+
+/* ── Search button ── */
+.btn-search {
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    color:#fff; border:none; border-radius:10px;
+    padding:.65rem 2rem; font-size:.95rem; font-weight:700;
+    cursor:pointer; transition:opacity .2s;
+    display:flex; align-items:center; gap:.5rem;
+}
+.btn-search:hover { opacity:.88; }
+.btn-search:disabled { opacity:.5; cursor:not-allowed; }
+
+/* ── Progress bar ── */
+.index-bar-wrap {
+    background:#ddeaf3; border:1px solid #ccdde8; border-radius:10px;
+    padding:.6rem 1rem; font-size:.8rem; color:#4a6278; margin-bottom:1.2rem;
+    display:flex; align-items:center; gap:.75rem;
+}
+.index-bar-wrap .bar-outer { flex:1; background:#c5dce8; border-radius:20px; height:8px; overflow:hidden; }
+.index-bar-wrap .bar-inner { height:100%; background:linear-gradient(90deg,#4A7A9B,#8AB4C8); border-radius:20px; }
+
+/* ── Results ── */
+.results-panel { background:#eef5f9; border:1.5px solid #ccdde8; border-radius:14px; overflow:hidden; }
+.results-head  { background:#e4eff5; border-bottom:1.5px solid #ccdde8; padding:.75rem 1.2rem; display:flex; align-items:center; justify-content:space-between; }
+.results-head-left { display:flex; align-items:center; gap:.5rem; }
+.results-head-left i    { color:#4A7A9B; }
+.results-head-left span { font-size:.9rem; font-weight:700; color:#1E2D40; }
+.results-count { background:#ddeaf3; color:#1E2D40; font-size:.72rem; font-weight:700; padding:.2rem .7rem; border-radius:20px; border:1px solid #ccdde8; }
+.results-body  { padding:1.2rem; }
+
+/* ── Photo card ── */
+.photo-card { background:#f5f9fc; border:1.5px solid #ccdde8; border-radius:12px; overflow:visible; transition:box-shadow .2s,transform .2s; }
+.photo-card:hover { box-shadow:0 8px 24px rgba(30,45,64,.13); transform:translateY(-3px); }
+.photo-card-inner { border-radius:12px; overflow:hidden; }
+.photo-card img { width:100%; height:200px; object-fit:cover; display:block; transition:transform .3s; }
+.photo-card:hover img { transform:scale(1.04); }
+.photo-card-body { padding:.5rem .75rem; }
+.photo-date { font-size:.72rem; color:#4a6278; }
+
+/* ── States ── */
+.state-box { text-align:center; padding:3rem 1rem; }
+.state-box i  { font-size:3rem; display:block; margin-bottom:.75rem; }
+.state-box h5 { font-weight:700; color:#1E2D40; margin-bottom:.4rem; }
+.state-box p  { color:#4a6278; font-size:.88rem; }
+
+/* ── Alert ── */
+.alert-navy { background:#ddeaf3; border:1.5px solid #8AB4C8; color:#1E2D40; border-radius:11px; padding:.7rem 1rem; font-size:.85rem; display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:1.2rem; }
+.alert-navy-inner { display:flex; align-items:center; gap:.5rem; }
+.alert-navy button { background:none; border:none; color:#4a6278; cursor:pointer; font-size:1rem; padding:0; }
+
+/* ── Selfie compare ── */
+.selfie-compare { display:flex; align-items:center; gap:1.2rem; background:#ddeaf3; border:1px solid #8AB4C8; border-radius:12px; padding:.85rem 1.2rem; margin-bottom:1.4rem; }
+.selfie-compare img { width:70px; height:70px; object-fit:cover; border-radius:50%; border:2.5px solid #4A7A9B; flex-shrink:0; }
+.selfie-compare-text h6 { font-weight:700; color:#1E2D40; margin-bottom:.15rem; font-size:.9rem; }
+.selfie-compare-text p  { color:#4a6278; font-size:.8rem; margin:0; }
+
+/* ── Spinner overlay ── */
+#searchingOverlay { display:none; position:fixed; inset:0; background:rgba(30,45,64,.55); z-index:9999; flex-direction:column; align-items:center; justify-content:center; gap:1rem; }
+#searchingOverlay.show { display:flex; }
+.spinner-ring { width:64px; height:64px; border:6px solid rgba(255,255,255,.25); border-top-color:#8AB4C8; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+#searchingOverlay p { color:#fff; font-size:1rem; font-weight:600; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Spinner overlay -->
+<div id="searchingOverlay">
+    <div class="spinner-ring"></div>
+    <p>Scanning event photos&hellip; this may take a moment</p>
+</div>
+
+<!-- Page header -->
+<a href="{% url 'guest_dashboard' %}" class="page-back">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+<h4 class="mb-0" style="font-weight:800;color:#1E2D40;margin-bottom:.2rem;">
+    <i class="bi bi-person-bounding-box me-2" style="color:#4A7A9B;"></i>Find My Photos
+</h4>
+<p class="mb-4 small" style="color:#4a6278;">
+    Choose how you want to identify yourself in photos from <strong>{{ event.title }}</strong>
+</p>
+
+<!-- Django messages -->
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert-navy">
+        <div class="alert-navy-inner">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle-fill{% else %}info-circle{% endif %}"
+               style="color:{% if message.tags == 'success' %}#2d8a5e{% else %}#4A7A9B{% endif %};"></i>
+            {{ message }}
+        </div>
+        <button onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Indexing progress -->
+{% if total_photos > 0 %}
+<div class="index-bar-wrap">
+    <i class="bi bi-cpu" style="color:#4A7A9B;flex-shrink:0;"></i>
+    <div class="bar-outer">
+        <div class="bar-inner" style="width:{% widthratio indexed_photos total_photos 100 %}%;"></div>
+    </div>
+    <span style="white-space:nowrap;">
+        {{ indexed_photos }}&nbsp;/&nbsp;{{ total_photos }} photos indexed
+        {% if indexed_photos < total_photos %}
+            &nbsp;<span style="color:#c47c1a;font-weight:600;">(indexing in progress…)</span>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+
+
+<!-- ── Step 1: Method picker ── -->
+<div class="method-picker" id="methodPicker">
+
+    <!-- Option A: Camera -->
+    <div class="method-card" id="cardCamera" onclick="selectMethod('camera')">
+        <div class="method-icon" style="background:#ddeaf3;">
+            <i class="bi bi-camera-video" style="color:#4A7A9B;"></i>
+        </div>
+        <div class="method-title">Scan Your Face</div>
+        <div class="method-desc">Use your device camera to take a live selfie — no file needed</div>
+    </div>
+
+    <!-- Option B: Upload -->
+    <div class="method-card" id="cardUpload" onclick="selectMethod('upload')">
+        <div class="method-icon" style="background:#ddeaf3;">
+            <i class="bi bi-cloud-upload" style="color:#4A7A9B;"></i>
+        </div>
+        <div class="method-title">Upload a Photo</div>
+        <div class="method-desc">Pick an existing photo from your device gallery or files</div>
+    </div>
+
+</div>
+
+
+<!-- ── Step 2a: Camera panel ── -->
+<div class="input-panel" id="panelCamera">
+    <div class="camera-wrap">
+        <div class="camera-head">
+            <i class="bi bi-camera-video"></i>
+            <span>Live Camera Selfie</span>
+        </div>
+        <div class="camera-body">
+
+            <!-- Live feed -->
+            <div id="cameraLive" style="text-align:center;">
+                <video id="videoEl" autoplay playsinline muted></video>
+                <canvas id="canvasEl"></canvas>
+                <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" class="btn-cam btn-cam-snap" id="snapBtn" onclick="snapPhoto()">
+                        <i class="bi bi-camera"></i> Take Selfie
+                    </button>
+                    <button type="button" class="btn-cam btn-cam-retry" onclick="stopCamera(); selectMethod(null)">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- After snap: preview + confirm -->
+            <div id="cameraConfirm" style="display:none;text-align:center;">
+                <img id="cameraPreviewImg" src="" alt="Captured selfie"
+                     style="width:160px;height:160px;object-fit:cover;border-radius:50%;border:3px solid #4A7A9B;margin:0 auto .85rem;display:block;">
+                <p style="font-size:.82rem;color:#4a6278;margin-bottom:1rem;">
+                    <i class="bi bi-check-circle-fill me-1" style="color:#2d8a5e;"></i>
+                    Photo captured — looks good?
+                </p>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" class="btn-cam btn-cam-retry" onclick="retakePhoto()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Retake
+                    </button>
+                    <button type="button" class="btn-search" id="cameraSearchBtn" onclick="submitCameraPhoto()">
+                        <i class="bi bi-search"></i> Find My Photos
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Cropper.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+<style>
+/* ── Crop area ── */
+#cropWrapper {
+    background:#111; border-radius:12px; overflow:hidden;
+    margin-bottom:1rem; position:relative;
+}
+#cropImgEl { display:block; max-width:100%; max-height:340px; margin:0 auto; }
+
+/* Crop tools row */
+.selfie-crop-tools {
+    background:#1E2D40; padding:.6rem 1rem;
+    display:flex; align-items:center; gap:.4rem; flex-wrap:wrap;
+}
+.btn-sct {
+    background:rgba(255,255,255,.1); color:#fff;
+    border:1px solid rgba(255,255,255,.2); border-radius:7px;
+    padding:.28rem .7rem; font-size:.75rem; font-weight:600;
+    cursor:pointer; transition:all .15s;
+    display:inline-flex; align-items:center; gap:.3rem;
+}
+.btn-sct:hover { background:rgba(255,255,255,.22); }
+
+/* Aspect pills */
+.sct-ar {
+    background:rgba(255,255,255,.08); color:#8AB4C8;
+    border:1px solid rgba(138,180,200,.3); border-radius:20px;
+    padding:.2rem .65rem; font-size:.7rem; font-weight:700;
+    cursor:pointer; transition:all .15s;
+}
+.sct-ar:hover, .sct-ar.active { background:#4A7A9B; color:#fff; border-color:#4A7A9B; }
+
+/* Crop confirm / re-select strip */
+.crop-action-strip {
+    margin-bottom:.85rem;
+    background:#ddeaf3; border:1px solid #8AB4C8; border-radius:12px;
+    padding:.75rem 1rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+}
+.crop-preview-thumb {
+    width:60px; height:60px; border-radius:50%; object-fit:cover;
+    border:2.5px solid #4A7A9B; flex-shrink:0;
+}
+.btn-reselect {
+    background:#e4eff5; color:#1E2D40; border:1.5px solid #ccdde8;
+    border-radius:8px; padding:.32rem .85rem; font-size:.78rem; font-weight:600;
+    cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:.3rem;
+}
+.btn-reselect:hover { background:#ccdde8; }
+</style>
+
+<!-- ── Step 2b: Upload panel ── -->
+<div class="input-panel" id="panelUpload">
+    <div class="camera-wrap">
+        <div class="camera-head">
+            <i class="bi bi-cloud-upload"></i>
+            <span>Upload Your Selfie</span>
+        </div>
+        <div class="camera-body">
+
+            <!-- STEP A: Drop zone -->
+            <div id="upStepA">
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" id="selfieInput" accept="image/*">
+                    <div class="drop-zone-icon"><i class="bi bi-person-circle"></i></div>
+                    <div class="drop-zone-text">
+                        <strong>Click to select</strong> or drag &amp; drop your photo<br>
+                        <span style="font-size:.8rem;">JPG, PNG, WEBP &bull; You can crop after selecting</span>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn-cam btn-cam-retry" onclick="selectMethod(null)">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP B: Crop editor -->
+            <div id="upStepB" style="display:none;">
+                <div id="cropWrapper">
+                    <img id="cropImgEl" src="" alt="Crop selfie">
+                    <div class="selfie-crop-tools">
+                        <span style="font-size:.7rem;color:#8AB4C8;font-weight:700;margin-right:.2rem;">RATIO:</span>
+                        <span class="sct-ar active" onclick="setSelfieAspect(NaN,this)">Free</span>
+                        <span class="sct-ar" onclick="setSelfieAspect(1,this)">1:1</span>
+                        <span class="sct-ar" onclick="setSelfieAspect(4/3,this)">4:3</span>
+                        <span class="sct-ar" onclick="setSelfieAspect(3/4,this)">3:4</span>
+                        <span style="flex:1;"></span>
+                        <button class="btn-sct" onclick="selfieCropper.rotate(-90)"><i class="bi bi-arrow-counterclockwise"></i> Rotate L</button>
+                        <button class="btn-sct" onclick="selfieCropper.rotate(90)"><i class="bi bi-arrow-clockwise"></i> Rotate R</button>
+                        <button class="btn-sct" onclick="selfieCropper.scaleX(-(selfieCropper.getData().scaleX||1))"><i class="bi bi-symmetry-vertical"></i> Flip</button>
+                        <button class="btn-sct" onclick="selfieCropper.reset()"><i class="bi bi-arrow-repeat"></i> Reset</button>
+                    </div>
+                </div>
+                <div class="mt-3 d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn-cam btn-cam-retry" onclick="resetSelfieUpload()">
+                        <i class="bi bi-arrow-left"></i> Re-select
+                    </button>
+                    <button type="button" class="btn-search" onclick="confirmSelfieCrop()">
+                        <i class="bi bi-crop"></i> Apply Crop &amp; Continue
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP C: Crop confirmed — ready to search -->
+            <div id="upStepC" style="display:none;">
+                <div class="crop-action-strip show" id="cropActionStrip">
+                    <img id="cropThumb" class="crop-preview-thumb" src="" alt="Cropped selfie">
+                    <div style="flex:1;">
+                        <div style="font-size:.88rem;font-weight:700;color:#1E2D40;">Selfie ready</div>
+                        <div style="font-size:.76rem;color:#4a6278;">Crop applied — looks good?</div>
+                    </div>
+                    <button class="btn-reselect" onclick="resetSelfieUpload()">
+                        <i class="bi bi-arrow-repeat"></i> Re-select
+                    </button>
+                </div>
+                <div class="mt-3 d-flex justify-content-end">
+                    <button type="button" class="btn-search" id="uploadSearchBtn" onclick="submitSelfie()">
+                        <i class="bi bi-search"></i> Find My Photos
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Hidden forms for submission -->
+<form method="POST" enctype="multipart/form-data" id="uploadForm" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="source" value="upload">
+    <input type="file" name="selfie" id="uploadHiddenInput" accept="image/*">
+</form>
+
+<form method="POST" enctype="multipart/form-data" id="cameraForm" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="source" value="camera">
+    <input type="file" name="selfie" id="cameraFileInput" accept="image/*">
+</form>
+
+
+<!-- ── Results ── -->
+{% if search_done or error_msg %}
+
+    {% if selfie_url %}
+    <div class="selfie-compare">
+        <img src="{{ selfie_url }}" alt="Your selfie">
+        <div class="selfie-compare-text">
+            <h6>Searched with your selfie</h6>
+            <p>
+                {% if search_done %}
+                    {% if matched_photos %}
+                        Found <strong>{{ matched_photos|length }}</strong> matching photo{{ matched_photos|length|pluralize }} in <strong>{{ event.title }}</strong>.
+                    {% else %}
+                        No matching photos found in <strong>{{ event.title }}</strong>.
+                    {% endif %}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if error_msg %}
+    <div class="results-panel">
+        <div class="results-head">
+            <div class="results-head-left">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>Recognition Error</span>
+            </div>
+        </div>
+        <div class="results-body">
+            <div class="state-box">
+                <i class="bi bi-exclamation-circle" style="color:#c0392b;"></i>
+                <h5>{{ error_msg }}</h5>
+                <p>Try again with a well-lit, front-facing photo without sunglasses or masks.</p>
+            </div>
+        </div>
+    </div>
+
+    {% elif search_done %}
+        {% if matched_photos %}
+
+        <!-- JSZip CDN -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+        <style>
+        /* ── Photo grid ── */
+        .pg-card {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2.5px solid #ccdde8;
+            background: #f5f9fc;
+            cursor: pointer;
+            transition: border-color .18s, box-shadow .18s, transform .18s;
+            position: relative;
+            user-select: none;
+        }
+        .pg-card:hover { border-color: #8AB4C8; box-shadow: 0 6px 20px rgba(30,45,64,.1); transform: translateY(-2px); }
+        .pg-card.selected { border-color: #4A7A9B; box-shadow: 0 0 0 3px rgba(74,122,155,.25); }
+
+        /* Tick badge shown when selected */
+        .pg-tick {
+            position: absolute; top: .5rem; right: .5rem;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: #4A7A9B; color: #fff;
+            display: none; align-items: center; justify-content: center;
+            font-size: .85rem; z-index: 5;
+            box-shadow: 0 2px 6px rgba(0,0,0,.25);
+        }
+        .pg-card.selected .pg-tick { display: flex; }
+
+        /* Unselected: show faint circle hint on hover */
+        .pg-hint {
+            position: absolute; top: .5rem; right: .5rem;
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.7);
+            background: rgba(0,0,0,.18);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 4; opacity: 0; transition: opacity .15s;
+        }
+        .pg-card:hover .pg-hint { opacity: 1; }
+        .pg-card.selected .pg-hint { display: none; }
+
+        .pg-img { width: 100%; height: 190px; object-fit: cover; display: block; }
+
+        .pg-footer {
+            padding: .5rem .75rem;
+            background: #f5f9fc;
+            display: flex; align-items: center; justify-content: space-between; gap: .4rem;
+        }
+        .pg-score { font-size: .72rem; color: #2d8a5e; font-weight: 700; }
+        .pg-date  { font-size: .7rem; color: #4a6278; }
+
+        /* Individual download / view btn inside footer */
+        .btn-dl-one, .btn-view-one {
+            border: none; border-radius: 7px;
+            padding: .28rem .7rem; font-size: .72rem; font-weight: 700;
+            cursor: pointer; transition: background .15s;
+            display: inline-flex; align-items: center; gap: .3rem;
+            flex-shrink: 0;
+        }
+        .btn-dl-one {
+            background: #1E2D40; color: #fff;
+        }
+        .btn-dl-one:hover { background: #4A7A9B; }
+        .btn-view-one {
+            background: #e4eff5; color: #1E2D40;
+            border: 1.5px solid #ccdde8;
+        }
+        .btn-view-one:hover { background: #ddeaf3; border-color: #4A7A9B; color: #4A7A9B; }
+
+        /* ── Sticky selection bar (appears when ≥1 selected) ── */
+        #selBar {
+            position: sticky; bottom: 1rem; z-index: 200;
+            display: none;
+            background: #1E2D40;
+            border-radius: 14px;
+            padding: .75rem 1.2rem;
+            margin-top: 1.2rem;
+            align-items: center; justify-content: space-between; gap: .75rem;
+            flex-wrap: wrap;
+            box-shadow: 0 8px 32px rgba(30,45,64,.35);
+        }
+        #selBar.show { display: flex; }
+        #selBar-left { display: flex; align-items: center; gap: .75rem; }
+        #selBar-count {
+            color: #fff; font-size: .9rem; font-weight: 700;
+        }
+        .btn-sel-clear {
+            background: transparent; color: #8AB4C8;
+            border: 1px solid #4A7A9B; border-radius: 8px;
+            padding: .3rem .85rem; font-size: .78rem; font-weight: 600;
+            cursor: pointer; transition: all .15s;
+        }
+        .btn-sel-clear:hover { background: #4A7A9B; color: #fff; }
+        .btn-dl-zip {
+            background: linear-gradient(135deg, #4A7A9B, #2d8a5e);
+            color: #fff; border: none; border-radius: 10px;
+            padding: .5rem 1.3rem; font-size: .88rem; font-weight: 700;
+            cursor: pointer; transition: opacity .2s;
+            display: inline-flex; align-items: center; gap: .45rem;
+        }
+        .btn-dl-zip:hover { opacity: .88; }
+        .btn-dl-zip:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* ── Top toolbar ── */
+        .dl-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: .6rem;
+            margin-bottom: .85rem;
+        }
+        .dl-toolbar-left { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+        .btn-sel-all {
+            background: #eef5f9; color: #1E2D40;
+            border: 1.5px solid #ccdde8; border-radius: 9px;
+            padding: .35rem .9rem; font-size: .8rem; font-weight: 700;
+            cursor: pointer; transition: all .15s;
+            display: inline-flex; align-items: center; gap: .35rem;
+        }
+        .btn-sel-all:hover { background: #ddeaf3; border-color: #4A7A9B; }
+        .btn-sel-all.active { background: #ddeaf3; border-color: #4A7A9B; color: #4A7A9B; }
+        .dl-hint { font-size: .75rem; color: #4a6278; }
+
+        /* ── ZIP progress overlay ── */
+        #zipOverlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(30,45,64,.65); z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #zipOverlay.show { display: flex; }
+        .zip-box {
+            background: #fff; border-radius: 18px;
+            padding: 2rem 2.5rem; text-align: center; min-width: 300px;
+            box-shadow: 0 16px 48px rgba(0,0,0,.25);
+        }
+        .zip-box h6 { font-weight: 800; color: #1E2D40; margin-bottom: .4rem; font-size: 1rem; }
+        .zip-box p  { font-size: .82rem; color: #4a6278; margin-bottom: 1rem; }
+        .zip-bar-outer { background: #e4eff5; border-radius: 20px; height: 10px; overflow: hidden; }
+        .zip-bar-inner { height: 100%; background: linear-gradient(90deg,#4A7A9B,#2d8a5e); border-radius: 20px; transition: width .3s; width: 0%; }
+        </style>
+
+        <!-- ZIP progress overlay -->
+        <div id="zipOverlay">
+            <div class="zip-box">
+                <h6><i class="bi bi-file-earmark-zip me-2" style="color:#4A7A9B;"></i>Creating ZIP…</h6>
+                <p id="zipStatus">Preparing…</p>
+                <div class="zip-bar-outer"><div class="zip-bar-inner" id="zipBar"></div></div>
+            </div>
+        </div>
+
+        <!-- Top toolbar -->
+        <div class="dl-toolbar">
+            <div class="dl-toolbar-left">
+                <button class="btn-sel-all" id="selAllBtn" onclick="toggleSelectAll()">
+                    <i class="bi bi-check2-square"></i> Select All
+                </button>
+                <span class="dl-hint">
+                    <i class="bi bi-hand-index me-1"></i>Tap a photo to select &bull; Download individually or as ZIP
+                </span>
+            </div>
+            <span style="font-size:.78rem;color:#4a6278;">
+                <i class="bi bi-images me-1" style="color:#4A7A9B;"></i>
+                <strong style="color:#1E2D40;">{{ matched_photos|length }}</strong> photo{{ matched_photos|length|pluralize }} matched
+            </span>
+        </div>
+
+        <!-- Photo grid -->
+        <div class="row g-3" id="photoGrid">
+            {% for item in matched_photos %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="pg-card"
+                     data-url="{{ item.photo.image.url }}"
+                     data-name="photo_{{ forloop.counter }}.jpg"
+                     onclick="toggleCard(this, event)">
+
+                    <!-- Selection indicators -->
+                    <div class="pg-hint"><i class="bi bi-check" style="color:#fff;font-size:.8rem;"></i></div>
+                    <div class="pg-tick"><i class="bi bi-check-lg"></i></div>
+
+                    <!-- Photo -->
+                    <img class="pg-img" src="{{ item.photo.image.url }}" alt="Event Photo">
+
+                    <!-- Footer -->
+                    <div class="pg-footer">
+                        <div>
+                            <div class="pg-score"><i class="bi bi-patch-check-fill me-1"></i>{{ item.score }}% match</div>
+                            <div class="pg-date"><i class="bi bi-calendar3 me-1"></i>{{ item.photo.uploaded_at|date:"d M Y" }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn-view-one"
+                                    onclick="event.stopPropagation(); openLightbox('{{ item.photo.image.url }}')">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            <button class="btn-dl-one"
+                                    onclick="event.stopPropagation(); downloadOne('{{ item.photo.image.url }}', 'photo_{{ forloop.counter }}.jpg')">
+                                <i class="bi bi-download"></i> Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Sticky selection action bar -->
+        <div id="selBar">
+            <div id="selBar-left">
+                <span id="selBar-count">0 selected</span>
+                <button class="btn-sel-clear" onclick="clearSelection()">
+                    <i class="bi bi-x-lg me-1"></i>Clear
+                </button>
+            </div>
+            <button class="btn-dl-zip" id="dlZipBtn" onclick="downloadSelected()">
+                <i class="bi bi-file-earmark-zip"></i>
+                <span id="dlZipLabel">Download as ZIP</span>
+            </button>
+        </div>
+
+        <!-- Lightbox -->
+        <div id="lbOverlay" onclick="closeLightbox()"
+             style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9998;align-items:center;justify-content:center;cursor:zoom-out;">
+            <img id="lbImg" src="" alt=""
+                 style="max-width:92vw;max-height:90vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+            <button onclick="event.stopPropagation(); downloadOne(document.getElementById('lbImg').src,'lightbox_photo.jpg')"
+                    style="position:absolute;bottom:1.5rem;background:#fff;color:#1E2D40;border:none;border-radius:10px;padding:.55rem 1.4rem;font-weight:700;font-size:.9rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;">
+                <i class="bi bi-download"></i> Download this photo
+            </button>
+        </div>
+
+        <script>
+        /* ── Card toggle ── */
+        function toggleCard(card, e) {
+            // If the click was on the download or view button, skip
+            if (e && (e.target.closest('.btn-dl-one') || e.target.closest('.btn-view-one'))) return;
+
+            const isSelected = card.classList.toggle('selected');
+            updateBar();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.pg-card.selected').forEach(c => c.classList.remove('selected'));
+            updateBar();
+        }
+
+        let allSelected = false;
+        function toggleSelectAll() {
+            const cards = document.querySelectorAll('.pg-card');
+            allSelected = !allSelected;
+            cards.forEach(c => c.classList.toggle('selected', allSelected));
+            document.getElementById('selAllBtn').classList.toggle('active', allSelected);
+            document.getElementById('selAllBtn').innerHTML = allSelected
+                ? '<i class="bi bi-x-square me-1"></i> Deselect All'
+                : '<i class="bi bi-check2-square me-1"></i> Select All';
+            updateBar();
+        }
+
+        function updateBar() {
+            const selected = document.querySelectorAll('.pg-card.selected');
+            const count    = selected.length;
+            const bar      = document.getElementById('selBar');
+            const countEl  = document.getElementById('selBar-count');
+            const label    = document.getElementById('dlZipLabel');
+
+            if (count > 0) {
+                bar.classList.add('show');
+                countEl.textContent = count + ' photo' + (count > 1 ? 's' : '') + ' selected';
+                label.textContent   = 'Download ' + count + ' as ZIP';
+            } else {
+                bar.classList.remove('show');
+                // Reset select-all button if user manually deselects all
+                allSelected = false;
+                document.getElementById('selAllBtn').classList.remove('active');
+                document.getElementById('selAllBtn').innerHTML = '<i class="bi bi-check2-square me-1"></i> Select All';
+            }
+        }
+
+        /* ── Single download ── */
+        async function downloadOne(url, filename) {
+            try {
+                const resp = await fetch(url);
+                const blob = await resp.blob();
+                const a    = document.createElement('a');
+                a.href     = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            } catch (e) {
+                window.open(url, '_blank');
+            }
+        }
+
+        /* ── ZIP download ── */
+        async function downloadSelected() {
+            const cards = [...document.querySelectorAll('.pg-card.selected')];
+            if (!cards.length) return;
+
+            const overlay = document.getElementById('zipOverlay');
+            const bar     = document.getElementById('zipBar');
+            const status  = document.getElementById('zipStatus');
+            const btn     = document.getElementById('dlZipBtn');
+
+            overlay.classList.add('show');
+            btn.disabled = true;
+
+            const zip  = new JSZip();
+            let   done = 0;
+
+            for (const card of cards) {
+                const url  = card.dataset.url;
+                const name = card.dataset.name;
+                status.textContent = `Fetching ${done + 1} of ${cards.length}…`;
+                bar.style.width    = Math.round((done / cards.length) * 90) + '%';
+                try {
+                    const resp = await fetch(url);
+                    zip.file(name, await resp.blob());
+                } catch (e) { console.warn('fetch failed', url); }
+                done++;
+            }
+
+            status.textContent = 'Compressing…';
+            bar.style.width    = '95%';
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a    = document.createElement('a');
+            a.href     = URL.createObjectURL(blob);
+            a.download = '{{ event.title|slugify }}_my_photos.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+
+            bar.style.width = '100%';
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                bar.style.width = '0%';
+                btn.disabled = false;
+            }, 700);
+        }
+
+        /* ── Lightbox ── */
+        function openLightbox(url) {
+            document.getElementById('lbImg').src = url;
+            document.getElementById('lbOverlay').style.display = 'flex';
+        }
+        function closeLightbox() {
+            document.getElementById('lbOverlay').style.display = 'none';
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+        // Double-click photo to open lightbox
+        document.querySelectorAll('.pg-img').forEach(img => {
+            img.addEventListener('dblclick', e => {
+                e.stopPropagation();
+                openLightbox(img.src);
+            });
+        });
+        </script>
+
+        {% else %}
+        <div class="results-panel">
+            <div class="results-head">
+                <div class="results-head-left">
+                    <i class="bi bi-images"></i>
+                    <span>Search Results</span>
+                </div>
+            </div>
+            <div class="results-body">
+                <div class="state-box">
+                    <i class="bi bi-person-x" style="color:#8AB4C8;"></i>
+                    <h5>No Match Found</h5>
+                    <p>
+                        We couldn't find photos of you in <strong>{{ event.title }}</strong>.<br>
+                        Try a clearer, front-facing selfie, or check back once the photographer finishes uploading.
+                    </p>
+                    {% if indexed_photos < total_photos %}
+                    <p class="mt-2" style="color:#c47c1a;font-size:.82rem;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Photo indexing is still in progress ({{ indexed_photos }}/{{ total_photos }} done). Try again in a few minutes.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+    {% endif %}
+
+{% endif %}
+
+
+<script>
+/* ─────────────────────────────────────────────
+   Method picker
+───────────────────────────────────────────── */
+let activeMethod = null;
+let cameraStream = null;
+
+function selectMethod(method) {
+    // Reset cards
+    document.getElementById('cardCamera').classList.remove('active');
+    document.getElementById('cardUpload').classList.remove('active');
+    document.getElementById('panelCamera').classList.remove('active');
+    document.getElementById('panelUpload').classList.remove('active');
+
+    if (method === null) {
+        stopCamera();
+        activeMethod = null;
+        return;
+    }
+
+    activeMethod = method;
+
+    if (method === 'camera') {
+        document.getElementById('cardCamera').classList.add('active');
+        document.getElementById('panelCamera').classList.add('active');
+        startCamera();
+    } else {
+        document.getElementById('cardUpload').classList.add('active');
+        document.getElementById('panelUpload').classList.add('active');
+        stopCamera();
+    }
+}
+
+/* ─────────────────────────────────────────────
+   Camera
+───────────────────────────────────────────── */
+async function startCamera() {
+    const video = document.getElementById('videoEl');
+    document.getElementById('cameraLive').style.display = 'block';
+    document.getElementById('cameraConfirm').style.display = 'none';
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: false
+        });
+        video.srcObject = cameraStream;
+    } catch (err) {
+        alert('Could not access camera: ' + err.message + '\nPlease use the "Upload a Photo" option instead.');
+        selectMethod(null);
+    }
+}
+
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    const video = document.getElementById('videoEl');
+    video.srcObject = null;
+}
+
+function snapPhoto() {
+    const video  = document.getElementById('videoEl');
+    const canvas = document.getElementById('canvasEl');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    document.getElementById('cameraPreviewImg').src = dataUrl;
+
+    document.getElementById('cameraLive').style.display    = 'none';
+    document.getElementById('cameraConfirm').style.display = 'block';
+    stopCamera();
+}
+
+function retakePhoto() {
+    document.getElementById('cameraLive').style.display    = 'block';
+    document.getElementById('cameraConfirm').style.display = 'none';
+    startCamera();
+}
+
+function submitCameraPhoto() {
+    const canvas = document.getElementById('canvasEl');
+    const overlay = document.getElementById('searchingOverlay');
+    const btn     = document.getElementById('cameraSearchBtn');
+
+    canvas.toBlob(blob => {
+        const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
+        const dt   = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('cameraFileInput').files = dt.files;
+
+        overlay.classList.add('show');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Searching…';
+        document.getElementById('cameraForm').submit();
+    }, 'image/jpeg', 0.92);
+}
+
+/* ─────────────────────────────────────────────
+   Upload panel + Cropper  (3-step flow)
+   Step A → drop zone
+   Step B → crop editor
+   Step C → confirm & search
+───────────────────────────────────────────── */
+const selfieInput = document.getElementById('selfieInput');
+const dropZone    = document.getElementById('dropZone');
+const overlay     = document.getElementById('searchingOverlay');
+const cropImgEl   = document.getElementById('cropImgEl');
+
+let selfieCropper = null;
+let croppedBlob   = null;
+
+function showUpStep(step) {
+    ['upStepA','upStepB','upStepC'].forEach(id => {
+        document.getElementById(id).style.display = (id === 'upStep' + step) ? '' : 'none';
+    });
+}
+
+/* File selected via input */
+selfieInput.addEventListener('change', function () {
+    const file = this.files && this.files[0];
+    if (file) openSelfieCropper(file);
+});
+
+/* Drag & drop onto drop zone */
+['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (ev === 'drop' && e.dataTransfer.files[0]) openSelfieCropper(e.dataTransfer.files[0]);
+}));
+
+/* Open crop editor with chosen file */
+function openSelfieCropper(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        cropImgEl.src = e.target.result;
+
+        if (selfieCropper) { selfieCropper.destroy(); selfieCropper = null; }
+        croppedBlob = null;
+
+        showUpStep('B');
+
+        /* Init cropper after the image is visible */
+        selfieCropper = new Cropper(cropImgEl, {
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.85,
+            responsive: true,
+            guides: true,
+            center: true,
+            highlight: false,
+            background: false,
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function setSelfieAspect(ratio, el) {
+    if (!selfieCropper) return;
+    document.querySelectorAll('.sct-ar').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selfieCropper.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+}
+
+/* Confirm crop → move to Step C */
+function confirmSelfieCrop() {
+    if (!selfieCropper) return;
+    const canvas = selfieCropper.getCroppedCanvas({ maxWidth: 1024, maxHeight: 1024, imageSmoothingQuality: 'high' });
+    canvas.toBlob(blob => {
+        croppedBlob = blob;
+        document.getElementById('cropThumb').src = canvas.toDataURL('image/jpeg', 0.9);
+
+        if (selfieCropper) { selfieCropper.destroy(); selfieCropper = null; }
+        showUpStep('C');
+    }, 'image/jpeg', 0.92);
+}
+
+/* Re-select → back to Step A */
+function resetSelfieUpload() {
+    if (selfieCropper) { selfieCropper.destroy(); selfieCropper = null; }
+    croppedBlob = null;
+    selfieInput.value = '';
+    showUpStep('A');
+}
+
+/* Submit cropped selfie */
+function submitSelfie() {
+    if (!croppedBlob) return;
+    const file = new File([croppedBlob], 'selfie.jpg', { type: 'image/jpeg' });
+    const dt   = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('uploadHiddenInput').files = dt.files;
+
+    const btn = document.getElementById('uploadSearchBtn');
+    overlay.classList.add('show');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Searching…';
+    document.getElementById('uploadForm').submit();
+}
+</script>
+
+{% endblock %}

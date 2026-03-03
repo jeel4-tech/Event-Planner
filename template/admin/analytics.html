@@ -1,49 +1,265 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}Analytics{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+/* ── Back button ── */
+a.btn-back-pg {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B; background: transparent;
+    font-size: .82rem; font-weight: 600; padding: .38rem .9rem;
+    border-radius: 8px; text-decoration: none; transition: all .18s;
+}
+a.btn-back-pg:hover { background: #4A7A9B; color: #fff; }
+
+/* ── KPI cards ── */
+.kpi-card {
+    background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px;
+    padding: 1.1rem 1.2rem; display: flex; align-items: center; gap: .9rem;
+    transition: box-shadow .2s, transform .2s; position: relative; overflow: hidden;
+}
+.kpi-card:hover { box-shadow: 0 6px 22px rgba(30,45,64,.12); transform: translateY(-2px); }
+.kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0;
+}
+.kc-navy::before   { background: linear-gradient(90deg,#1E2D40,#4A7A9B); }
+.kc-green::before  { background: linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.kc-amber::before  { background: linear-gradient(90deg,#c47c1a,#e9a84c); }
+.kc-blue::before   { background: linear-gradient(90deg,#4A7A9B,#8AB4C8); }
+.kc-purple::before { background: linear-gradient(90deg,#7a4a9b,#b07ad4); }
+.kc-teal::before   { background: linear-gradient(90deg,#2d8a7a,#5cb8ae); }
+
+.kpi-icon {
+    width: 46px; height: 46px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.kpi-val { font-size: 1.7rem; font-weight: 800; color: #1E2D40; line-height: 1.1; }
+.kpi-lbl { font-size: .7rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; }
+
+/* ── Section title ── */
+.sec-title {
+    font-size: .78rem; font-weight: 800; color: #4a6278;
+    text-transform: uppercase; letter-spacing: .5px;
+    border-left: 3px solid #4A7A9B; padding-left: .6rem; margin-bottom: .9rem;
+}
+
+/* ── Breakdown panels ── */
+.breakdown-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px; overflow: hidden;
+}
+.breakdown-head {
+    background: linear-gradient(135deg,#1E2D40,#4A7A9B);
+    padding: .65rem 1.2rem; display: flex; align-items: center; gap: .5rem;
+}
+.breakdown-head span { color: #fff; font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+.breakdown-head i    { color: #8AB4C8; font-size: .95rem; }
+.breakdown-body { padding: .9rem 1.2rem; }
+
+.bd-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .52rem 0; border-bottom: 1px solid #e4eff5;
+}
+.bd-row:last-child { border-bottom: none; }
+.bd-label { font-size: .83rem; font-weight: 600; color: #1E2D40; display: flex; align-items: center; gap: .5rem; }
+.bd-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.bd-count {
+    font-size: .82rem; font-weight: 800; padding: .18rem .65rem;
+    border-radius: 20px; min-width: 36px; text-align: center;
+}
+.bd-pending   { background: #fef3dc; color: #c47c1a; }
+.bd-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.bd-completed { background: #d6e8f2; color: #1E2D40; }
+.bd-cancelled { background: #fde8e6; color: #c0392b; }
+.bd-progress  { background: #ddeaf3; color: #4A7A9B; }
+
+/* ── Progress bar ── */
+.prog-bar-wrap { flex: 1; margin: 0 .8rem; height: 6px; background: #e4eff5; border-radius: 3px; overflow: hidden; }
+.prog-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1">Analytics</h4>
-        <p class="text-muted small mb-0">Quick overview</p>
+        <h4 style="font-weight:800;color:#1E2D40;margin-bottom:.2rem;">
+            <i class="bi bi-bar-chart-line me-2" style="color:#4A7A9B;"></i>Analytics
+        </h4>
+        <p style="font-size:.82rem;color:#4a6278;margin:0;">Platform-wide quick overview</p>
     </div>
-    <div>
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+    <a href="{% url 'admin_dashboard' %}" class="btn-back-pg">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<!-- KPI cards row 1 -->
+<div class="row g-3 mb-2">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="kpi-card kc-navy">
+            <div class="kpi-icon" style="background:#ddeaf3;">
+                <i class="bi bi-calendar-event" style="color:#4A7A9B;"></i>
+            </div>
+            <div>
+                <div class="kpi-val">{{ data.total_events }}</div>
+                <div class="kpi-lbl">Events</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="kpi-card kc-green">
+            <div class="kpi-icon" style="background:#d6f0e4;">
+                <i class="bi bi-receipt" style="color:#2d8a5e;"></i>
+            </div>
+            <div>
+                <div class="kpi-val">{{ data.total_bookings }}</div>
+                <div class="kpi-lbl">Bookings</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="kpi-card kc-amber">
+            <div class="kpi-icon" style="background:#fef3dc;">
+                <i class="bi bi-star-fill" style="color:#c47c1a;"></i>
+            </div>
+            <div>
+                <div class="kpi-val">{{ data.total_reviews }}</div>
+                <div class="kpi-lbl">Reviews</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="kpi-card kc-blue">
+            <div class="kpi-icon" style="background:#ddeaf3;">
+                <i class="bi bi-shop" style="color:#4A7A9B;"></i>
+            </div>
+            <div>
+                <div class="kpi-val">{{ data.total_vendors }}</div>
+                <div class="kpi-lbl">Vendors</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="kpi-card kc-purple">
+            <div class="kpi-icon" style="background:#ede0f5;">
+                <i class="bi bi-people-fill" style="color:#7a4a9b;"></i>
+            </div>
+            <div>
+                <div class="kpi-val">{{ data.total_users }}</div>
+                <div class="kpi-lbl">Users</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="kpi-card kc-teal">
+            <div class="kpi-icon" style="background:#d6f0ec;">
+                <i class="bi bi-currency-rupee" style="color:#2d8a7a;"></i>
+            </div>
+            <div>
+                <div class="kpi-val" style="font-size:1.3rem;">₹{{ data.total_revenue }}</div>
+                <div class="kpi-lbl">Revenue</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-0">Total Events</h6>
-                    <div class="h4">{{ data.total_events }}</div>
+<!-- Breakdown panels -->
+<div class="row g-3 mt-1">
+    <!-- Bookings breakdown -->
+    <div class="col-md-6">
+        <div class="sec-title">Bookings Breakdown</div>
+        <div class="breakdown-panel">
+            <div class="breakdown-head">
+                <i class="bi bi-receipt"></i>
+                <span>By Status</span>
+            </div>
+            <div class="breakdown-body">
+                {% with total=data.total_bookings %}
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#c47c1a;"></span>Pending
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#c47c1a; width:{% if total %}{% widthratio data.pending_bookings total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-pending">{{ data.pending_bookings }}</span>
                 </div>
-                <i class="bi bi-calendar-event fs-2 text-muted"></i>
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#2d8a5e;"></span>Approved
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#2d8a5e; width:{% if total %}{% widthratio data.confirmed_bookings total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-confirmed">{{ data.confirmed_bookings }}</span>
+                </div>
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#4A7A9B;"></span>Completed
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#4A7A9B; width:{% if total %}{% widthratio data.completed_bookings total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-completed">{{ data.completed_bookings }}</span>
+                </div>
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#c0392b;"></span>Rejected
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#c0392b; width:{% if total %}{% widthratio data.cancelled_bookings total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-cancelled">{{ data.cancelled_bookings }}</span>
+                </div>
+                {% endwith %}
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-0">Total Reviews</h6>
-                    <div class="h4">{{ data.total_reviews }}</div>
-                </div>
-                <i class="bi bi-star fs-2 text-muted"></i>
+
+    <!-- Events breakdown -->
+    <div class="col-md-6">
+        <div class="sec-title">Events Breakdown</div>
+        <div class="breakdown-panel">
+            <div class="breakdown-head">
+                <i class="bi bi-calendar-event"></i>
+                <span>By Status</span>
             </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-0">Total Vendors</h6>
-                    <div class="h4">{{ data.total_vendors }}</div>
+            <div class="breakdown-body">
+                {% with total=data.total_events %}
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#c47c1a;"></span>Pending
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#c47c1a; width:{% if total %}{% widthratio data.pending_events total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-pending">{{ data.pending_events }}</span>
                 </div>
-                <i class="bi bi-shop fs-2 text-muted"></i>
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#2d8a5e;"></span>Confirmed
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#2d8a5e; width:{% if total %}{% widthratio data.confirmed_events total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-confirmed">{{ data.confirmed_events }}</span>
+                </div>
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#4A7A9B;"></span>Completed
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#4A7A9B; width:{% if total %}{% widthratio data.completed_events total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-completed">{{ data.completed_events }}</span>
+                </div>
+                <div class="bd-row">
+                    <div class="bd-label">
+                        <span class="bd-dot" style="background:#c0392b;"></span>Cancelled
+                    </div>
+                    <div class="prog-bar-wrap">
+                        <div class="prog-bar-fill" style="background:#c0392b; width:{% if total %}{% widthratio data.cancelled_events total 100 %}%{% else %}0%{% endif %};"></div>
+                    </div>
+                    <span class="bd-count bd-cancelled">{{ data.cancelled_events }}</span>
+                </div>
+                {% endwith %}
             </div>
         </div>
     </div>

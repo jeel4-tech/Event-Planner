@@ -297,11 +297,15 @@ def user_events(request):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
     events = Event.objects.filter(owner=user).order_by('-date')
+    status_filter = request.GET.get('status')
+    if status_filter:
+        events = events.filter(status=status_filter)
     reviewed_event_ids = set(Review.objects.filter(user=user).values_list('event_id', flat=True))
     return render(request, 'user/events.html', {
         'events': events,
         'user': user,
         'reviewed_event_ids': reviewed_event_ids,
+        'status_filter': status_filter,
     })
 
 

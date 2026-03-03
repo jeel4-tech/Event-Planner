@@ -65,31 +65,37 @@
 
     <div class="col-md-4">
         <div class="card-box">
-            <h6 class="mb-3">Quick Links</h6>
-            <ul class="list-unstyled">
+            <h6 class="mb-3" style="color:#1E2D40; font-weight:700;">Quick Links</h6>
+            <ul class="list-unstyled mb-0">
                 <li class="mb-2">
-                    <a href="{% url 'vendor_store' %}" class="text-decoration-none d-flex align-items-center">
+                    <a href="{% url 'vendor_store' %}" class="text-decoration-none d-flex align-items-center quick-link">
                         <i class="bi bi-shop me-2"></i> Manage Stores
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="{% url 'vendor_services' %}" class="text-decoration-none d-flex align-items-center">
+                    <a href="{% url 'vendor_services' %}" class="text-decoration-none d-flex align-items-center quick-link">
                         <i class="bi bi-list-check me-2"></i> Manage Services
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="{% url 'vendor_orders' %}" class="text-decoration-none d-flex align-items-center">
+                    <a href="{% url 'vendor_orders' %}" class="text-decoration-none d-flex align-items-center quick-link">
                         <i class="bi bi-receipt me-2"></i> View Orders
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="{% url 'vendor_earnings' %}" class="text-decoration-none d-flex align-items-center">
+                    <a href="{% url 'vendor_earnings' %}" class="text-decoration-none d-flex align-items-center quick-link">
                         <i class="bi bi-cash-stack me-2"></i> View Earnings
                     </a>
                 </li>
             </ul>
         </div>
     </div>
+
+<style>
+.quick-link { color: #4A7A9B; font-weight: 500; padding: .4rem .5rem; border-radius: 8px; transition: background .15s, color .15s; }
+.quick-link:hover { background: #ddeaf3; color: #1E2D40; }
+.quick-link i { color: #4A7A9B; }
+</style>
 </div>
 
 {% endblock %}

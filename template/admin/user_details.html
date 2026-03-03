@@ -1,398 +1,421 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}User Details{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- User Profile Header Card -->
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <!-- Simple Profile Header -->
-            <div class="card shadow-sm border-0 rounded-lg mb-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <!-- Avatar Circle -->
-                        <div class="avatar-circle bg-light text-dark me-4" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 600; border: 3px solid #f0f0f0;">
-                            {{ user.fullname|first|upper }}
-                        </div>
-                        
-                        <!-- User Info -->
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center mb-2">
-                                <h3 class="mb-0 me-3">{{ user.fullname }}</h3>
-                                <span class="badge bg-light text-dark border px-3 py-2">{{ user.role|title }}</span>
-                            </div>
-                            <div class="d-flex align-items-center text-muted">
-                                <i class="fas fa-envelope me-2"></i>
-                                <span class="me-4">{{ user.email }}</span>
-                                {% if profile.phone %}
-                                    <i class="fas fa-phone me-2"></i>
-                                    <span>{{ profile.phone }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+/* ── Profile header ── */
+.profile-card {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 16px; padding: 1.5rem 1.6rem;
+    display: flex; align-items: center; gap: 1.3rem;
+    margin-bottom: 1.2rem;
+    transition: box-shadow .22s;
+}
+.profile-card:hover { box-shadow: 0 6px 22px rgba(30,45,64,.1); }
 
-            <!-- Stats Cards in a Row -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-3 col-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="stats-icon bg-primary bg-opacity-10 p-3 rounded-3 me-3">
-                                    <i class="fas fa-calendar-alt text-primary fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h6 class="text-muted mb-1">Total Events</h6>
-                                    <h3 class="mb-0 fw-bold">{{ events|length }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="stats-icon bg-success bg-opacity-10 p-3 rounded-3 me-3">
-                                    <i class="fas fa-shopping-cart text-success fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h6 class="text-muted mb-1">Total Bookings</h6>
-                                    <h3 class="mb-0 fw-bold">{{ bookings|length }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="stats-icon bg-warning bg-opacity-10 p-3 rounded-3 me-3">
-                                    <i class="fas fa-rupee-sign text-warning fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h6 class="text-muted mb-1">Total Spent</h6>
-                                    <h3 class="mb-0 fw-bold">₹{{ total_payments }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="stats-icon bg-info bg-opacity-10 p-3 rounded-3 me-3">
-                                    <i class="fas fa-user-clock text-info fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h6 class="text-muted mb-1">Member Since</h6>
-                                    <h6 class="mb-0 fw-bold">{{ user.date_joined|date:"M Y" }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+.profile-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #4A7A9B, #1E2D40);
+    color: #fff; font-size: 1.75rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; border: 3px solid #8AB4C8;
+}
+.profile-name  { font-size: 1.3rem; font-weight: 800; color: #1E2D40; margin-bottom: .25rem; }
+.profile-email { font-size: .85rem; color: #4a6278; display: flex; align-items: center; gap: .4rem; }
+.role-pill { background: #ddeaf3; color: #4A7A9B; border-radius: 20px; font-size: .72rem; font-weight: 700; padding: .2rem .75rem; margin-left: .5rem; }
 
-            <!-- User Information Cards -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-white border-0 pt-4 pb-0">
-                            <h5 class="text-dark">
-                                <i class="fas fa-user-circle text-primary me-2"></i>
-                                Personal Information
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td class="text-muted ps-0" width="40%">Full Name</td>
-                                    <td class="fw-bold">{{ user.fullname }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted ps-0">Email Address</td>
-                                    <td>{{ user.email }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted ps-0">Phone Number</td>
-                                    <td>{{ profile.phone|default:'<span class="text-muted fst-italic">Not provided</span>' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted ps-0">Account Status</td>
-                                    <td>
-                                        {% if profile.is_active %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-white border-0 pt-4 pb-0">
-                            <h5 class="text-dark">
-                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                                Address Information
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            {% if profile.address %}
-                                <div class="bg-light p-4 rounded-3">
-                                    <p class="mb-2"><i class="fas fa-home text-muted me-2"></i> {{ profile.address }}</p>
-                                    {% if profile.city or profile.state %}
-                                        <p class="mb-2"><i class="fas fa-city text-muted me-2"></i> {{ profile.city }}{% if profile.city and profile.state %}, {% endif %}{{ profile.state }}</p>
-                                    {% endif %}
-                                    {% if profile.pincode %}
-                                        <p class="mb-0"><i class="fas fa-mail-bulk text-muted me-2"></i> PIN: {{ profile.pincode }}</p>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <div class="text-center py-4">
-                                    <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted mb-0">No address provided</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+/* ── KPI cards ── */
+.kpi-card {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; padding: 1.1rem 1.2rem;
+    display: flex; align-items: center; gap: .9rem;
+    height: 100%;
+    transition: box-shadow .22s, border-color .22s, transform .22s;
+}
+.kpi-card:hover { box-shadow: 0 6px 20px rgba(30,45,64,.1); border-color: #8AB4C8; transform: translateY(-2px); }
+.kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; transition: transform .22s; }
+.kpi-card:hover .kpi-icon { transform: scale(1.1) rotate(-5deg); }
+.ki-1 { background: #ddeaf3; color: #4A7A9B; }
+.ki-2 { background: #d6f0e4; color: #2d8a5e; }
+.ki-3 { background: #fef3dc; color: #c47c1a; }
+.ki-4 { background: #d6e8f2; color: #1E2D40; }
+.kpi-label { font-size: .68rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; margin-bottom: .15rem; }
+.kpi-value { font-size: 1.6rem; font-weight: 800; color: #1E2D40; line-height: 1; }
+.kpi-sub   { font-size: .7rem; color: #8AB4C8; margin-top: .15rem; }
 
-            <!-- Events and Bookings Tabs -->
-            <div class="card shadow-sm border-0 rounded-lg mb-4">
-                <div class="card-header bg-white border-0 pt-4 px-4">
-                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#events" role="tab">
-                                <i class="fas fa-calendar-alt me-2"></i>Events
-                                <span class="badge bg-primary ms-2">{{ events|length }}</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#bookings" role="tab">
-                                <i class="fas fa-shopping-cart me-2"></i>Vendor Bookings
-                                <span class="badge bg-warning ms-2">{{ bookings|length }}</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="card-body">
-                    <div class="tab-content">
-                        <!-- Events Tab -->
-                        <div class="tab-pane fade show active" id="events" role="tabpanel">
-                            {% if events %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Event Title</th>
-                                                <th>Date & Time</th>
-                                                <th>Status</th>
-                                                <th class="text-end">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for event in events %}
-                                                <tr>
-                                                    <td>
-                                                        <strong>{{ event.title }}</strong>
-                                                        {% if event.description %}
-                                                            <br><small class="text-muted">{{ event.description|truncatechars:40 }}</small>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        <i class="far fa-calendar text-muted me-1"></i>{{ event.date|date:"M d, Y" }}<br>
-                                                        <i class="far fa-clock text-muted me-1"></i>{{ event.date|time:"h:i A" }}
-                                                    </td>
-                                                    <td>
-                                                        {% if event.status == 'upcoming' %}
-                                                            <span class="badge bg-info">Upcoming</span>
-                                                        {% elif event.status == 'ongoing' %}
-                                                            <span class="badge bg-success">Ongoing</span>
-                                                        {% elif event.status == 'completed' %}
-                                                            <span class="badge bg-secondary">Completed</span>
-                                                        {% elif event.status == 'cancelled' %}
-                                                            <span class="badge bg-danger">Cancelled</span>
-                                                        {% else %}
-                                                            <span class="badge bg-secondary">{{ event.status|title }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <a href="{% url 'admin_view_event' event.id %}" class="btn btn-sm btn-outline-primary">
-                                                            <i class="fas fa-eye"></i> View Details
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
-                                    <h6 class="text-muted">No events found</h6>
-                                    <p class="text-muted small">This user hasn't created any events yet.</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Bookings Tab -->
-                        <div class="tab-pane fade" id="bookings" role="tabpanel">
-                            {% if bookings %}
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Vendor</th>
-                                                <th>Service</th>
-                                                <th>Amount</th>
-                                                <th>Booking Date</th>
-                                                <th>Status</th>
-                                                <th class="text-end">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for booking in bookings %}
-                                                <tr>
-                                                    <td>
-                                                        <strong>{{ booking.store.store_name }}</strong>
-                                                        {% if booking.store.category %}
-                                                            <br><small class="text-muted">{{ booking.store.category.name }}</small>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ booking.service.name|default:'-' }}</td>
-                                                    <td><strong>₹{{ booking.amount }}</strong></td>
-                                                    <td>{{ booking.created_at|date:"M d, Y" }}</td>
-                                                    <td>
-                                                        {% if booking.status == 'pending' %}
-                                                            <span class="badge bg-warning text-dark">Pending</span>
-                                                        {% elif booking.status == 'confirmed' %}
-                                                            <span class="badge bg-success">Confirmed</span>
-                                                        {% elif booking.status == 'completed' %}
-                                                            <span class="badge bg-info">Completed</span>
-                                                        {% elif booking.status == 'cancelled' %}
-                                                            <span class="badge bg-danger">Cancelled</span>
-                                                        {% else %}
-                                                            <span class="badge bg-secondary">{{ booking.status|title }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <a href="{% url 'admin_view_event' booking.event.id %}" class="btn btn-sm btn-outline-primary">
-                                                            <i class="fas fa-eye"></i> View
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fas fa-store-alt-slash fa-4x text-muted mb-3"></i>
-                                    <h6 class="text-muted">No vendor bookings found</h6>
-                                    <p class="text-muted small">This user hasn't booked any vendors yet.</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+/* ── Info panels ── */
+.info-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; overflow: hidden; height: 100%;
+    transition: box-shadow .22s;
+}
+.info-panel:hover { box-shadow: 0 6px 20px rgba(30,45,64,.08); }
+.info-panel-head {
+    background: #e4eff5; border-bottom: 1px solid #ccdde8;
+    padding: .85rem 1.2rem;
+    display: flex; align-items: center; gap: .6rem;
+}
+.info-head-icon { width: 28px; height: 28px; border-radius: 7px; background: #ddeaf3; color: #4A7A9B; display: flex; align-items: center; justify-content: center; font-size: .85rem; }
+.info-panel-head h5 { font-size: .92rem; font-weight: 700; color: #1E2D40; margin: 0; }
+.info-panel-body { padding: 1rem 1.2rem; }
 
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-between mb-4">
-                <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Users
-                </a>
+.info-row { display: flex; padding: .55rem 0; border-bottom: 1px solid #e4eff5; }
+.info-row:last-child { border-bottom: none; }
+.info-key { font-size: .8rem; font-weight: 600; color: #4a6278; width: 42%; flex-shrink: 0; }
+.info-val { font-size: .85rem; font-weight: 600; color: #1E2D40; }
+
+.s-active   { background: #d6f0e4; color: #2d8a5e; border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .2rem .75rem; }
+.s-inactive { background: #fde8e6; color: #c0392b; border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .2rem .75rem; }
+
+.address-box { background: #e4eff5; border-radius: 10px; padding: .9rem 1rem; }
+.address-row { font-size: .85rem; color: #4a6278; display: flex; align-items: flex-start; gap: .5rem; margin-bottom: .4rem; }
+.address-row:last-child { margin-bottom: 0; }
+.address-row i { color: #8AB4C8; margin-top: .15rem; }
+
+/* ── Tabs ── */
+.tab-panel { background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px; overflow: hidden; margin-bottom: 1.2rem; }
+.tab-head { background: #e4eff5; border-bottom: 1px solid #ccdde8; padding: 0 1.2rem; display: flex; gap: 0; }
+.tab-btn {
+    font-size: .85rem; font-weight: 600; color: #4a6278;
+    padding: .8rem 1.1rem; border: none; background: transparent;
+    border-bottom: 2.5px solid transparent; cursor: pointer; transition: all .18s;
+    display: inline-flex; align-items: center; gap: .4rem;
+}
+.tab-btn.active { color: #4A7A9B; border-bottom-color: #4A7A9B; }
+.tab-btn:hover:not(.active) { color: #1E2D40; border-bottom-color: #ccdde8; }
+.tab-count { background: #ddeaf3; color: #4A7A9B; border-radius: 20px; font-size: .65rem; font-weight: 700; padding: .1rem .5rem; }
+.tab-count-amber { background: #fef3dc; color: #c47c1a; }
+.tab-body { padding: .5rem; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Tables ── */
+.table thead th {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+    color: #4a6278; background: #d6e8f2 !important; border-bottom: 2px solid #ccdde8 !important; padding: .65rem .9rem;
+}
+.table td { vertical-align: middle; font-size: .85rem; color: #1E2D40; border-color: #e4eff5 !important; padding: .7rem .9rem; }
+.table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+
+.s-pill { border-radius: 20px; font-size: .68rem; font-weight: 700; padding: .2rem .7rem; display: inline-flex; align-items: center; gap: .25rem; }
+.sp-upcoming  { background: #ddeaf3; color: #4A7A9B; }
+.sp-ongoing   { background: #d6f0e4; color: #2d8a5e; }
+.sp-completed { background: #d6e8f2; color: #1E2D40; }
+.sp-cancelled { background: #fde8e6; color: #c0392b; }
+.sp-pending   { background: #fef3dc; color: #c47c1a; }
+.sp-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.sp-other     { background: #e4eff5; color: #4a6278; }
+
+a.btn-view-sm, a.btn-view-sm:visited {
+    display: inline-flex; align-items: center; gap: .3rem;
+    border-radius: 7px; padding: .25rem .65rem;
+    border: 1.5px solid #8AB4C8; color: #4A7A9B; background: transparent;
+    font-size: .76rem; font-weight: 600; text-decoration: none; transition: all .18s;
+}
+a.btn-view-sm:hover { background: #4A7A9B; color: #fff; border-color: #4A7A9B; }
+
+/* ── Bottom actions ── */
+a.btn-back-pg, a.btn-back-pg:visited {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: 9px; padding: .42rem 1rem;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B; background: transparent;
+    font-size: .83rem; font-weight: 600; text-decoration: none; transition: all .18s;
+}
+a.btn-back-pg:hover { background: #4A7A9B; color: #fff; }
+
+button.btn-print {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: 9px; padding: .42rem 1rem;
+    border: 1.5px solid #8AB4C8; color: #4A7A9B; background: transparent;
+    font-size: .83rem; font-weight: 600; cursor: pointer; transition: all .18s;
+}
+button.btn-print:hover { background: #8AB4C8; color: #fff; }
+
+a.btn-edit-pg, a.btn-edit-pg:visited {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: 9px; padding: .42rem 1rem;
+    background: linear-gradient(135deg, #4A7A9B, #1E2D40);
+    color: #fff; border: none;
+    font-size: .83rem; font-weight: 600; text-decoration: none; transition: all .18s;
+}
+a.btn-edit-pg:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(30,45,64,.22); color: #fff; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 2.5rem 1rem; }
+.empty-state i { font-size: 2.2rem; color: #8AB4C8; display: block; margin-bottom: .6rem; }
+.empty-state p { color: #4a6278; font-size: .85rem; margin: 0; }
+</style>
+
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+    <!-- Profile header -->
+    <div class="profile-card">
+        <div class="profile-avatar">{{ user.fullname|first|upper }}</div>
+        <div class="flex-grow-1">
+            <div class="d-flex align-items-center flex-wrap gap-1">
+                <span class="profile-name">{{ user.fullname }}</span>
+                <span class="role-pill">{{ user.role|title }}</span>
+            </div>
+            <div class="profile-email">
+                <i class="fas fa-envelope" style="color:#8AB4C8;"></i> {{ user.email }}
+                {% if profile.phone %}
+                <span style="margin-left:.75rem;"><i class="fas fa-phone" style="color:#8AB4C8;"></i> {{ profile.phone }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-icon ki-1"><i class="fas fa-calendar-alt"></i></div>
                 <div>
-                    <button class="btn btn-outline-primary me-2" onclick="window.print()">
-                        <i class="fas fa-print me-2"></i>Print
-                    </button>
-                    <a href="{% url 'admin_view_user' user.id %}" class="btn btn-primary">
-                        <i class="fas fa-edit me-2"></i>Edit User
-                    </a>
+                    <div class="kpi-label">Total Events</div>
+                    <div class="kpi-value">{{ events|length }}</div>
+                    <div class="kpi-sub">Created events</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-icon ki-2"><i class="fas fa-shopping-cart"></i></div>
+                <div>
+                    <div class="kpi-label">Total Bookings</div>
+                    <div class="kpi-value">{{ bookings|length }}</div>
+                    <div class="kpi-sub">Vendor bookings</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-icon ki-3"><i class="fas fa-rupee-sign"></i></div>
+                <div>
+                    <div class="kpi-label">Total Spent</div>
+                    <div class="kpi-value">₹{{ total_payments }}</div>
+                    <div class="kpi-sub">All payments</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-icon ki-4"><i class="fas fa-user-clock"></i></div>
+                <div>
+                    <div class="kpi-label">Member Since</div>
+                    <div class="kpi-value" style="font-size:1.15rem;">{{ user.date_joined|date:"M Y" }}</div>
+                    <div class="kpi-sub">Joined date</div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Info panels -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="info-panel">
+                <div class="info-panel-head">
+                    <div class="info-head-icon"><i class="fas fa-user-circle"></i></div>
+                    <h5>Personal Information</h5>
+                </div>
+                <div class="info-panel-body">
+                    <div class="info-row">
+                        <div class="info-key">Full Name</div>
+                        <div class="info-val">{{ user.fullname }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">Email Address</div>
+                        <div class="info-val">{{ user.email }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">Phone Number</div>
+                        <div class="info-val">
+                            {% if profile.phone %}{{ profile.phone }}
+                            {% else %}<span style="color:#8AB4C8;font-style:italic;font-weight:400;">Not provided</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">Account Status</div>
+                        <div class="info-val">
+                            {% if profile.is_active %}
+                                <span class="s-active"><i class="fas fa-check-circle"></i> Active</span>
+                            {% else %}
+                                <span class="s-inactive"><i class="fas fa-times-circle"></i> Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-panel">
+                <div class="info-panel-head">
+                    <div class="info-head-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h5>Address Information</h5>
+                </div>
+                <div class="info-panel-body">
+                    {% if profile.address %}
+                    <div class="address-box">
+                        <div class="address-row"><i class="fas fa-home"></i> {{ profile.address }}</div>
+                        {% if profile.city or profile.state %}
+                        <div class="address-row"><i class="fas fa-city"></i> {{ profile.city }}{% if profile.city and profile.state %}, {% endif %}{{ profile.state }}</div>
+                        {% endif %}
+                        {% if profile.pincode %}
+                        <div class="address-row"><i class="fas fa-mail-bulk"></i> PIN: {{ profile.pincode }}</div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <p>No address provided</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-panel">
+        <div class="tab-head">
+            <button class="tab-btn active" onclick="switchTab('events', this)">
+                <i class="fas fa-calendar-alt"></i> Events
+                <span class="tab-count">{{ events|length }}</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('bookings', this)">
+                <i class="fas fa-shopping-cart"></i> Vendor Bookings
+                <span class="tab-count tab-count-amber">{{ bookings|length }}</span>
+            </button>
+        </div>
+        <div class="tab-body">
+            <!-- Events -->
+            <div class="tab-pane active" id="tab-events">
+                {% if events %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Event Title</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight:700;">{{ event.title }}</div>
+                                    {% if event.description %}
+                                    <div style="font-size:.75rem;color:#4a6278;">{{ event.description|truncatechars:45 }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="font-size:.83rem;"><i class="far fa-calendar me-1" style="color:#8AB4C8;"></i>{{ event.date|date:"M d, Y" }}</div>
+                                    <div style="font-size:.75rem;color:#4a6278;"><i class="far fa-clock me-1"></i>{{ event.date|time:"h:i A" }}</div>
+                                </td>
+                                <td>
+                                    {% if event.status == 'upcoming' %}<span class="s-pill sp-upcoming"><i class="fas fa-calendar"></i>Upcoming</span>
+                                    {% elif event.status == 'ongoing' %}<span class="s-pill sp-ongoing"><i class="fas fa-play-circle"></i>Ongoing</span>
+                                    {% elif event.status == 'completed' %}<span class="s-pill sp-completed"><i class="fas fa-check-circle"></i>Completed</span>
+                                    {% elif event.status == 'cancelled' %}<span class="s-pill sp-cancelled"><i class="fas fa-times-circle"></i>Cancelled</span>
+                                    {% else %}<span class="s-pill sp-other">{{ event.status|title }}</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'admin_view_event' event.id %}" class="btn-view-sm">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No events found for this user.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Bookings -->
+            <div class="tab-pane" id="tab-bookings">
+                {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Vendor</th>
+                                <th>Service</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight:700;">{{ booking.store.store_name }}</div>
+                                    {% if booking.store.category %}<div style="font-size:.75rem;color:#4a6278;">{{ booking.store.category.name }}</div>{% endif %}
+                                </td>
+                                <td style="font-size:.85rem;">{{ booking.service.name|default:'—' }}</td>
+                                <td><strong style="color:#2d8a5e;">₹{{ booking.amount }}</strong></td>
+                                <td style="font-size:.82rem;color:#4a6278;">{{ booking.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if booking.status == 'pending' %}<span class="s-pill sp-pending"><i class="fas fa-hourglass-half"></i>Pending</span>
+                                    {% elif booking.status == 'confirmed' %}<span class="s-pill sp-confirmed"><i class="fas fa-check-circle"></i>Confirmed</span>
+                                    {% elif booking.status == 'completed' %}<span class="s-pill sp-completed"><i class="fas fa-check-double"></i>Completed</span>
+                                    {% elif booking.status == 'cancelled' %}<span class="s-pill sp-cancelled"><i class="fas fa-times-circle"></i>Cancelled</span>
+                                    {% else %}<span class="s-pill sp-other">{{ booking.status|title }}</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'admin_view_event' booking.event.id %}" class="btn-view-sm">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-store-alt-slash"></i>
+                    <p>No vendor bookings found for this user.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'manage_users' %}" class="btn-back-pg">
+            <i class="fas fa-arrow-left"></i> Back to Users
+        </a>
+        <div class="d-flex gap-2">
+            <button class="btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> Print
+            </button>
+            <a href="{% url 'admin_view_user' user.id %}" class="btn-edit-pg">
+                <i class="fas fa-edit"></i> Edit User
+            </a>
+        </div>
+    </div>
+
+</div>
 </div>
 
-<!-- Add Font Awesome if not already included -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-<style>
-    /* Custom Styles */
-    .breadcrumb {
-        background-color: #f8f9fa !important;
-    }
-    
-    .avatar-circle {
-        border: 3px solid #e9ecef;
-        background-color: #f8f9fa !important;
-        color: #495057 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    
-    .stats-icon {
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .nav-tabs .nav-link {
-        color: #6c757d;
-        font-weight: 500;
-        border: none;
-        padding: 0.75rem 1.5rem;
-    }
-    
-    .nav-tabs .nav-link.active {
-        color: #0d6efd;
-        border-bottom: 3px solid #0d6efd;
-        background: transparent;
-    }
-    
-    .nav-tabs .nav-link:hover {
-        border-bottom: 3px solid #dee2e6;
-    }
-    
-    .table thead th {
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #495057;
-    }
-    
-    .badge {
-        font-weight: 500;
-        padding: 0.5rem 0.75rem;
-    }
-    
-    .card {
-        transition: all 0.2s ease;
-    }
-    
-    .card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
-    }
-    
-    @media print {
-        .btn, .breadcrumb, .nav-tabs {
-            display: none !important;
-        }
-    }
-</style>
+<script>
+function switchTab(name, el) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    el.classList.add('active');
+}
+</script>
 {% endblock %}

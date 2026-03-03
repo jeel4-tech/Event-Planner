@@ -1,24 +1,256 @@
 {% extends 'admin/base_admin.html' %}
-
 {% block title %}Event Details{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+/* ── Back button ── */
+a.btn-back-pg {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border: 1.5px solid #4A7A9B; color: #4A7A9B; background: transparent;
+    font-size: .82rem; font-weight: 600; padding: .38rem .9rem;
+    border-radius: 8px; text-decoration: none; transition: all .18s;
+}
+a.btn-back-pg:hover { background: #4A7A9B; color: #fff; }
+
+/* ── Info panel ── */
+.info-panel {
+    background: #eef5f9; border: 1.5px solid #ccdde8;
+    border-radius: 14px; overflow: hidden; margin-bottom: 1.3rem;
+}
+.info-panel-head {
+    background: linear-gradient(135deg,#1E2D40,#4A7A9B);
+    padding: .65rem 1.2rem;
+    display: flex; align-items: center; gap: .55rem;
+}
+.info-panel-head span { color: #fff; font-size: .82rem; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+.info-panel-head i   { color: #8AB4C8; font-size: .95rem; }
+.info-panel-body { padding: 1rem 1.3rem; }
+
+.info-row { display: flex; align-items: flex-start; gap: .6rem; padding: .55rem 0; border-bottom: 1px solid #e4eff5; }
+.info-row:last-child { border-bottom: none; }
+.info-key { min-width: 130px; font-size: .78rem; font-weight: 700; color: #4a6278; text-transform: uppercase; letter-spacing: .3px; padding-top: .05rem; }
+.info-val { font-size: .88rem; color: #1E2D40; font-weight: 500; }
+
+/* ── Status pills ── */
+.sp { border-radius: 20px; font-size: .7rem; font-weight: 700; padding: .22rem .75rem; display: inline-flex; align-items: center; gap: .28rem; }
+.sp-pending   { background: #fef3dc; color: #c47c1a; }
+.sp-confirmed { background: #d6f0e4; color: #2d8a5e; }
+.sp-completed { background: #d6e8f2; color: #1E2D40; }
+.sp-cancelled { background: #fde8e6; color: #c0392b; }
+
+/* ── Event type pill ── */
+.type-pill {
+    display: inline-block; background: #ddeaf3; color: #1E2D40;
+    font-size: .72rem; font-weight: 700; padding: .22rem .75rem;
+    border-radius: 20px; border: 1px solid #ccdde8;
+}
+
+/* ── KPI cards ── */
+.kpi-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.3rem; }
+.kpi-card {
+    flex: 1; min-width: 130px;
+    background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px;
+    padding: 1rem 1.1rem; display: flex; align-items: center; gap: .85rem;
+    transition: box-shadow .2s, transform .2s;
+}
+.kpi-card:hover { box-shadow: 0 6px 20px rgba(30,45,64,.1); transform: translateY(-2px); }
+.kpi-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+}
+.kpi-body .kpi-val { font-size: 1.4rem; font-weight: 800; color: #1E2D40; line-height: 1.1; }
+.kpi-body .kpi-lbl { font-size: .7rem; font-weight: 600; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; }
+
+/* ── Bookings table ── */
+.table-panel { background: #eef5f9; border: 1.5px solid #ccdde8; border-radius: 14px; overflow: hidden; }
+.table thead th {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #4a6278;
+    background: #d6e8f2 !important; border-bottom: 2px solid #ccdde8 !important;
+    padding: .7rem 1rem;
+}
+.table td { vertical-align: middle; font-size: .86rem; color: #1E2D40; border-color: #e4eff5 !important; padding: .78rem 1rem; }
+.table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+.row-num { font-weight: 700; color: #8AB4C8; font-size: .82rem; }
+.amt { font-weight: 700; color: #2d8a5e; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 2.5rem 1rem; }
+.empty-state i { font-size: 2rem; color: #8AB4C8; display: block; margin-bottom: .6rem; }
+.empty-state p { color: #4a6278; font-size: .85rem; margin: 0; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1">{{ event.title }}</h4>
-        <p class="text-muted small mb-0">Event details and metadata</p>
+        <h4 style="font-weight:800;color:#1E2D40;margin-bottom:.2rem;">
+            <i class="bi bi-calendar-event me-2" style="color:#4A7A9B;"></i>{{ event.title }}
+        </h4>
+        <p style="font-size:.82rem;color:#4a6278;margin:0;">Event details and metadata</p>
     </div>
-    <div>
-        <a href="{% url 'admin_manage_events' %}" class="btn btn-outline-secondary">Back</a>
+    <a href="{% url 'admin_manage_events' %}" class="btn-back-pg">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<!-- KPI cards -->
+<div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#ddeaf3;">
+            <i class="bi bi-people-fill" style="color:#4A7A9B;"></i>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-val">{{ event.guests }}</div>
+            <div class="kpi-lbl">Guests</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#d6f0e4;">
+            <i class="bi bi-receipt" style="color:#2d8a5e;"></i>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-val">{{ event.bookings.count }}</div>
+            <div class="kpi-lbl">Bookings</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#fef3dc;">
+            <i class="bi bi-calendar-check" style="color:#c47c1a;"></i>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-val">{{ event.date|date:"d M Y" }}</div>
+            <div class="kpi-lbl">Event Date</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:#e8d6f0;">
+            <i class="bi bi-clock-history" style="color:#7a4a9b;"></i>
+        </div>
+        <div class="kpi-body">
+            <div class="kpi-val">{{ event.created_at|date:"d M Y" }}</div>
+            <div class="kpi-lbl">Created</div>
+        </div>
     </div>
 </div>
 
-<div class="card p-4">
-    <p><strong>ID:</strong> {{ event.id }}</p>
-    <p><strong>Title:</strong> {{ event.title }}</p>
-    <p><strong>Owner:</strong> {% if event.owner %}{{ event.owner.fullname }}{% else %}-{% endif %}</p>
-    <p><strong>Date:</strong> {{ event.date }}</p>
-    <p><strong>Status:</strong> {{ event.status }}</p>
+<!-- Event Details panel -->
+<div class="info-panel">
+    <div class="info-panel-head">
+        <i class="bi bi-info-circle"></i>
+        <span>Event Information</span>
+    </div>
+    <div class="info-panel-body">
+        <div class="info-row">
+            <div class="info-key">ID</div>
+            <div class="info-val">#{{ event.id }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Title</div>
+            <div class="info-val" style="font-weight:700;">{{ event.title }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Owner</div>
+            <div class="info-val">
+                <i class="bi bi-person-fill me-1" style="color:#4A7A9B;"></i>
+                {% if event.owner %}{{ event.owner.fullname }}{% else %}-{% endif %}
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Event Type</div>
+            <div class="info-val"><span class="type-pill">{{ event.get_event_type_display }}</span></div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Date</div>
+            <div class="info-val">
+                <i class="bi bi-calendar me-1" style="color:#8AB4C8;"></i>{{ event.date|date:"d M Y, g:i A" }}
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Guests</div>
+            <div class="info-val">
+                <i class="bi bi-people me-1" style="color:#8AB4C8;"></i>{{ event.guests }}
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Status</div>
+            <div class="info-val">
+                {% if event.status == 'pending' %}
+                    <span class="sp sp-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                {% elif event.status == 'confirmed' %}
+                    <span class="sp sp-confirmed"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
+                {% elif event.status == 'completed' %}
+                    <span class="sp sp-completed"><i class="bi bi-check-all"></i>Completed</span>
+                {% elif event.status == 'cancelled' %}
+                    <span class="sp sp-cancelled"><i class="bi bi-x-circle-fill"></i>Cancelled</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-key">Created At</div>
+            <div class="info-val">
+                <i class="bi bi-clock me-1" style="color:#8AB4C8;"></i>{{ event.created_at|date:"d M Y, g:i A" }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bookings panel -->
+<div class="info-panel-head" style="border-radius:14px 14px 0 0;">
+    <i class="bi bi-receipt"></i>
+    <span>Bookings for this Event</span>
+</div>
+<div class="table-panel" style="border-radius:0 0 14px 14px; border-top:none;">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Vendor / Store</th>
+                    <th>Amount</th>
+                    <th>Booking Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in event.bookings.all %}
+                <tr>
+                    <td><span class="row-num">{{ forloop.counter }}</span></td>
+                    <td>
+                        <div style="font-weight:700;">{{ b.store.store_name }}</div>
+                        <div style="font-size:.75rem;color:#4a6278;">{{ b.vendor.fullname }}</div>
+                    </td>
+                    <td><span class="amt">₹{{ b.amount }}</span></td>
+                    <td style="font-size:.82rem;color:#4a6278;">
+                        {% if b.booking_date %}{{ b.booking_date|date:"d M Y" }}{% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if b.status == 'pending' %}
+                            <span class="sp sp-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                        {% elif b.status == 'confirmed' %}
+                            <span class="sp sp-confirmed"><i class="bi bi-check-circle-fill"></i>Approved</span>
+                        {% elif b.status == 'in_progress' %}
+                            <span class="sp" style="background:#ddeaf3;color:#4A7A9B;"><i class="bi bi-arrow-repeat"></i>In Progress</span>
+                        {% elif b.status == 'completed' %}
+                            <span class="sp sp-completed"><i class="bi bi-check-all"></i>Completed</span>
+                        {% elif b.status == 'cancelled' %}
+                            <span class="sp sp-cancelled"><i class="bi bi-x-circle-fill"></i>Rejected</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-receipt"></i>
+                            <p>No bookings for this event yet</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {% endblock %}

@@ -1,252 +1,291 @@
 {% extends 'user/base.html' %}
 {% load static %}
-
 {% block title %}My Bookings{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="fw-bold mb-1">
-                <i class="bi bi-journal-check me-2 text-primary"></i>My Bookings
-            </h4>
-            <p class="text-muted small mb-0">View and manage your vendor bookings</p>
-        </div>
-        <a href="{% url 'user:stores_list' %}" class="btn btn-primary btn-sm">
-            <i class="bi bi-shop me-1"></i> Browse Stores
-        </a>
-    </div>
+<style>
+/* ── Header ── */
+.page-title { font-size:1.35rem; font-weight:800; color:#1E2D40; margin-bottom:.2rem; }
+.page-sub   { font-size:.82rem; color:#4a6278; margin:0; }
 
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
-    {% endif %}
+a.btn-browse {
+    display:inline-flex; align-items:center; gap:.4rem;
+    background:linear-gradient(135deg,#1E2D40,#4A7A9B);
+    color:#fff; font-size:.85rem; font-weight:600;
+    padding:.48rem 1.1rem; border-radius:9px;
+    text-decoration:none; transition:opacity .18s, transform .18s;
+}
+a.btn-browse:hover { opacity:.88; transform:translateY(-1px); color:#fff; }
 
-    <!-- Filter -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body py-3">
-            <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
-                <label class="text-muted small me-2">Filter:</label>
-                <select name="status" class="form-select form-select-sm" style="width: 150px;">
-                    <option value="">All</option>
-                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                    <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
-                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
-                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                </select>
-                <button type="submit" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-funnel me-1"></i>Apply
-                </button>
-                {% if status_filter %}
-                <a href="{% url 'user:user_bookings' %}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-x-circle me-1"></i>Clear
-                </a>
-                {% endif %}
-            </form>
-        </div>
-    </div>
+/* ── Filter bar ── */
+.filter-bar {
+    background:#eef5f9; border:1.5px solid #ccdde8;
+    border-radius:12px; padding:.8rem 1.1rem;
+    display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+    margin-bottom:1.3rem;
+}
+.filter-bar label { font-size:.75rem; font-weight:700; color:#4a6278; text-transform:uppercase; letter-spacing:.4px; margin:0; }
+.filter-bar select {
+    border:1.5px solid #ccdde8; border-radius:8px;
+    background:#f5f9fc; color:#1E2D40; font-size:.84rem;
+    padding:.36rem .8rem; outline:none; transition:border-color .18s;
+}
+.filter-bar select:focus { border-color:#4A7A9B; box-shadow:none; }
 
-    <!-- Bookings List -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            {% if bookings %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">Store / Vendor</th>
-                            <th>Event</th>
-                            <th>Service</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Amount Paid</th>
-                            <th class="text-end pe-4">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for booking in bookings %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-semibold">
-                                    <a href="{% url 'user:store_detail' booking.store.id %}" class="text-decoration-none">
-                                        {{ booking.store.store_name }}
-                                    </a>
-                                </div>
-                                <small class="text-muted">{{ booking.vendor.fullname }}</small>
-                            </td>
-                            <td>{{ booking.event.title }}</td>
-                            <td>{% if booking.service %}{{ booking.service.name }}{% else %}—{% endif %}</td>
-                            <td><span class="fw-semibold">₹{{ booking.amount }}</span></td>
-                            <td>
-                                {% if booking.status == 'pending' %}
-                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
-                                    <i class="bi bi-clock me-1"></i>Pending
-                                </span>
-                                {% elif booking.status == 'confirmed' %}
-                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
-                                    <i class="bi bi-check-circle me-1"></i>Confirmed
-                                </span>
-                                {% elif booking.status == 'in_progress' %}
-                                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
-                                    <i class="bi bi-gear me-1"></i>In Progress
-                                </span>
-                                {% elif booking.status == 'completed' %}
-                                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-                                    <i class="bi bi-star me-1"></i>Completed
-                                </span>
-                                {% elif booking.status == 'cancelled' %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2">
-                                    <i class="bi bi-x-circle me-1"></i>Cancelled
-                                </span>
-                                {% else %}
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
-                                    {{ booking.status }}
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small class="d-block text-muted">Advance: ₹{{ booking.advance_paid|default:0 }} / ₹{{ booking.advance_required|default:0 }}</small>
-                                {% if booking.advance_required and booking.advance_required > 0 %}
-                                    {% if booking.advance_paid >= booking.advance_required %}
-                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
-                                    {% else %}
-                                        <span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>Payment Due</span>
-                                    {% endif %}
-                                {% else %}
-                                    {% if booking.latest_payment %}
-                                        {% if booking.latest_payment.status == 'succeeded' %}
-                                            <span class="badge bg-success">Paid</span>
-                                        {% elif booking.latest_payment.status == 'pending' %}
-                                            <span class="badge bg-warning text-dark">Payment Pending</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Payment Failed</span>
-                                        {% endif %}
-                                    {% else %}
-                                        <small class="text-muted">—</small>
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="fw-semibold text-success">₹{{ booking.advance_paid|default:0 }}</span>
-                                <small class="d-block text-muted">of ₹{{ booking.amount }}</small>
-                                {% if booking.amount_remaining > 0 %}
-                                    <small class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>₹{{ booking.amount_remaining }} remaining</small>
-                                {% else %}
-                                    <small class="text-success"><i class="bi bi-check-circle me-1"></i>Fully Paid</small>
-                                {% endif %}
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="d-flex gap-1 justify-content-end">
-                                    <!-- Removed booking_detail link that was causing error -->
-                                    
-                                    {% if booking.status == 'pending' %}
-                                    <form method="post" action="{% url 'user:user_bookings' %}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
-                                        <input type="hidden" name="action" value="cancel">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Booking">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                    {% comment %} Pay button: show when advance is due on pending or confirmed bookings {% endcomment %}
-                                    {% if booking.status != 'cancelled' and booking.status != 'completed' %}
-                                        {% if booking.advance_required and booking.advance_paid < booking.advance_required %}
-                                        <a href="{% url 'user:pay_booking' booking.id %}" class="btn btn-sm btn-warning" title="Pay Now">
-                                            <i class="bi bi-credit-card me-1"></i>Pay
-                                        </a>
-                                        {% endif %}
-                                    {% endif %}
-                                    
-                                    {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}
-                                    <a href="{% url 'user:start_chat' booking.store.id %}" class="btn btn-sm btn-outline-success" title="Chat with Vendor">
-                                        <i class="bi bi-chat"></i>
-                                    </a>
-                                    {% else %}
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Chat available after approval" disabled>
-                                        <i class="bi bi-chat"></i>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <div class="empty-state">
-                    <i class="bi bi-journal-x display-1 text-muted mb-3"></i>
-                    <h5 class="text-muted">No Bookings Found</h5>
-                    <p class="text-muted small mb-3">You haven't made any bookings yet.</p>
-                    <a href="{% url 'user:stores_list' %}" class="btn btn-primary">
-                        <i class="bi bi-shop me-2"></i>Browse Stores
-                    </a>
-                </div>
-            </div>
-            {% endif %}
+button.btn-apply {
+    display:inline-flex; align-items:center; gap:.35rem;
+    background:#4A7A9B; color:#fff; font-size:.8rem; font-weight:600;
+    padding:.36rem .9rem; border-radius:8px; border:none; cursor:pointer;
+    transition:background .18s;
+}
+button.btn-apply:hover { background:#1E2D40; }
+
+a.btn-clr {
+    display:inline-flex; align-items:center; gap:.35rem;
+    border:1.5px solid #4A7A9B; color:#4A7A9B; background:transparent;
+    font-size:.8rem; font-weight:600; padding:.34rem .85rem;
+    border-radius:8px; text-decoration:none; transition:all .18s;
+}
+a.btn-clr:hover { background:#4A7A9B; color:#fff; }
+
+/* ── Alert ── */
+.alert-navy {
+    background:#ddeaf3; border:1.5px solid #8AB4C8; color:#1E2D40;
+    border-radius:10px; padding:.65rem 1rem; font-size:.84rem;
+    display:flex; align-items:center; gap:.5rem; margin-bottom:1rem;
+}
+
+/* ── Table panel ── */
+.table-panel { background:#eef5f9; border:1.5px solid #ccdde8; border-radius:14px; overflow:hidden; }
+.table thead th {
+    font-size:.7rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.5px; color:#4a6278;
+    background:#d6e8f2 !important; border-bottom:2px solid #ccdde8 !important;
+    padding:.72rem 1rem;
+}
+.table td { vertical-align:middle; font-size:.86rem; color:#1E2D40; border-color:#e4eff5 !important; padding:.82rem 1rem; }
+.table tbody tr:hover { background:rgba(74,122,155,.05) !important; }
+
+/* store link */
+a.store-link { font-weight:700; color:#1E2D40; text-decoration:none; transition:color .15s; }
+a.store-link:hover { color:#4A7A9B; }
+
+/* ── Status pills ── */
+.sp { border-radius:20px; font-size:.68rem; font-weight:700; padding:.22rem .75rem; display:inline-flex; align-items:center; gap:.28rem; white-space:nowrap; }
+.sp-pending   { background:#fef3dc; color:#c47c1a; }
+.sp-confirmed { background:#d6f0e4; color:#2d8a5e; }
+.sp-progress  { background:#ddeaf3; color:#4A7A9B; }
+.sp-completed { background:#d6e8f2; color:#1E2D40; }
+.sp-cancelled { background:#fde8e6; color:#c0392b; }
+
+/* ── Payment info ── */
+.pay-paid    { font-size:.7rem; font-weight:700; background:#d6f0e4; color:#2d8a5e; border-radius:20px; padding:.18rem .6rem; display:inline-flex; align-items:center; gap:.25rem; }
+.pay-due     { font-size:.7rem; font-weight:700; background:#fde8e6; color:#c0392b; border-radius:20px; padding:.18rem .6rem; display:inline-flex; align-items:center; gap:.25rem; }
+.pay-neutral { font-size:.7rem; color:#4a6278; }
+.amt-paid    { font-weight:800; color:#2d8a5e; font-size:.9rem; }
+.amt-remain  { font-size:.72rem; color:#c0392b; display:flex; align-items:center; gap:.2rem; }
+.amt-full    { font-size:.72rem; color:#2d8a5e; display:flex; align-items:center; gap:.2rem; }
+
+/* ── Action buttons ── */
+button.btn-cancel {
+    display:inline-flex; align-items:center; gap:.3rem;
+    background:transparent; color:#c0392b; font-size:.78rem; font-weight:600;
+    padding:.28rem .7rem; border-radius:7px; border:1.5px solid #c0392b;
+    cursor:pointer; transition:all .16s;
+}
+button.btn-cancel:hover { background:#c0392b; color:#fff; }
+
+a.btn-pay {
+    display:inline-flex; align-items:center; gap:.3rem;
+    background:linear-gradient(135deg,#c47c1a,#e9a84c);
+    color:#fff; font-size:.78rem; font-weight:700;
+    padding:.28rem .8rem; border-radius:7px; text-decoration:none;
+    transition:opacity .16s;
+}
+a.btn-pay:hover { opacity:.88; color:#fff; }
+
+a.btn-chat {
+    display:inline-flex; align-items:center; gap:.3rem;
+    background:#4A7A9B; color:#fff; font-size:.78rem; font-weight:600;
+    padding:.28rem .7rem; border-radius:7px; text-decoration:none;
+    transition:background .16s;
+}
+a.btn-chat:hover { background:#1E2D40; color:#fff; }
+
+button.btn-chat-dis {
+    display:inline-flex; align-items:center; gap:.3rem;
+    background:#e4eff5; color:#8AB4C8; font-size:.78rem; font-weight:600;
+    padding:.28rem .7rem; border-radius:7px; border:none; cursor:not-allowed;
+}
+
+/* ── Empty state ── */
+.empty-state { text-align:center; padding:3.5rem 1rem; }
+.empty-state i { font-size:2.8rem; color:#8AB4C8; display:block; margin-bottom:.8rem; }
+.empty-state h6 { color:#1E2D40; font-weight:700; margin-bottom:.4rem; }
+.empty-state p { color:#4a6278; font-size:.85rem; margin-bottom:1rem; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">
+            <i class="bi bi-journal-check me-2" style="color:#4A7A9B;"></i>My Bookings
         </div>
+        <p class="page-sub">View and manage your vendor bookings</p>
     </div>
+    <a href="{% url 'user:stores_list' %}" class="btn-browse">
+        <i class="bi bi-shop"></i> Browse Stores
+    </a>
 </div>
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert-navy">
+        <i class="bi bi-info-circle"></i> {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
 
-<style>
-    .card {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .table thead th {
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        color: #64748b;
-        border-bottom-width: 1px;
-    }
-    
-    .table td {
-        vertical-align: middle;
-        padding: 1rem 0.5rem;
-    }
-    
-    .badge {
-        font-weight: 500;
-        border-radius: 20px;
-    }
-    
-    .btn-sm {
-        padding: 0.4rem 0.6rem;
-    }
-    
-    .empty-state {
-        padding: 3rem;
-    }
-    
-    /* Hover effect */
-    tbody tr:hover {
-        background-color: #f8fafc;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .table td {
-            padding: 0.75rem 0.5rem;
-        }
-        
-        .d-flex.gap-1 {
-            flex-direction: column;
-        }
-    }
-</style>
+<!-- Filter bar -->
+<form method="get">
+    <div class="filter-bar">
+        <label><i class="bi bi-funnel me-1"></i>Filter:</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="pending"     {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="confirmed"   {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="completed"   {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled"   {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <button type="submit" class="btn-apply"><i class="bi bi-check2"></i> Apply</button>
+        {% if status_filter %}
+        <a href="{% url 'user:user_bookings' %}" class="btn-clr"><i class="bi bi-x-lg"></i> Clear</a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Table -->
+<div class="table-panel">
+    {% if bookings %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Store / Vendor</th>
+                    <th>Event</th>
+                    <th>Service</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Balance</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td class="ps-3">
+                        <a href="{% url 'user:store_detail' booking.store.id %}" class="store-link">{{ booking.store.store_name }}</a>
+                        <div style="font-size:.75rem;color:#4a6278;">{{ booking.vendor.fullname }}</div>
+                    </td>
+                    <td style="font-weight:600;">{{ booking.event.title }}</td>
+                    <td style="color:#4a6278;">{% if booking.service %}{{ booking.service.name }}{% else %}—{% endif %}</td>
+                    <td style="font-weight:800;">₹{{ booking.amount }}</td>
+                    <td>
+                        {% if booking.status == 'pending' %}
+                            <span class="sp sp-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                        {% elif booking.status == 'confirmed' %}
+                            <span class="sp sp-confirmed"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
+                        {% elif booking.status == 'in_progress' %}
+                            <span class="sp sp-progress"><i class="bi bi-arrow-repeat"></i>In Progress</span>
+                        {% elif booking.status == 'completed' %}
+                            <span class="sp sp-completed"><i class="bi bi-check-all"></i>Completed</span>
+                        {% elif booking.status == 'cancelled' %}
+                            <span class="sp sp-cancelled"><i class="bi bi-x-circle-fill"></i>Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size:.75rem;color:#4a6278;margin-bottom:.25rem;">
+                            Advance: ₹{{ booking.advance_paid|default:0 }} / ₹{{ booking.advance_required|default:0 }}
+                        </div>
+                        {% if booking.advance_required and booking.advance_required > 0 %}
+                            {% if booking.advance_paid >= booking.advance_required %}
+                                <span class="pay-paid"><i class="bi bi-check-circle-fill"></i>Paid</span>
+                            {% else %}
+                                <span class="pay-due"><i class="bi bi-exclamation-circle-fill"></i>Payment Due</span>
+                            {% endif %}
+                        {% else %}
+                            {% if booking.latest_payment %}
+                                {% if booking.latest_payment.status == 'succeeded' %}
+                                    <span class="pay-paid"><i class="bi bi-check-circle-fill"></i>Paid</span>
+                                {% elif booking.latest_payment.status == 'pending' %}
+                                    <span class="pay-due"><i class="bi bi-clock"></i>Pending</span>
+                                {% else %}
+                                    <span class="pay-due"><i class="bi bi-x-circle-fill"></i>Failed</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="pay-neutral">—</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="amt-paid">₹{{ booking.advance_paid|default:0 }}</div>
+                        <div style="font-size:.72rem;color:#4a6278;">of ₹{{ booking.amount }}</div>
+                        {% if booking.amount_remaining > 0 %}
+                            <div class="amt-remain"><i class="bi bi-exclamation-circle"></i>₹{{ booking.amount_remaining }} left</div>
+                        {% else %}
+                            <div class="amt-full"><i class="bi bi-check-circle-fill"></i>Fully Paid</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex gap-1 justify-content-center align-items-center flex-nowrap">
+                            {% if booking.status == 'pending' %}
+                            <form method="post" action="{% url 'user:user_bookings' %}" class="d-inline"
+                                  onsubmit="return confirm('Cancel this booking?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit" class="btn-cancel" title="Cancel">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {% if booking.status != 'cancelled' and booking.status != 'completed' %}
+                                {% if booking.advance_required and booking.advance_paid < booking.advance_required %}
+                                <a href="{% url 'user:pay_booking' booking.id %}" class="btn-pay" title="Pay Now">
+                                    <i class="bi bi-credit-card"></i> Pay
+                                </a>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if booking.status == 'confirmed' or booking.status == 'in_progress' or booking.status == 'completed' %}
+                            <a href="{% url 'user:start_chat' booking.store.id %}" class="btn-chat" title="Chat with Vendor">
+                                <i class="bi bi-chat-dots"></i>
+                            </a>
+                            {% else %}
+                            <button type="button" class="btn-chat-dis" title="Available after approval" disabled>
+                                <i class="bi bi-chat-dots"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-journal-x"></i>
+        <h6>No Bookings Found</h6>
+        <p>You haven't made any bookings yet.</p>
+        <a href="{% url 'user:stores_list' %}" class="btn-browse">
+            <i class="bi bi-shop"></i> Browse Stores
+        </a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

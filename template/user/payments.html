@@ -1,100 +1,223 @@
 {% extends 'user/base.html' %}
+{% block title %}My Payments{% endblock %}
 
 {% block content %}
+<style>
+/* ── Header ── */
+.page-title { font-size:1.35rem; font-weight:800; color:#1E2D40; margin-bottom:.2rem; }
+.page-sub   { font-size:.82rem; color:#4a6278; margin:0; }
 
-<div class="container-fluid">
+a.btn-filter-success {
+    display:inline-flex; align-items:center; gap:.35rem;
+    border:1.5px solid #2d8a5e; color:#2d8a5e; background:transparent;
+    font-size:.8rem; font-weight:600; padding:.36rem .9rem;
+    border-radius:8px; text-decoration:none; transition:all .18s;
+}
+a.btn-filter-success:hover { background:#2d8a5e; color:#fff; }
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-1">
-                <i class="bi bi-credit-card me-2"></i> My Payments
-            </h3>
-            <p class="text-muted mb-0">
-                Complete history of all your payments
-            </p>
+a.btn-filter-failed {
+    display:inline-flex; align-items:center; gap:.35rem;
+    border:1.5px solid #c0392b; color:#c0392b; background:transparent;
+    font-size:.8rem; font-weight:600; padding:.36rem .9rem;
+    border-radius:8px; text-decoration:none; transition:all .18s;
+}
+a.btn-filter-failed:hover { background:#c0392b; color:#fff; }
+
+/* ── Summary stat cards ── */
+.stat-card {
+    background:#eef5f9; border:1.5px solid #ccdde8; border-radius:14px;
+    padding:1rem 1.2rem; display:flex; align-items:center; gap:.85rem;
+    transition:box-shadow .2s, transform .2s; position:relative; overflow:hidden;
+}
+.stat-card:hover { box-shadow:0 6px 20px rgba(30,45,64,.1); transform:translateY(-2px); }
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:14px 14px 0 0; }
+.sc-total::before   { background:linear-gradient(90deg,#1E2D40,#4A7A9B); }
+.sc-success::before { background:linear-gradient(90deg,#2d8a5e,#5cb88a); }
+.sc-pending::before { background:linear-gradient(90deg,#c47c1a,#e9a84c); }
+.sc-failed::before  { background:linear-gradient(90deg,#c0392b,#e74c3c); }
+
+.stat-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.stat-val  { font-size:1.5rem; font-weight:800; color:#1E2D40; line-height:1.1; }
+.stat-lbl  { font-size:.68rem; font-weight:700; color:#4a6278; text-transform:uppercase; letter-spacing:.4px; }
+
+/* ── Table panel ── */
+.table-panel { background:#eef5f9; border:1.5px solid #ccdde8; border-radius:14px; overflow:hidden; }
+.panel-head {
+    background:#e4eff5; border-bottom:1.5px solid #ccdde8;
+    padding:.7rem 1.2rem; display:flex; align-items:center; gap:.5rem;
+}
+.panel-head span { font-size:.82rem; font-weight:700; color:#1E2D40; }
+.panel-head i    { color:#4A7A9B; }
+
+.table thead th {
+    font-size:.7rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.5px; color:#4a6278;
+    background:#d6e8f2 !important; border-bottom:2px solid #ccdde8 !important;
+    padding:.72rem 1rem;
+}
+.table td { vertical-align:middle; font-size:.86rem; color:#1E2D40; border-color:#e4eff5 !important; padding:.8rem 1rem; }
+.table tbody tr:hover { background:rgba(74,122,155,.05) !important; }
+
+.row-num { font-weight:700; color:#8AB4C8; font-size:.82rem; }
+.amt     { font-weight:800; color:#1E2D40; }
+
+/* ── Gateway pill ── */
+.gw-pill {
+    display:inline-block; background:#ddeaf3; color:#1E2D40;
+    font-size:.7rem; font-weight:700; padding:.18rem .65rem;
+    border-radius:20px; border:1px solid #ccdde8; text-transform:capitalize;
+}
+
+/* ── Status pills ── */
+.sp { border-radius:20px; font-size:.68rem; font-weight:700; padding:.22rem .75rem; display:inline-flex; align-items:center; gap:.28rem; }
+.sp-success { background:#d6f0e4; color:#2d8a5e; }
+.sp-pending { background:#fef3dc; color:#c47c1a; }
+.sp-failed  { background:#fde8e6; color:#c0392b; }
+
+/* ── Empty state ── */
+.empty-state { text-align:center; padding:3.5rem 1rem; }
+.empty-state i { font-size:2.8rem; color:#8AB4C8; display:block; margin-bottom:.8rem; }
+.empty-state p { color:#4a6278; font-size:.85rem; margin:0; }
+</style>
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">
+            <i class="bi bi-credit-card me-2" style="color:#4A7A9B;"></i>My Payments
         </div>
+        <p class="page-sub">Complete history of all your payments</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'user:payment_success' %}" class="btn-filter-success">
+            <i class="bi bi-check-circle-fill"></i> Successful
+        </a>
+        <a href="{% url 'user:payment_failed' %}" class="btn-filter-failed">
+            <i class="bi bi-x-circle-fill"></i> Failed
+        </a>
+    </div>
+</div>
 
-        <div class="d-flex gap-2">
-            <a href="{% url 'user:payment_success' %}" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-check-circle"></i> Successful
-            </a>
-            <a href="{% url 'user:payment_failed' %}" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-x-circle"></i> Failed
-            </a>
+<!-- Summary stat cards -->
+{% if payments %}
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="stat-card sc-total">
+            <div class="stat-icon" style="background:#ddeaf3;">
+                <i class="bi bi-receipt" style="color:#4A7A9B;"></i>
+            </div>
+            <div>
+                <div class="stat-val">{{ payments|length }}</div>
+                <div class="stat-lbl">Total</div>
+            </div>
         </div>
     </div>
-
-    <!-- Payments Table -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-light">
-            <h6 class="mb-0">
-                <i class="bi bi-receipt me-2"></i> Payment Records
-            </h6>
-        </div>
-
-        <div class="card-body p-0">
-            {% if payments %}
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Related</th>
-                            <th>Amount</th>
-                            <th>Gateway</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for payment in payments %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>
-                                {% if payment.related %}
-                                    {{ payment.related.title }}
-                                {% elif payment.raw.booking %}
-                                    Booking — {{ payment.raw.booking.store.store_name }}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </td>
-                            <td class="fw-semibold">₹{{ payment.amount }}</td>
-                            <td>{{ payment.gateway|default:'—' }}</td>
-                            <td>
-                                {% if payment.status == 'succeeded' or payment.status == 'success' or payment.status == 'completed' %}
-                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Successful</span>
-                                {% elif payment.status == 'failed' %}
-                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Failed</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if payment.when %}
-                                    {{ payment.when|date:"d M Y, h:i A" }}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="col-6 col-md-3">
+        <div class="stat-card sc-success">
+            <div class="stat-icon" style="background:#d6f0e4;">
+                <i class="bi bi-check-circle-fill" style="color:#2d8a5e;"></i>
             </div>
-            {% else %}
-            <div class="text-center p-5">
-                <i class="bi bi-credit-card text-muted fs-1"></i>
-                <p class="mt-3 mb-0 text-muted">
-                    No payments found.
-                </p>
+            <div>
+                <div class="stat-val" style="color:#2d8a5e;">
+                    {{ payments|length }}
+                </div>
+                <div class="stat-lbl">Successful</div>
             </div>
-            {% endif %}
         </div>
     </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card sc-pending">
+            <div class="stat-icon" style="background:#fef3dc;">
+                <i class="bi bi-hourglass-split" style="color:#c47c1a;"></i>
+            </div>
+            <div>
+                <div class="stat-val" style="color:#c47c1a;">—</div>
+                <div class="stat-lbl">Pending</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card sc-failed">
+            <div class="stat-icon" style="background:#fde8e6;">
+                <i class="bi bi-x-circle-fill" style="color:#c0392b;"></i>
+            </div>
+            <div>
+                <div class="stat-val" style="color:#c0392b;">—</div>
+                <div class="stat-lbl">Failed</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
+<!-- Table panel -->
+<div class="table-panel">
+    <div class="panel-head">
+        <i class="bi bi-receipt"></i>
+        <span>Payment Records</span>
+    </div>
+    {% if payments %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Related</th>
+                    <th>Amount</th>
+                    <th>Gateway</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr>
+                    <td class="ps-3"><span class="row-num">{{ forloop.counter }}</span></td>
+                    <td>
+                        {% if payment.related %}
+                            <span style="font-weight:700;">{{ payment.related.title }}</span>
+                        {% elif payment.raw.booking %}
+                            <span style="font-weight:700;">{{ payment.raw.booking.store.store_name }}</span>
+                            <div style="font-size:.73rem;color:#4a6278;">Booking</div>
+                        {% else %}
+                            <span style="color:#8AB4C8;">—</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="amt">₹{{ payment.amount }}</span></td>
+                    <td>
+                        {% if payment.gateway %}
+                            <span class="gw-pill">{{ payment.gateway }}</span>
+                        {% else %}
+                            <span style="color:#8AB4C8;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if payment.status == 'succeeded' or payment.status == 'success' or payment.status == 'completed' %}
+                            <span class="sp sp-success"><i class="bi bi-check-circle-fill"></i>Successful</span>
+                        {% elif payment.status == 'failed' %}
+                            <span class="sp sp-failed"><i class="bi bi-x-circle-fill"></i>Failed</span>
+                        {% else %}
+                            <span class="sp sp-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:.82rem;color:#4a6278;">
+                        {% if payment.when %}
+                            <i class="bi bi-calendar me-1" style="color:#ccdde8;"></i>{{ payment.when|date:"d M Y, h:i A" }}
+                        {% else %}
+                            <span style="color:#8AB4C8;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-credit-card"></i>
+        <p>No payment records found.</p>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

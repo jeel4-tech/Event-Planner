@@ -2,50 +2,110 @@
 {% block title %}Earnings{% endblock %}
 
 {% block content %}
+<style>
+    /* ── Summary cards ── */
+    .earn-stat {
+        background: #eef5f9;
+        border: 1.5px solid #ccdde8;
+        border-radius: 14px;
+        padding: 1.4rem 1.5rem;
+        display: flex; align-items: center; gap: 1.1rem;
+        transition: all .22s;
+        position: relative; overflow: hidden;
+    }
+    .earn-stat::before {
+        content: '';
+        position: absolute; top: 0; left: 0;
+        width: 4px; height: 100%;
+        border-radius: 14px 0 0 14px;
+    }
+    .earn-stat.earned::before  { background: linear-gradient(180deg, #2d8a5e, #5cb88a); }
+    .earn-stat.pending::before { background: linear-gradient(180deg, #4A7A9B, #8AB4C8); }
+    .earn-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(30,45,64,.1); border-color: #8AB4C8; }
 
+    .earn-stat-icon {
+        width: 52px; height: 52px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
+    }
+    .earn-stat-icon.earned  { background: #d6f0e4; color: #2d8a5e; }
+    .earn-stat-icon.pending { background: #ddeaf3; color: #4A7A9B; }
+
+    .earn-stat-label { font-size: .8rem; font-weight: 600; color: #4a6278; text-transform: uppercase; letter-spacing: .4px; margin-bottom: .25rem; }
+    .earn-stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1; margin-bottom: .2rem; }
+    .earn-stat-value.earned  { color: #2d8a5e; }
+    .earn-stat-value.pending { color: #4A7A9B; }
+    .earn-stat-sub { font-size: .78rem; color: #4a6278; }
+
+    /* ── Filter buttons ── */
+    a.filter-btn, a.filter-btn:visited {
+        display: inline-block; border-radius: 8px;
+        font-size: .82rem; font-weight: 600; padding: .38rem 1rem;
+        border: 1.5px solid #4A7A9B; color: #4A7A9B;
+        background: transparent; text-decoration: none; transition: all .2s; line-height: 1.5;
+    }
+    a.filter-btn.active, a.filter-btn:hover {
+        background: #4A7A9B; color: #fff; border-color: #4A7A9B; text-decoration: none;
+    }
+
+    /* ── Table ── */
+    .table thead th {
+        font-size: .75rem; letter-spacing: .5px; text-transform: uppercase;
+        color: #4a6278; background: #d6e8f2;
+        border-bottom: 2px solid #ccdde8 !important;
+    }
+    .table td { vertical-align: middle; font-size: .9rem; color: #1E2D40; border-color: #e4eff5 !important; }
+    .table tbody tr:hover { background: rgba(74,122,155,.05) !important; }
+
+    /* ── Status badges ── */
+    span.earn-badge { border-radius: 20px; font-size: .72rem; font-weight: 700; padding: .28rem .85rem; letter-spacing: .3px; display: inline-block; }
+    span.earn-badge-success { background: #d6f0e4 !important; color: #2d8a5e !important; }
+    span.earn-badge-pending { background: #ddeaf3 !important; color: #4A7A9B !important; }
+    span.earn-badge-failed  { background: #fde8e6 !important; color: #c0392b !important; }
+
+    /* ── Section header ── */
+    .section-title { font-size: 1.3rem; font-weight: 700; color: #1E2D40; margin-bottom: .2rem; }
+    .section-sub   { font-size: .88rem; color: #4a6278; }
+</style>
+
+<!-- Summary cards -->
 <div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="card-box">
-            <div class="d-flex align-items-center mb-3">
-                <div class="stat-card-icon success me-3">
-                    <i class="bi bi-cash-stack"></i>
-                </div>
-                <div>
-                    <h6 class="text-muted mb-1">Total Earned</h6>
-                    <h2 class="text-success mb-0">₹{{ total_earned|floatformat:2 }}</h2>
-                    <small class="text-muted">Successfully paid earnings</small>
-                </div>
+        <div class="earn-stat earned">
+            <div class="earn-stat-icon earned"><i class="bi bi-cash-stack"></i></div>
+            <div>
+                <div class="earn-stat-label">Total Earned</div>
+                <div class="earn-stat-value earned">₹{{ total_earned|floatformat:2 }}</div>
+                <div class="earn-stat-sub">Successfully paid earnings</div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card-box">
-            <div class="d-flex align-items-center mb-3">
-                <div class="stat-card-icon warning me-3">
-                    <i class="bi bi-hourglass-split"></i>
-                </div>
-                <div>
-                    <h6 class="text-muted mb-1">Pending Earnings</h6>
-                    <h2 class="text-warning mb-0">₹{{ pending_amount|floatformat:2 }}</h2>
-                    <small class="text-muted">Awaiting payment</small>
-                </div>
+        <div class="earn-stat pending">
+            <div class="earn-stat-icon pending"><i class="bi bi-hourglass-split"></i></div>
+            <div>
+                <div class="earn-stat-label">Pending Earnings</div>
+                <div class="earn-stat-value pending">₹{{ pending_amount|floatformat:2 }}</div>
+                <div class="earn-stat-sub">Awaiting payment</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- History header + filters -->
+<div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h3 class="mb-1">Earnings History</h3>
-        <p class="text-muted mb-0">Track your revenue and commissions</p>
+        <div class="section-title">Earnings History</div>
+        <div class="section-sub">Track your revenue and commissions</div>
     </div>
-    <div class="btn-group" role="group">
-        <a href="{% url 'vendor_earnings' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">All</a>
-        <a href="{% url 'vendor_earnings' %}?status=success" class="btn btn-outline-success {% if status_filter == 'success' %}active{% endif %}">Paid</a>
-        <a href="{% url 'vendor_earnings' %}?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'vendor_earnings' %}" class="filter-btn {% if not status_filter %}active{% endif %}">All</a>
+        <a href="{% url 'vendor_earnings' %}?status=success" class="filter-btn {% if status_filter == 'success' %}active{% endif %}">Paid</a>
+        <a href="{% url 'vendor_earnings' %}?status=pending" class="filter-btn {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
     </div>
 </div>
 
+<!-- Table -->
 <div class="card-box">
     {% if earnings %}
     <div class="table-responsive">
@@ -67,21 +127,23 @@
                     <td>{{ earning.created_at|date:"M d, Y" }}</td>
                     <td>
                         <strong>{{ earning.booking.event.title }}</strong><br>
-                        <small class="text-muted">{{ earning.booking.customer.fullname }}</small>
+                        <small style="color:#4a6278;">{{ earning.booking.customer.fullname }}</small>
                     </td>
                     <td>{{ earning.booking.store.store_name }}</td>
                     <td>₹{{ earning.amount|floatformat:2 }}</td>
                     <td>
-                        {{ earning.commission_rate }}%<br>
-                        <small class="text-muted">
-                            (₹{{ earning.commission_amount|floatformat:2 }})
-                        </small>
+                        <span style="color:#4A7A9B; font-weight:600;">{{ earning.commission_rate }}%</span><br>
+                        <small style="color:#4a6278;">(₹{{ earning.commission_amount|floatformat:2 }})</small>
                     </td>
-                    <td><strong class="text-success">₹{{ earning.net_amount|floatformat:2 }}</strong></td>
+                    <td><strong style="color:#2d8a5e;">₹{{ earning.net_amount|floatformat:2 }}</strong></td>
                     <td>
-                        <span class="badge bg-{% if earning.payment_status == 'success' %}success{% elif earning.payment_status == 'pending' %}warning{% else %}danger{% endif %}">
-                            {{ earning.get_payment_status_display }}
-                        </span>
+                        {% if earning.payment_status == 'success' %}
+                            <span class="earn-badge earn-badge-success">Paid</span>
+                        {% elif earning.payment_status == 'pending' %}
+                            <span class="earn-badge earn-badge-pending">Pending</span>
+                        {% else %}
+                            <span class="earn-badge earn-badge-failed">{{ earning.get_payment_status_display }}</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -90,9 +152,9 @@
     </div>
     {% else %}
     <div class="text-center py-5">
-        <i class="bi bi-inbox fs-1 text-muted"></i>
-        <h5 class="text-muted mt-3">No earnings records found</h5>
-        <p class="text-muted">Earnings will appear here once bookings are completed.</p>
+        <i class="bi bi-inbox fs-1" style="color:#8AB4C8;"></i>
+        <h5 style="color:#1E2D40; margin-top:1rem;">No earnings records found</h5>
+        <p style="color:#4a6278;">Earnings will appear here once bookings are completed.</p>
     </div>
     {% endif %}
 </div>

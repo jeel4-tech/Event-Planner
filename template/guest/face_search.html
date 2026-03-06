@@ -6,6 +6,7 @@
 /* ── Page ── */
 .page-back { font-size:.82rem; color:#4a6278; text-decoration:none; display:inline-flex; align-items:center; gap:.35rem; margin-bottom:.6rem; }
 .page-back:hover { color:#1E2D40; }
+.btn-view-event-photos:hover { background: rgba(224, 242, 254, 0.5); border-color: #4A7A9B; color: #4A7A9B; transition: background 0.2s; }
 
 /* ── Method picker ── */
 .method-picker { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
@@ -169,7 +170,7 @@
     Choose how you want to identify yourself in photos from <strong>{{ event.title }}</strong>
 </p>
 <p class="mb-4">
-    <a href="{% url 'guest_dashboard' %}#event-photos" class="btn btn-outline-primary btn-sm" style="border-color:#4A7A9B;color:#4A7A9B;font-weight:600;">
+    <a href="{% url 'guest_dashboard' %}#event-photos" class="btn btn-outline-primary btn-sm btn-view-event-photos" style="border-color:#4A7A9B;color:#4A7A9B;font-weight:600;">
         <i class="bi bi-images me-1"></i>View all event photos
     </a>
     <span class="text-muted small ms-2">or scan/upload below to find photos of you</span>

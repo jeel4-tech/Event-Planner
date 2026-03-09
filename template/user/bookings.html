@@ -190,7 +190,22 @@ button.btn-chat-dis {
                         <a href="{% url 'user:store_detail' booking.store.id %}" class="store-link">{{ booking.store.store_name }}</a>
                         <div style="font-size:.75rem;color:#4a6278;">{{ booking.vendor.fullname }}</div>
                     </td>
-                    <td style="font-weight:600;">{{ booking.event.title }}</td>
+                        <td style="font-weight:600;">
+                            {{ booking.event.title }}
+                            <div class="small text-muted mt-1">
+                                <!-- Debug: show event date, booking created and halfway cutoff -->
+                                {% if booking.event_dt %}
+                                    <div>Event: {{ booking.event_dt|date:"d M Y, h:i A" }}</div>
+                                {% endif %}
+                                {% if booking.created_at %}
+                                    <div>Created: {{ booking.created_at|date:"d M Y, h:i A" }}</div>
+                                {% endif %}
+                                {% if booking.halfway_dt %}
+                                    <div>Cancel until: {{ booking.halfway_dt|date:"d M Y, h:i A" }}</div>
+                                {% endif %}
+                                <div>Status: {% if booking.cancellable %}<span class="text-success">Cancellable</span>{% else %}<span class="text-warning">Not cancellable</span>{% endif %}</div>
+                            </div>
+                        </td>
                     <td style="color:#4a6278;">{% if booking.service %}{{ booking.service.name }}{% else %}—{% endif %}</td>
                     <td style="font-weight:800;">₹{{ booking.amount }}</td>
                     <td>
@@ -233,15 +248,15 @@ button.btn-chat-dis {
                     <td>
                         <div class="amt-paid">₹{{ booking.advance_paid|default:0 }}</div>
                         <div style="font-size:.72rem;color:#4a6278;">of ₹{{ booking.amount }}</div>
-                        {% if booking.amount_remaining > 0 %}
-                            <div class="amt-remain"><i class="bi bi-exclamation-circle"></i>₹{{ booking.amount_remaining }} left</div>
+                        {% if booking.display_amount_remaining > 0 %}
+                            <div class="amt-remain"><i class="bi bi-exclamation-circle"></i>₹{{ booking.display_amount_remaining }} left</div>
                         {% else %}
                             <div class="amt-full"><i class="bi bi-check-circle-fill"></i>Fully Paid</div>
                         {% endif %}
                     </td>
                     <td class="text-center">
                         <div class="d-flex gap-1 justify-content-center align-items-center flex-nowrap">
-                            {% if booking.status == 'pending' %}
+                            {% if booking.cancellable %}
                             <form method="post" action="{% url 'user:user_bookings' %}" class="d-inline"
                                   onsubmit="return confirm('Cancel this booking?');">
                                 {% csrf_token %}
@@ -254,7 +269,7 @@ button.btn-chat-dis {
                             {% endif %}
 
                             {% if booking.status != 'cancelled' and booking.status != 'completed' %}
-                                {% if booking.amount_remaining > 0 %}
+                                {% if booking.display_amount_remaining > 0 %}
                                 <a href="{% url 'user:pay_booking' booking.id %}" class="btn-pay" title="Pay Now">
                                     <i class="bi bi-credit-card"></i> Pay
                                 </a>

@@ -6,10 +6,11 @@ from django.utils import timezone
 from datetime import timedelta
 from account.models import User
 from vendor.models import (
-    Store, Service, Booking, Chat, ChatMessage,GalleryImage
+    Store, Service, Booking, Chat, ChatMessage, GalleryImage, VendorEarning
 )
 
 from vendor.models import AdvancePayment
+from django.db.models import Sum
 from django.conf import settings
 from django.db import transaction
 from account.models import Token
@@ -660,12 +661,62 @@ def user_bookings(request):
         if action == 'cancel':
             try:
                 b = bookings.get(id=booking_id)
-                if b.status == Booking.STATUS_PENDING:
+                # Determine cancellable window: halfway between booking creation and event date
+                event_dt = None
+                try:
+                    event_dt = b.event.date if getattr(b, 'event', None) and getattr(b.event, 'date', None) else b.booking_date
+                except Exception:
+                    event_dt = b.booking_date
+
+                now = timezone.now()
+                cancellable = False
+                # Allow cancellation for pending or confirmed bookings within the halfway window
+                if b.status in (Booking.STATUS_PENDING, Booking.STATUS_CONFIRMED):
+                    if event_dt:
+                        try:
+                            halfway = b.created_at + (event_dt - b.created_at) / 2
+                            cancellable = now <= halfway
+                        except Exception:
+                            # if arithmetic fails, fallback to allowing cancellation for pending bookings
+                            cancellable = True
+                    else:
+                        # No event date available — allow cancellation for pending/confirmed bookings
+                        cancellable = True
+
+                if cancellable:
+                    # User chose to cancel — per policy, token/advance is kept by vendor.
                     b.status = Booking.STATUS_CANCELLED
+                    now_dt = timezone.now()
+                    # Determine amount to be retained by vendor: sum of succeeded AdvancePayments
+                    try:
+                        kept_total = b.advance_payments.filter(status=AdvancePayment.STATUS_SUCCEEDED).aggregate(total=Sum('amount'))['total']
+                        if kept_total is None:
+                            kept_total = (b.advance_paid or Decimal('0'))
+                    except Exception:
+                        kept_total = (b.advance_paid or Decimal('0'))
+
+                    # Create VendorEarning record to reflect retained token (if amount > 0)
+                    try:
+                        if kept_total and Decimal(str(kept_total)) > Decimal('0'):
+                            # ensure not to duplicate an earning for this booking
+                            VendorEarning.objects.get_or_create(
+                                vendor=b.vendor,
+                                booking=b,
+                                defaults={
+                                    'amount': Decimal(str(kept_total)),
+                                    'commission_rate': Decimal('0.00'),
+                                    'net_amount': Decimal(str(kept_total)),
+                                    'payment_status': Payment.STATUS_SUCCESS,
+                                    'paid_at': now_dt
+                                }
+                            )
+                    except Exception:
+                        logger.exception('Failed to create VendorEarning for cancellation')
+
                     b.save()
-                    messages.success(request, 'Booking cancelled.')
+                    messages.success(request, 'Booking cancelled. Token retained by vendor; remaining balance set to ₹0.')
                 else:
-                    messages.error(request, 'Only pending bookings can be cancelled.')
+                    messages.error(request, 'Cancellation window has passed for this booking.')
             except Booking.DoesNotExist:
                 messages.error(request, 'Booking not found.')
         return redirect('user:user_bookings')
@@ -676,6 +727,41 @@ def user_bookings(request):
         paid = b.advance_paid or Decimal('0')
         total = b.amount or Decimal('0')
         b.amount_remaining = max(total - paid, Decimal('0'))
+        # compute whether this booking can be cancelled (halfway rule)
+        event_dt = None
+        try:
+            event_dt = b.event.date if getattr(b, 'event', None) and getattr(b.event, 'date', None) else b.booking_date
+        except Exception:
+            event_dt = b.booking_date
+        now = timezone.now()
+        b.cancellable = False
+        # Allow cancellation for pending or confirmed bookings within the halfway window
+        if b.status in (Booking.STATUS_PENDING, Booking.STATUS_CONFIRMED):
+            if event_dt:
+                try:
+                    halfway = b.created_at + (event_dt - b.created_at) / 2
+                    b.cancellable = now <= halfway
+                except Exception:
+                    b.cancellable = True
+            else:
+                b.cancellable = True
+        # expose event and halfway datetimes for debugging/UI display
+        try:
+            b.event_dt = event_dt
+        except Exception:
+            b.event_dt = None
+        try:
+            b.halfway_dt = halfway if 'halfway' in locals() else None
+        except Exception:
+            b.halfway_dt = None
+        # Display remaining amount: for cancelled bookings under keep-policy show 0
+        try:
+            if b.status == Booking.STATUS_CANCELLED:
+                b.display_amount_remaining = Decimal('0')
+            else:
+                b.display_amount_remaining = b.amount_remaining
+        except Exception:
+            b.display_amount_remaining = b.amount_remaining
 
     return render(request, 'user/bookings.html', {
         'bookings': bookings,

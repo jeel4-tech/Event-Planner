@@ -36,6 +36,18 @@ body {
     line-height: 1.6;
 }
 
+/* Remove default browser whitespace at top */
+html, body { margin: 0; padding: 0; height: 100%; }
+
+.container-fluid { padding-top: 0; }
+
+/* Force header flush to top to remove stray white bar */
+.container-fluid, .row, .dashboard-header {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.dashboard-header { background: var(--bg-primary) !important; padding: 1.5rem 2rem !important; border-bottom: 1px solid var(--border) !important; }
+
 .sidebar-container {
     min-height: 100vh;
     background: var(--bg-primary);

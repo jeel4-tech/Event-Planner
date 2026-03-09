@@ -694,9 +694,12 @@ def pay_booking(request, booking_id):
     except Booking.DoesNotExist:
         raise Http404('Booking not found')
 
+    # Amounts: advance due (deposit) and remaining balance for the booking
     advance_due = (booking.advance_required or Decimal('0')) - (booking.advance_paid or Decimal('0'))
-    if advance_due <= 0:
-        messages.info(request, 'No advance due for this booking.')
+    amount_remaining = (booking.amount or Decimal('0')) - (booking.advance_paid or Decimal('0'))
+    # If nothing left to pay, redirect
+    if amount_remaining <= 0:
+        messages.info(request, 'No amount due for this booking.')
         return redirect('user:user_bookings')
 
     if request.method == 'POST':
@@ -709,9 +712,8 @@ def pay_booking(request, booking_id):
                 except Exception:
                     messages.error(request, 'Payment gateway not configured (razorpay library missing).')
                     return redirect('user:pay_booking', booking_id=booking.id)
-
                 client = razorpay.Client(auth=(getattr(settings, 'RAZORPAY_KEY_ID', ''), getattr(settings, 'RAZORPAY_KEY_SECRET', '')))
-                # amount in paise
+                # amount in paise (advance due)
                 amount_paise = int((advance_due * Decimal('100')).quantize(Decimal('1')))
                 try:
                     order = client.order.create({'amount': amount_paise, 'currency': 'INR', 'receipt': f'booking_{booking.id}_advance', 'payment_capture': 1})
@@ -748,8 +750,9 @@ def pay_booking(request, booking_id):
                     return redirect('user:pay_booking', booking_id=booking.id)
 
                 client = razorpay.Client(auth=(getattr(settings, 'RAZORPAY_KEY_ID', ''), getattr(settings, 'RAZORPAY_KEY_SECRET', '')))
-                # amount in paise
-                amount_paise = int((booking.amount * Decimal('100')).quantize(Decimal('1')))
+                # amount in paise — charge remaining balance, not full original amount
+                amount_to_charge = amount_remaining
+                amount_paise = int((amount_to_charge * Decimal('100')).quantize(Decimal('1')))
                 try:
                     order = client.order.create({'amount': amount_paise, 'currency': 'INR', 'receipt': f'booking_{booking.id}', 'payment_capture': 1})
                 except Exception:
@@ -761,7 +764,7 @@ def pay_booking(request, booking_id):
                 ap = AdvancePayment.objects.create(
                     booking=booking,
                     user=user,
-                    amount=booking.amount,
+                    amount=amount_to_charge,
                     currency='INR',
                     status=AdvancePayment.STATUS_PENDING,
                     gateway='razorpay',
@@ -773,6 +776,7 @@ def pay_booking(request, booking_id):
                     'order_id': order.get('id'),
                     'amount_paise': amount_paise,
                     'booking': booking,
+                    'display_amount': str(amount_to_charge),
                 })
 
             else:

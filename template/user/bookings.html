@@ -254,7 +254,7 @@ button.btn-chat-dis {
                             {% endif %}
 
                             {% if booking.status != 'cancelled' and booking.status != 'completed' %}
-                                {% if booking.advance_required and booking.advance_paid < booking.advance_required %}
+                                {% if booking.amount_remaining > 0 %}
                                 <a href="{% url 'user:pay_booking' booking.id %}" class="btn-pay" title="Pay Now">
                                     <i class="bi bi-credit-card"></i> Pay
                                 </a>

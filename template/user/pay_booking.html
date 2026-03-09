@@ -17,10 +17,12 @@
                         <input class="form-check-input" type="radio" name="method" id="method_full" value="full" checked>
                         <label class="form-check-label" for="method_full">Pay full amount (online)</label>
                     </div>
+                    {% if advance_due and advance_due > 0 %}
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="method" id="method_advance" value="advance">
                         <label class="form-check-label" for="method_advance">Pay token amount (advance only)</label>
                     </div>
+                    {% endif %}
                 </div>
                 <button class="btn btn-primary" type="submit">Pay</button>
                 <a href="{% url 'user:user_bookings' %}" class="btn btn-secondary">Cancel</a>

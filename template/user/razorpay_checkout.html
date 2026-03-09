@@ -38,16 +38,15 @@
             }).then(function(resp){
                 return resp.json().catch(function(){ return { success: false }; });
             }).then(function(data){
-                // Redirect to payments page regardless; server will have updated status when verification succeeds.
-                if(data && data.success){
-                    window.location.href = "{% url 'user:booking_payments' booking.id %}";
-                } else {
-                    alert('Payment recorded; verification pending. Checking payments page now.');
-                    window.location.href = "{% url 'user:booking_payments' booking.id %}";
-                }
+                // Redirect back to bookings list so user sees updated balance.
+                // The payments page can still be accessed from the bookings UI if detailed view is needed.
+                window.location.href = "{% url 'user:user_bookings' %}";
+                
+                // If you prefer to show the payments page instead, change the URL above to
+                // `{% url 'user:booking_payments' booking.id %}`.
             }).catch(function(err){
                 console.error('error posting payment to server', err);
-                window.location.href = "{% url 'user:booking_payments' booking.id %}";
+                window.location.href = "{% url 'user:user_bookings' %}";
             });
         },
         "prefill": {

@@ -9,12 +9,11 @@ from account.models import User
 from user.models import Event, Payment, Review, Notification, EventGuestAccess
 from vendor.models import (
     Store, category as Category, Service, Booking, VendorEarning, StoreImage,
-    Chat, ChatMessage, GalleryImage, GuestSelfie
+    Chat, ChatMessage, GalleryImage
 )
 from decimal import Decimal
 import secrets
 import string
-import threading
 
 def vendor_required(view_func):
     """Decorator to check if user is a vendor"""
@@ -505,10 +504,9 @@ def vendor_chat(request):
     vendor_id = request.session.get('user_id')
     vendor = User.objects.get(id=vendor_id)
 
-    # Include both user and guest chats
-    chats = Chat.objects.filter(vendor_id=vendor_id).select_related(
-        'user', 'store', 'guest_access', 'guest_access__event'
-    ).annotate(unread_count=Count('messages', filter=Q(messages__is_read=False)))
+    # Annotate unread counts
+    chats = Chat.objects.filter(vendor_id=vendor_id).select_related('user', 'store')
+    chats = chats.annotate(unread_count=Count('messages', filter=Q(messages__is_read=False)))
 
     return render(request, 'vendor/chat.html', {
         'chats': chats,
@@ -568,32 +566,22 @@ def vendor_chat_detail(request, chat_id):
                 message=message_text or '',
                 image=image
             )
-            # Notify user (for user chats) or guest (for guest chats) about new vendor message
+            # Notify user about new vendor message
             try:
-                if chat.user_id:
-                    Notification.objects.create(
-                        user=chat.user,
-                        title='New Message',
-                        message=f'New message from {vendor.fullname}.',
-                        is_read=False,
-                    )
-                elif chat.guest_access_id:
-                    from user.models import GuestNotification
-                    GuestNotification.objects.create(
-                        guest_access=chat.guest_access,
-                        notification_type='other',
-                        title='New Message',
-                        message=f'New message from {vendor.fullname}.',
-                        is_read=False,
-                    )
+                Notification.objects.create(
+                    user=chat.user,
+                    title='New Message',
+                    message=f'New message from {vendor.fullname}.',
+                    is_read=False,
+                )
             except Exception:
                 pass
         return redirect('vendor_chat_detail', chat.id)
 
-    # Mark other party's unread messages as read (not vendor's)
+    # Mark other user's unread messages as read
     chat.messages.filter(is_read=False).exclude(sender_id=vendor_id).update(is_read=True)
 
-    messages_qs = chat.messages.select_related('sender', 'guest_sender', 'guest_sender__event').all()
+    messages_qs = chat.messages.select_related('sender').all()
 
     return render(request, 'vendor/chat_detail.html', {
         'chat': chat,
@@ -958,46 +946,9 @@ def event_photos_detail(request, event_id):
         action = request.POST.get('action')
         if action == 'upload':
             files = request.FILES.getlist('images')
-            new_images = []
             for f in files:
-                img = GalleryImage.objects.create(event=event, vendor=vendor, image=f)
-                new_images.append(img)
-
-            # Generate face embeddings in a background thread so the upload
-            # response is not blocked by the (slow) DeepFace model inference.
-            def _generate_embeddings(image_list):
-                from vendor.deepface_utils import generate_embedding_for_gallery_image
-                for gallery_img in image_list:
-                    try:
-                        generate_embedding_for_gallery_image(gallery_img)
-                    except Exception:
-                        pass
-
-            t = threading.Thread(target=_generate_embeddings, args=(new_images,), daemon=True)
-            t.start()
-
-            # Notify all guests of this event about new photos
-            from user.models import GuestNotification, GuestNotificationPreference
-            guest_accesses = EventGuestAccess.objects.filter(event=event, is_active=True)
-            count = len(files)
-            photo_word = 'photo' if count == 1 else 'photos'
-            title = f'New {photo_word} added to {event.title}'
-            message = f'The photographer has uploaded {count} new {photo_word} from the event. Check out the gallery!'
-            for access in guest_accesses:
-                try:
-                    pref = access.notification_preference
-                    notify = pref.notify_new_photos
-                except GuestNotificationPreference.DoesNotExist:
-                    notify = True  # default on when no preference set
-                if notify:
-                    GuestNotification.objects.create(
-                        guest_access=access,
-                        title=title,
-                        message=message,
-                        notification_type='new_photos',
-                    )
-
-            messages.success(request, f'{len(files)} photo(s) uploaded successfully! Face indexing is running in the background.')
+                GalleryImage.objects.create(event=event, vendor=vendor, image=f)
+            messages.success(request, f'{len(files)} photo(s) uploaded successfully!')
             return redirect('event_photos_detail', event_id=event_id)
 
         elif action == 'delete':
@@ -1039,88 +990,4 @@ def stores_list(request):
     stores = Store.objects.filter(status=True).select_related('vendor', 'category').order_by('store_name')
     return render(request, 'user/stores_list.html', {
         'stores': stores,
-    })
-
-
-# ── Face Search (Guest) ───────────────────────────────────────────────────────
-
-def guest_face_search(request):
-    """
-    Guest uploads a selfie; we extract its ArcFace embedding and compare it
-    against all photographer-uploaded GalleryImages for the guest's event.
-
-    Session key 'guest_access_id' must be present (set during guest login).
-    """
-    from user.models import EventGuestAccess
-
-    access_id = request.session.get('guest_access_id')
-    if not access_id:
-        messages.error(request, 'Please login to use this feature.')
-        return redirect('login')
-
-    try:
-        access = EventGuestAccess.objects.select_related('event').get(id=access_id, is_active=True)
-    except EventGuestAccess.DoesNotExist:
-        messages.error(request, 'Your access has been revoked or expired.')
-        request.session.flush()
-        return redirect('login')
-
-    event = access.event
-    matched_photos = None
-    selfie_url = None
-    search_done = False
-    error_msg = None
-
-    if request.method == 'POST':
-        selfie_file = request.FILES.get('selfie')
-        if not selfie_file:
-            messages.error(request, 'Please upload a selfie image.')
-            return redirect('guest_face_search')
-
-        # Persist the selfie so DeepFace can read it from disk
-        selfie_obj = GuestSelfie.objects.create(
-            event=event,
-            guest_access=access,
-            image=selfie_file,
-        )
-        selfie_url = selfie_obj.image.url
-
-        try:
-            from vendor.deepface_utils import extract_embedding, find_matching_gallery_images
-
-            selfie_embedding = extract_embedding(selfie_obj.image.path)
-
-            if selfie_embedding is None:
-                error_msg = 'No face detected in your selfie. Please upload a clear, front-facing photo.'
-            else:
-                selfie_obj.face_embedding = selfie_embedding
-                selfie_obj.save(update_fields=['face_embedding'])
-
-                gallery_qs = GalleryImage.objects.filter(
-                    event=event,
-                    uploaded_by_guest=False,
-                )
-                matched_photos = find_matching_gallery_images(selfie_embedding, gallery_qs)
-                search_done = True
-
-        except ImportError:
-            error_msg = 'Face recognition service is temporarily unavailable. Please try again later.'
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).error("Face search error: %s", exc)
-            error_msg = 'An error occurred during face recognition. Please try again.'
-
-    # Embedding status summary for the progress indicator
-    total_photos = GalleryImage.objects.filter(event=event, uploaded_by_guest=False).count()
-    indexed_photos = GalleryImage.objects.filter(event=event, uploaded_by_guest=False, embedding_status='done').count()
-
-    return render(request, 'guest/face_search.html', {
-        'event': event,
-        'access': access,
-        'matched_photos': matched_photos,
-        'selfie_url': selfie_url,
-        'search_done': search_done,
-        'error_msg': error_msg,
-        'total_photos': total_photos,
-        'indexed_photos': indexed_photos,
     })

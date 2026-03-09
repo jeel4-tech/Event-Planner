@@ -39,14 +39,14 @@ body {
 /* Remove default browser whitespace at top */
 html, body { margin: 0; padding: 0; height: 100%; }
 
-.container-fluid { padding-top: 0; }
+/* Reset header positioning (header removed) */
+html { background: var(--bg-secondary); }
+body { padding-top: 0; }
+.dashboard-header { position: static; }
+.sidebar-container { top: 0; height: 100vh; }
 
-/* Force header flush to top to remove stray white bar */
-.container-fluid, .row, .dashboard-header {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-.dashboard-header { background: var(--bg-primary) !important; padding: 1.5rem 2rem !important; border-bottom: 1px solid var(--border) !important; }
+/* Ensure container uses no extra top padding */
+.container-fluid { padding-top: 0; }
 
 .sidebar-container {
     min-height: 100vh;
@@ -101,6 +101,7 @@ html, body { margin: 0; padding: 0; height: 100%; }
     background: var(--bg-primary);
     padding: 1.5rem 2rem;
     border-bottom: 1px solid var(--border);
+    width: 100%;
 }
 
 .dashboard-header h2 { font-size: 1.75rem; font-weight: 700; margin: 0; }
